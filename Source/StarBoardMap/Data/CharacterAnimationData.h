@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "GameplayTagContainer.h"
 #include "CharacterAnimationData.generated.h"
 
 // 전방 선언
@@ -30,11 +31,23 @@ class STARBOARDMAP_API UCharacterAnimationData : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	// 피격 반응: 피격 타입에 따라 재생할 애니메이션 몽타주를 매핑합니다.
+	// 피격 반응: 피격 타입에 따라 재생할 애니메이션 몽타주를 매핑
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
-	TMap<EHitReactionType, TObjectPtr<UAnimMontage>> HitReactionMontages;
+	TMap<EHitReactionType, TSoftObjectPtr<UAnimMontage>> HitReactionMontages;
 
-	// 죽음 애니메이션: 캐릭터가 죽을 때 재생할 애니메이션 몽타주입니다.
+	// 죽음 애니메이션: 캐릭터가 죽을 때 재생할 애니메이션 몽타주
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
 	TSoftObjectPtr<UAnimMontage> DeathAnimationMontage;
+
+	// 스킬 시전 애니메이션: Tag에 맞는 스킬을 시전할 때 재생할 애니메이션 몽타주 (SkillPhases와 연결)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
+	TMap<FGameplayTag, TSoftObjectPtr<UAnimMontage>> SkillAnimationMontage;
+
+	// 줍기, 문열기 등 동작 시 재생할 애니메이션 몽타주 (일회성 행동)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
+	TMap<FGameplayTag, TSoftObjectPtr<UAnimMontage>> InteractionMontages;
+
+	// 잡기 포즈 : 무언갈 소유할 때 기본이 될 포즈 (지속 행동 -상하체 등 분리 후 조합됨)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
+	TMap<FGameplayTag, TSoftObjectPtr<UAnimSequence>> GripPoses;
 };

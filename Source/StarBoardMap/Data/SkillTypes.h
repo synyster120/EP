@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "NiagaraSystem.h"
+#include "GameplayTagContainer.h"
 #include "SkillTypes.generated.h"
 
 class UAnimMontage;
@@ -137,8 +138,12 @@ public:
     float ComboValidTime;
 
     // 애니메이션
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    //TSoftObjectPtr<UAnimMontage> Animation;
+
+    // 어떤 애니메이션을 쓸지"에 대한 태그 (CharacterAnimation과 연결) -> CharacterAnimation 에서 검색용
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-    TSoftObjectPtr<UAnimMontage> Animation;
+    FGameplayTag AnimationTag;
 
     // 이펙트
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
@@ -164,4 +169,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
     float DeactivationDelay = 0.5f;
     
+};
+
+// 데이터 테이블만을 위한 '래퍼' 또는 '껍데기' 구조체
+USTRUCT(BlueprintType)
+struct FSkillPhaseData_TableRow : public FTableRowBase
+{
+    GENERATED_BODY()
+
+    // 실제 데이터는 FSkillPhaseData가 모두 가지고 있습니다.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    FSkillPhaseData PhaseData;
 };
