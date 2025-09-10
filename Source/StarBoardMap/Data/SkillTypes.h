@@ -21,21 +21,25 @@ class AProjectileBase;
 UENUM(BlueprintType)
 enum class ETargetType : uint8
 {
-    None        UMETA(DisplayName = "타겟 없음"), // 타겟 없음
-    Self        UMETA(DisplayName = "자기 자신"), // 자기 자신
-    Actor       UMETA(DisplayName = "액터 지정"), // 액터 지정
-    Location    UMETA(DisplayName = "위치 지정"), // 위치 지정
-    Direction   UMETA(DisplayName = "방향 지정")  // 방향 지정
+    None        UMETA(DisplayName = "타겟 없음"),
+    Self        UMETA(DisplayName = "자기 자신"),
+    Actor       UMETA(DisplayName = "액터 지정"),
+    Location    UMETA(DisplayName = "위치 지정"),
+    Direction   UMETA(DisplayName = "방향 지정") 
 };
 
 // 스킬 범위 형태
 UENUM(BlueprintType)
 enum class ESkillRangeShape : uint8
 {
-    Box         UMETA(DisplayName = "박스 형태"),         // X=길이, Y=폭, Z=높이 
-    Sphere      UMETA(DisplayName = "구 형태"),           // X=반지름
-    Capsule     UMETA(DisplayName = "캡슐 형태"),    // X=반지름, Z=절반 높이
-    Projectile  UMETA(DisplayName = "발사체 사거리"),     // X=최대 사거리
+    // X=길이, Y=폭, Z=높이 
+    Box         UMETA(DisplayName = "박스 형태"),
+    // X=반지름
+    Sphere      UMETA(DisplayName = "구 형태"),
+    // X=반지름, Z=절반 높이
+    Capsule     UMETA(DisplayName = "캡슐 형태"),
+    // X=최대 사거리
+    Projectile  UMETA(DisplayName = "발사체 사거리"),
 };
 
 // 타겟 데이터
