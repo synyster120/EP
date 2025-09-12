@@ -3,3 +3,10 @@
 
 #include "Skills/EPSkillBase.h"
 
+void UEPSkillBase::Initialize(UEPSkillDataAsset* NewSkillDataAsset)
+{
+}
+
+void UEPSkillBase::Activate(const FEPSkillTargetData& NewTargetData)
+{
+}

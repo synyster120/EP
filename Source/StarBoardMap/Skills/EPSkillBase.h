@@ -6,6 +6,9 @@
 #include "UObject/NoExportTypes.h"
 #include "EPSkillBase.generated.h"
 
+class UEPSkillDataAsset;
+struct FEPSkillTargetData;
+
 /**
  * 
  */
@@ -14,4 +17,12 @@ class STARBOARDMAP_API UEPSkillBase : public UObject
 {
 	GENERATED_BODY()
 	
+public:
+	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
+
+	inline FName GetSkillID() { return FName(); };
+
+	void Activate(const FEPSkillTargetData& NewTargetData);
+
+	inline UEPSkillDataAsset* GetSkillData() { return; };
 };
