@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
-#include "CharacterTypes.generated.h"
+#include "EPCharacterTypes.generated.h"
 
 // 전방 선언
-class USkillBase;
+class UEPSkillDataAsset;
 
 /**
  * 
@@ -15,7 +15,7 @@ class USkillBase;
 
 // AI의 행동 상태
 UENUM(BlueprintType)
-enum class EAIState : uint8
+enum class EEPAIState : uint8
 {
 	Patrolling UMETA(DisplayName = "대기or순찰"), // 대기or순찰
 	Chasing UMETA(DisplayName = "추격"), // 추격
@@ -27,7 +27,7 @@ enum class EAIState : uint8
 
 // 기본 스탯
 USTRUCT(BlueprintType)
-struct FBaseStat : public FTableRowBase
+struct FEPBaseStat : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -46,12 +46,12 @@ public:
 
 	// 스킬 종류(Key)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TArray<TSoftObjectPtr<USkillBase>> Skills;
+	TArray<TSoftObjectPtr<UEPSkillDataAsset>> Skills;
 };
 
 // 플레이어 스탯 (기본 스탯 상속)
 USTRUCT(BlueprintType)
-struct FPlayerStat : public FBaseStat
+struct FEPPlayerStat : public FEPBaseStat
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ public:
 
 // 적 스탯 (기본 스탯 상속)
 USTRUCT(BlueprintType)
-struct FEnemyStat : public FBaseStat
+struct FEPEnemyStat : public FEPBaseStat
 {
 	GENERATED_BODY()
 

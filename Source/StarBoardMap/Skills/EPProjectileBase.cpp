@@ -1,15 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Skills/ProjectileBase.h"
+#include "Skills/EPProjectileBase.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Data/SkillTypes.h" 
+#include "Data/EPSkillTypes.h" 
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/StaticMeshComponent.h"
 
-AProjectileBase::AProjectileBase()
+AEPProjectileBase::AEPProjectileBase()
 {
  	PrimaryActorTick.bCanEverTick = true;
 
@@ -29,7 +29,7 @@ AProjectileBase::AProjectileBase()
 }
 
 // 스킬 단계 데이터로 초기화 함수
-void AProjectileBase::Initialize(const FSkillPhaseData* InPhaseData, AActor* InOwner)
+void AEPProjectileBase::Initialize(const FEPSkillPhaseData* InPhaseData, AActor* InOwner)
 {
     if (!InPhaseData) return;
 
@@ -42,7 +42,7 @@ void AProjectileBase::Initialize(const FSkillPhaseData* InPhaseData, AActor* InO
     // MovementComponent의 '설정값'들을 미리 세팅
     if (MovementComponent)
     {
-        const FProjectileData& ProjectileInfo = PhaseData.ProjectileInfo;
+        const FEPProjectileData& ProjectileInfo = PhaseData.ProjectileInfo;
         MovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
         MovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
         MovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
@@ -52,7 +52,7 @@ void AProjectileBase::Initialize(const FSkillPhaseData* InPhaseData, AActor* InO
 }
 
 // Interface - Pool에 요청
-void AProjectileBase::Activate()
+void AEPProjectileBase::Activate()
 {
     if (bIsActive) return;
     bIsActive = true;
@@ -74,11 +74,11 @@ void AProjectileBase::Activate()
     // 수명(LifeSpan)이 설정되어 있다면, '활성화'된 이 시점부터 소멸 타이머를 예약
     if (bIsValid && PhaseData.ProjectileInfo.LifeSpan > 0.0f)
     {
-        GetWorld()->GetTimerManager().SetTimer(LifespanTimer, this, &AProjectileBase::OnExpire, PhaseData.ProjectileInfo.LifeSpan, false);
+        GetWorld()->GetTimerManager().SetTimer(LifespanTimer, this, &AEPProjectileBase::OnExpire, PhaseData.ProjectileInfo.LifeSpan, false);
     }
 }
 
-float AProjectileBase::BeginDeactivate()
+float AEPProjectileBase::BeginDeactivate()
 {
     // 더 이상 움직이거나 부딪히지 않도록 즉시 비활성화 (Mesh 숨기기 필요)
     SetActorEnableCollision(ECollisionEnabled::NoCollision);
@@ -91,7 +91,7 @@ float AProjectileBase::BeginDeactivate()
     //PlayFizzleEffect();
 
     // Initialize 때 받아두었던 스킬 데이터에서 지연 시간 값을 읽어와 반환
-    if (bIsValid) // Initialize 때 저장해 둔 FSkillPhaseData 포인터
+    if (bIsValid) // Initialize 때 저장해 둔 FEPSkillPhaseData 포인터
     {
         return PhaseData.DeactivationDelay;
     }
@@ -100,7 +100,7 @@ float AProjectileBase::BeginDeactivate()
 }
 
 // Interface - Pool이 호출하는 Actor의 비활성화만 처리하는 함수
-void AProjectileBase::Deactivate()
+void AEPProjectileBase::Deactivate()
 {
     if (!bIsActive) return;
     bIsActive = false;
@@ -118,13 +118,13 @@ void AProjectileBase::Deactivate()
     GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
-void AProjectileBase::BeginPlay()
+void AEPProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEPProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     // OnExpire가 호출되기 전에 타이머를 명시적으로 취소
     GetWorld()->GetTimerManager().ClearTimer(LifespanTimer);
@@ -144,7 +144,7 @@ void AProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 }
 
 // 발사체의 생명주기 종료 시 호출 함수 (발사 후 일정시간 지나면 사라짐)
-void AProjectileBase::OnExpire()
+void AEPProjectileBase::OnExpire()
 {
     // ... 소멸(Fizzle) 이펙트 재생 로직
 
@@ -152,7 +152,7 @@ void AProjectileBase::OnExpire()
 }
 
 // Pool에 반납 요청 함수
-void AProjectileBase::OnReturnToPool()
+void AEPProjectileBase::OnReturnToPool()
 {
     if (OwnerPool)
     {
@@ -161,7 +161,7 @@ void AProjectileBase::OnReturnToPool()
     }
 }
 
-void AProjectileBase::Tick(float DeltaTime)
+void AEPProjectileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

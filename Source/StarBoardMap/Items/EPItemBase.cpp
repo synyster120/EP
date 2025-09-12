@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Items/ItemBase.h"
+#include "Items/EPItemBase.h"
 
 // Sets default values
-AItemBase::AItemBase()
+AEPItemBase::AEPItemBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,14 +12,14 @@ AItemBase::AItemBase()
 }
 
 // Called when the game starts or when spawned
-void AItemBase::BeginPlay()
+void AEPItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AItemBase::Tick(float DeltaTime)
+void AEPItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 

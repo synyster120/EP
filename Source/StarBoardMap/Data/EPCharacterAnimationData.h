@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
-#include "CharacterAnimationData.generated.h"
+#include "EPCharacterAnimationData.generated.h"
 
 // 전방 선언
 class UAnimMontage;
@@ -16,7 +16,7 @@ class UAnimMontage;
 
  // 피격 반응(강도) 타입
 UENUM(BlueprintType)
-enum class EHitReactionType : uint8
+enum class EEPHitReactionType : uint8
 {
     Light       UMETA(DisplayName = "가벼운 피격"), // 가벼운 피격
     Heavy       UMETA(DisplayName = "강한 피격"), // 강한 피격
@@ -26,14 +26,14 @@ enum class EHitReactionType : uint8
 
 // 캐릭터 애니메이션 데이터를 정의하는 데이터 에셋
 UCLASS(BlueprintType)
-class STARBOARDMAP_API UCharacterAnimationData : public UDataAsset
+class STARBOARDMAP_API UEPCharacterAnimationData : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 	// 피격 반응: 피격 타입에 따라 재생할 애니메이션 몽타주를 매핑
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
-	TMap<EHitReactionType, TSoftObjectPtr<UAnimMontage>> HitReactionMontages;
+	TMap<EEPHitReactionType, TSoftObjectPtr<UAnimMontage>> HitReactionMontages;
 
 	// 죽음 애니메이션: 캐릭터가 죽을 때 재생할 애니메이션 몽타주
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")

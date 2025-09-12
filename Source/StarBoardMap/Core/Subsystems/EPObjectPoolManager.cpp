@@ -1,17 +1,17 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Core/Subsystems/ObjectPoolManager.h"
-#include "Core/Interfaces/Poolable.h"
+#include "Core/Subsystems/EPObjectPoolManager.h"
+#include "Core/Interfaces/EPPoolable.h"
 
 // 게임 시작 시 필요한 초기화 로직 (틀만 존재-필요하면 추가)
-void UObjectPoolManager::Initialize(FSubsystemCollectionBase& Collection)
+void UEPObjectPoolManager::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 }
 
 // 게임 종료 시, 메모리 누수를 막기 위해 모든 투사체를 파괴
-void UObjectPoolManager::Deinitialize()
+void UEPObjectPoolManager::Deinitialize()
 {
     for (auto& PoolPair : Pools)
     {
@@ -28,19 +28,19 @@ void UObjectPoolManager::Deinitialize()
 }
 
 // Pool 가져오기 (실패 시 최초 생성, 동적 확장)
-AActor* UObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
+AActor* UEPObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
 {
     // 인터페이스 구현했는지 확인
-    if (!ActorClass.LoadSynchronous()->ImplementsInterface(UPoolable::StaticClass()))
+    if (!ActorClass.LoadSynchronous()->ImplementsInterface(UEPPoolable::StaticClass()))
     {
-        UE_LOG(LogTemp, Error, TEXT("Tried to get an object from pool with class %s which does not implement IPoolable!"), *ActorClass.ToString());
+        UE_LOG(LogTemp, Error, TEXT("Tried to get an object from pool with class %s which does not implement IEPPoolable!"), *ActorClass.ToString());
         return nullptr;
     }
 
     if (!ActorClass) return nullptr;
 
     // 해당 클래스를 위한 풀이 존재하는지 확인 후 없다면 새로 생성
-    FObjectPool& Pool = Pools.FindOrAdd(ActorClass);
+    FEPObjectPool& Pool = Pools.FindOrAdd(ActorClass);
     if (Pool.PooledActor.Num() == 0) // 최초 생성 시
     {
         CreatePoolForClass(ActorClass, Pool); // 풀을 채우도록 수정
@@ -65,7 +65,7 @@ AActor* UObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
         if(NewSpawnActor)
         {
             // 스폰된 액터를 IPoolable 인터페이스로 Cast (Poolable 인터페이스 소유 확인)
-            if (IPoolable* PoolableActor = Cast<IPoolable>(NewSpawnActor))
+            if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(NewSpawnActor))
             {
                 PoolableActor->SetOwnerPool(this); // 자신이 속한 풀을 알려줌
                 PoolableActor->Deactivate(); // 스폰 직후 즉시 비활성화
@@ -76,7 +76,7 @@ AActor* UObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
             else
             {
                 // Cast에 실패했다면, 풀에서 사용하면 안되는 액터이므로 경고 로그를 남기고 즉시 파괴
-                UE_LOG(LogTemp, Warning, TEXT("Actor %s was spawned by the pool manager but does not implement IPoolable interface! Destroying actor."), *NewSpawnActor->GetName());
+                UE_LOG(LogTemp, Warning, TEXT("Actor %s was spawned by the pool manager but does not implement IEPPoolable interface! Destroying actor."), *NewSpawnActor->GetName());
                 NewSpawnActor->Destroy();
             }
         }
@@ -86,14 +86,14 @@ AActor* UObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
 }
 
 // 투사체가 자신을 풀에 반납하기 위해 호출하는 함수
-void UObjectPoolManager::ReturnObjectToPool(AActor* ReturnActor)
+void UEPObjectPoolManager::ReturnObjectToPool(AActor* ReturnActor)
 {
     if (ReturnActor)
     {
         // 투사체에게 소멸 준비를 시작하라고 통지 후,
         // 소멸 이펙트 등에 필요한 지연 시간을 반환받음
 
-        if (IPoolable* PoolableActor = Cast<IPoolable>(ReturnActor))
+        if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(ReturnActor))
         {
             const float DeactivationDelay = PoolableActor->BeginDeactivate();
 
@@ -124,11 +124,11 @@ void UObjectPoolManager::ReturnObjectToPool(AActor* ReturnActor)
 }
 
 // 최종적으로 투사체 비활성화하는 함수 (ReturnObjectToPool 에서 호출)
-void UObjectPoolManager::FinalizeDeactivation(AActor* ReturnActor)
+void UEPObjectPoolManager::FinalizeDeactivation(AActor* ReturnActor)
 {
     if (ReturnActor)
     {
-        if (IPoolable* PoolableActor = Cast<IPoolable>(ReturnActor))
+        if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(ReturnActor))
         {
             // "비활성화" 명령
             PoolableActor->Deactivate();
@@ -137,12 +137,12 @@ void UObjectPoolManager::FinalizeDeactivation(AActor* ReturnActor)
 }
 
 // 특정 클래스의 풀을 처음으로 생성하는 내부 함수
-void UObjectPoolManager::CreatePoolForClass(TSoftClassPtr<AActor> ActorClass, FObjectPool& PoolToFill)
+void UEPObjectPoolManager::CreatePoolForClass(TSoftClassPtr<AActor> ActorClass, FEPObjectPool& PoolToFill)
 {
     // 인터페이스 구현했는지 확인
-    if (!ActorClass.LoadSynchronous()->ImplementsInterface(UPoolable::StaticClass()))
+    if (!ActorClass.LoadSynchronous()->ImplementsInterface(UEPPoolable::StaticClass()))
     {
-        UE_LOG(LogTemp, Error, TEXT("Tried to get an object from pool with class %s which does not implement IPoolable!"), *ActorClass.ToString());
+        UE_LOG(LogTemp, Error, TEXT("Tried to get an object from pool with class %s which does not implement IEPPoolable!"), *ActorClass.ToString());
         return;
     }
 
@@ -156,7 +156,7 @@ void UObjectPoolManager::CreatePoolForClass(TSoftClassPtr<AActor> ActorClass, FO
         AActor* NewActor = GetWorld()->SpawnActor<AActor>(ClassToSpawn);
         if (NewActor)
         {
-            if (IPoolable* PoolableActor = Cast<IPoolable>(NewActor))
+            if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(NewActor))
             {
                 PoolableActor->SetOwnerPool(this);
                 PoolableActor->Deactivate();

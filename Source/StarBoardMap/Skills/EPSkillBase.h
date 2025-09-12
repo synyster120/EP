@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "SkillBase.generated.h"
+#include "EPSkillBase.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class STARBOARDMAP_API USkillBase : public UObject
+class STARBOARDMAP_API UEPSkillBase : public UObject
 {
 	GENERATED_BODY()
 	

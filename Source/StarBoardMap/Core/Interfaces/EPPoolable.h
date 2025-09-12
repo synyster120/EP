@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Poolable.generated.h"
+#include "EPPoolable.generated.h"
 
-class UObjectPoolManager;
+class UEPObjectPoolManager;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UPoolable : public UInterface
+class UEPPoolable : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -19,7 +19,7 @@ class UPoolable : public UInterface
  *	오브젝트 풀링하기 위한 필요 함수
  */
 
-class STARBOARDMAP_API IPoolable
+class STARBOARDMAP_API IEPPoolable
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ public:
 	virtual void Deactivate() = 0;
 
 	// OwnerPool 설정
-	virtual void SetOwnerPool(UObjectPoolManager* InOwnerPool) = 0;
+	virtual void SetOwnerPool(UEPObjectPoolManager* InOwnerPool) = 0;
 
 	// 현재 활성화 상태인지 여부 반환
 	virtual bool IsActive() const = 0;

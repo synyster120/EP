@@ -6,7 +6,7 @@
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 //#include "Path/To/Your/AItemActor.h"
-#include "ItemTypes.generated.h"
+#include "EPItemTypes.generated.h"
 
 // 전방 선언
 //class AItemActor;
@@ -18,7 +18,7 @@ class UTexture2D;
 
  // 아이템 타입 정의
 UENUM(BlueprintType)
-enum class EItemType : uint8
+enum class EEPItemType : uint8
 {
     Consumable  UMETA(DisplayName = "소모품"),
     Equipment   UMETA(DisplayName = "장비"),
@@ -28,13 +28,13 @@ enum class EItemType : uint8
 
 // 아이템 정보 구조체 (데이터 테이블용)
 USTRUCT(BlueprintType)
-struct FItemData : public FTableRowBase
+struct FEPItemData : public FTableRowBase
 {
     GENERATED_BODY()
 
     // 아이템 타입
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
-    EItemType ItemType;
+    EEPItemType ItemType;
 
     // 아이템 이름
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Data")
@@ -75,7 +75,7 @@ struct FItemData : public FTableRowBase
 
 // 아이템 드랍 시 아이템마다 필요한 설정(개수 등)
 USTRUCT(BlueprintType)
-struct FDropItemInfo
+struct FEPDropItemInfo
 {
     GENERATED_BODY()
 
@@ -99,12 +99,12 @@ public:
 
 // 드랍 아이템 테이블
 USTRUCT(BlueprintType)
-struct FDropTable : public FTableRowBase
+struct FEPDropTable : public FTableRowBase
 {
     GENERATED_BODY()
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-    TArray<FDropItemInfo> DropItems;
+    TArray<FEPDropItemInfo> DropItems;
 
 };

@@ -6,13 +6,13 @@
 #include "Engine/DataTable.h"
 #include "NiagaraSystem.h"
 #include "GameplayTagContainer.h"
-#include "SkillTypes.generated.h"
+#include "EPSkillTypes.generated.h"
 
 class UAnimMontage;
 class UNiagaraSystem;
 class USoundBase;
-class USkillBase; // 순환 참조(Circular Dependency) 방지용 전방 선언
-class AProjectileBase;
+class UEPSkillBase; // 순환 참조(Circular Dependency) 방지용 전방 선언
+class AEPProjectileBase;
 
 /**
  * 
@@ -20,7 +20,7 @@ class AProjectileBase;
 
  // 타겟팅 방식
 UENUM(BlueprintType)
-enum class ETargetType : uint8
+enum class EEPTargetType : uint8
 {
     None        UMETA(DisplayName = "타겟 없음"),
     Self        UMETA(DisplayName = "자기 자신"),
@@ -31,7 +31,7 @@ enum class ETargetType : uint8
 
 // 스킬 범위 형태
 UENUM(BlueprintType)
-enum class ESkillRangeShape : uint8
+enum class EEPSkillRangeShape : uint8
 {
     // X=길이, Y=폭, Z=높이 
     Box         UMETA(DisplayName = "박스 형태"),
@@ -45,14 +45,14 @@ enum class ESkillRangeShape : uint8
 
 // 타겟 데이터
 USTRUCT(BlueprintType)
-struct FSkillTargetData
+struct FEPSkillTargetData
 {
     GENERATED_BODY()
 
 public:
     // 타겟팅 방식
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Target")
-    ETargetType TargetType;
+    EEPTargetType TargetType;
 
     // 타겟 Actor
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Target")
@@ -69,14 +69,14 @@ public:
 
 // 스킬 범위 데이터
 USTRUCT(BlueprintType)
-struct FSkillRangeData
+struct FEPSkillRangeData
 {
     GENERATED_BODY()
 
 public: 
     // 공격 범위 형태
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Range")
-    ESkillRangeShape ShapeType;
+    EEPSkillRangeShape ShapeType;
     
     // 치수
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Range")
@@ -85,7 +85,7 @@ public:
 
 // 투사체의 물리적 속성과 시각/청각적 표현을 정의하는 구조체
 USTRUCT(BlueprintType)
-struct FProjectileData
+struct FEPProjectileData
 {
     GENERATED_BODY()
 
@@ -124,7 +124,7 @@ struct FProjectileData
 
 // 스킬 단계 데이터
 USTRUCT(BlueprintType)
-struct FSkillPhaseData
+struct FEPSkillPhaseData
 {
     GENERATED_BODY()
 
@@ -155,15 +155,15 @@ public:
 
     // 스킬 범위
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-    FSkillRangeData SkillRange;
+    FEPSkillRangeData SkillRange;
 
     // 발사체 정의 구조체
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
-    FProjectileData ProjectileInfo;
+    FEPProjectileData ProjectileInfo;
 
     // 발사체 블루프린트
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
-    TSoftClassPtr<AProjectileBase> ProjectileClass;
+    TSoftClassPtr<AEPProjectileBase> ProjectileClass;
 
     // 발사체 소멸 시 이펙트 재생 등 위해 기다릴 시간
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
@@ -173,11 +173,11 @@ public:
 
 // 데이터 테이블만을 위한 '래퍼' 또는 '껍데기' 구조체
 USTRUCT(BlueprintType)
-struct FSkillPhaseData_TableRow : public FTableRowBase
+struct FEPSkillPhaseData_TableRow : public FTableRowBase
 {
     GENERATED_BODY()
 
     // 실제 데이터는 FSkillPhaseData가 모두 가지고 있습니다.
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FSkillPhaseData PhaseData;
+    FEPSkillPhaseData PhaseData;
 };

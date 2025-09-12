@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "ItemManager.generated.h"
+#include "EPItemManager.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class STARBOARDMAP_API UItemManager : public UGameInstanceSubsystem
+class STARBOARDMAP_API UEPItemManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 	

@@ -4,20 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Core/Interfaces/Poolable.h"
-#include "Data/SkillTypes.h"
-#include "Core/Subsystems/ObjectPoolManager.h"
-#include "ProjectileBase.generated.h"
+#include "Core/Interfaces/EPPoolable.h"
+#include "Data/EPSkillTypes.h"
+#include "Core/Subsystems/EPObjectPoolManager.h"
+#include "EPProjectileBase.generated.h"
 
 // 전방 선언
 class USphereComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
-class UProjectilePoolManager;
-struct FSkillPhaseData;
+struct FEPSkillPhaseData;
 
 UCLASS()
-class STARBOARDMAP_API AProjectileBase : public AActor, public IPoolable // IPoolable 상속
+class STARBOARDMAP_API AEPProjectileBase : public AActor, public IEPPoolable // IEPPoolable 상속
 {
 	GENERATED_BODY()
 	
@@ -34,18 +33,18 @@ protected:
 
 	// 자신을 관리하는 풀 매니저 저장
 	UPROPERTY()
-	TSoftObjectPtr<UObjectPoolManager> OwnerPool;
+	TSoftObjectPtr<UEPObjectPoolManager> OwnerPool;
 
 	// Initialize()함수 실행했는지 여부 확인 = 초기화 확인
 	bool bIsValid;
 
 public:	
-	AProjectileBase();
+	AEPProjectileBase();
 
 	// 스킬로부터 데이터를 받아 초기화하는 메인 함수
-	virtual void Initialize(const FSkillPhaseData* InPhaseData, AActor* InOwner);
+	virtual void Initialize(const FEPSkillPhaseData* InPhaseData, AActor* InOwner);
 
-	// --- IPoolable 인터페이스 함수 구현 ---
+	// --- IEPPoolable 인터페이스 함수 구현 ---
 	// 활성화 함수 (스킬에서 Pool로 받고, 활성화할 때 호출)
 	virtual void Activate() override;
 	// 소멸 준비를 시작하고, 필요한 지연 시간을 반환하는 함수 (Pool에서 호출)
@@ -55,7 +54,7 @@ public:
 	// 현재 활성화 상태인지 확인 (Pool에서 호출)
 	virtual bool IsActive() const override { return bIsActive; }
 	// 풀 매니저가 자신의 주소를 이 투사체에게 알려주기 위한 함수 (Pool에서 호출)
-	virtual void SetOwnerPool(UObjectPoolManager* InOwnerPool) override { OwnerPool = InOwnerPool; }
+	virtual void SetOwnerPool(UEPObjectPoolManager* InOwnerPool) override { OwnerPool = InOwnerPool; }
 
 
 
@@ -80,7 +79,7 @@ public:
 	// 이 투사체의 모든 데이터를 담고 있는 원본 포인터
 	// OnHit, OnExpire 등 다른 함수에서 이 데이터를 참조하여 사용합니다.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Data")
-	FSkillPhaseData PhaseData;
+	FEPSkillPhaseData PhaseData;
 
 	/** 현재 풀에서 활성화되어 사용 중인지 여부 */
 	bool bIsActive;

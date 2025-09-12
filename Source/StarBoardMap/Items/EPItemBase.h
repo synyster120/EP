@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ItemBase.generated.h"
+#include "EPItemBase.generated.h"
 
 UCLASS()
-class STARBOARDMAP_API AItemBase : public AActor
+class STARBOARDMAP_API AEPItemBase : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AItemBase();
+	AEPItemBase();
 
 protected:
 	// Called when the game starts or when spawned
