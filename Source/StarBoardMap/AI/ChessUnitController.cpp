@@ -126,6 +126,11 @@ FIntPoint AChessUnitController::FindKingMove(TArray<FIntPoint> AvaliablePoint)
 	return TargetXY;
 }
 
+FIntPoint AChessUnitController::FindQueenMove(TArray<FIntPoint> AvaliablePoint)
+{
+	return FIntPoint();
+}
+
 FIntPoint AChessUnitController::FindUnitMove(TArray<FIntPoint> AvaliablePoint)
 {
 	return FIntPoint();
