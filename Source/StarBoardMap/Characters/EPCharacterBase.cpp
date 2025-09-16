@@ -1,34 +1,19 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "Characters/EPCharacterBase.h"
 
-// Sets default values
 AEPCharacterBase::AEPCharacterBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+ 	PrimaryActorTick.bCanEverTick = false;
 
 }
 
-// Called when the game starts or when spawned
 void AEPCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
-// Called every frame
-void AEPCharacterBase::Tick(float DeltaTime)
+void AEPCharacterBase::InitializeCharacterData()
 {
-	Super::Tick(DeltaTime);
-
+	// 초기화 로직
 }
-
-// Called to bind functionality to input
-void AEPCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-

@@ -20,9 +20,12 @@ class STARBOARDMAP_API UEPSkillBase : public UObject
 public:
 	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
 
-	inline FName GetSkillID() { return FName(); };
+	inline FName GetSkillID() { return FName("AssetID"); };
 
 	void Activate(const FEPSkillTargetData& NewTargetData);
 
-	inline UEPSkillDataAsset* GetSkillData() { return; };
+	inline UEPSkillDataAsset* GetSkillData() { return tempSkillData; };
+
+protected:
+	UEPSkillDataAsset* tempSkillData;
 };

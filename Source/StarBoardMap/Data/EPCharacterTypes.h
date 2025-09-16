@@ -32,6 +32,10 @@ struct FEPBaseStat : public FTableRowBase
 	GENERATED_BODY()
 
 public:
+	// 체력
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stat")
+	float MaxHealth = 100.0f;
+
 	// 사정거리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stat")
 	float AttackRange = 10.0f;
@@ -56,9 +60,6 @@ struct FEPPlayerStat : public FEPBaseStat
 	GENERATED_BODY()
 
 public:
-	// 체력(칸)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stat")
-	int Health = 3;
 };
 
 // 적 스탯 (기본 스탯 상속)
@@ -68,10 +69,6 @@ struct FEPEnemyStat : public FEPBaseStat
 	GENERATED_BODY()
 
 public:
-	// 체력(칸)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stat")
-	float Health = 100.0f;
-
 	// 인지 거리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	float PerceptionRadius = 0.0f;
