@@ -71,6 +71,6 @@ private:
     TMap<FName, int32> SkillIDToIndexMap;
 
     // 소유자(캐릭터)의 StatComponent에 대한 참조 (BeginPlay 시점에 찾아옴)
-    UPROPERTY()
-    TObjectPtr<UEPStatComponent> StatComponentRef;
+    /*UPROPERTY()
+    TObjectPtr<UEPStatComponent> StatComponentRef;*/
 };

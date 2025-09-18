@@ -5,12 +5,18 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/EPStatComponent.h"
+#include "Components/EPHealthBlockStatComponent.h"
 #include "Components/EPSkillComponent.h"
 
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
+
+    // 구체적인 자식 컴포넌트를 생성
+    UEPHealthBlockStatComponent* PlayerStatComponent = CreateDefaultSubobject<UEPHealthBlockStatComponent>(TEXT("StatComponent"));
+
+    // 부모의 순수 C++ 포인터에 할당
+    StatComponent = PlayerStatComponent;
 
     // 캐릭터 이동 컴포넌트 설정
     GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터가 이동 방향으로 자연스럽게 회전하도록 설정
@@ -35,45 +41,21 @@ void AEPPlayerCharacter::BeginPlay()
     Super::BeginPlay();
 }
 
-void AEPPlayerCharacter::InitializeCharacterData()
+float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-    Super::InitializeCharacterData();
-}
+    const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-void AEPPlayerCharacter::TakeDamage_Implementation(float DamageAmount, AController* InstigatorController, AActor* DamageCauser)
-{
-    Super::TakeDamage_Implementation(DamageAmount, InstigatorController, DamageCauser);
+    // 플레이어만의 고유 로직
+    if (ActualDamage > 0.f)
+    {
+        // 카메라 흔들기
+        //PlayCameraShake();
+        // 피격 시 음성 재생
+        //PlayHurtSound();
+        // "데미지 50 이상 받기" 같은 퀘스트 진행도 업데이트
+        //UpdateQuestProgress();
+    }
 
-    // 할 수 있는 것들
-    // 
-
-
-    // 1. [조회] StatComponent로부터 필요한 모든 스탯 정보를 'const' Get 함수로 안전하게 가져온다.
-    //const float Defense = StatComponent->GetDefense(); // GetDefense() 함수가 있다고 가정
-    //const float FireResistance = StatComponent->GetSecondaryStat(ESecondaryStatType::FireResistance);
-
-    //// 2. [계산] 가져온 데이터를 바탕으로 이 캐릭터 고유의 데미지 공식을 적용한다.
-    //float FinalDamage = DamageAmount * (100 / (100 + Defense)); // 방어력 공식 예시
-    //FinalDamage *= (1.0f - FMath::Clamp(FireResistance, 0.0f, 100.0f) / 100.0f); // 저항력(%) 적용 예시
-
-    // 피격 타입에 맞는 애니메이션 검색
-    UAnimMontage* HitMontage = GetHitReactionMontage_Implementation(EEPHitReactionType::Heavy);
-    PlayAnimMontage(HitMontage);
-
-    // 최종 계산된 값으로 StatComponent에 데이터 수정 명령
-    //StatComponent->ApplyDamage(FinalDamage);
-}
-
-void AEPPlayerCharacter::HandleDeath_Implementation()
-{
-    Super::HandleDeath_Implementation();
-
-}
-
-UAnimMontage* AEPPlayerCharacter::GetHitReactionMontage_Implementation(EEPHitReactionType HitReactionType)
-{
-    Super::GetHitReactionMontage_Implementation(HitReactionType);
-
-	return nullptr;
+    return ActualDamage;
 }
 

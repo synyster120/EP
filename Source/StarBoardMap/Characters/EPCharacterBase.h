@@ -22,8 +22,4 @@ protected:
 	// 이름, 외형 등의 초기화
 	virtual void InitializeCharacterData();
 
-
-//	/** 캐릭터의 애니메이션 데이터 애셋 */
-//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-//	TObjectPtr<UEPCharacterAnimationData> AnimDataAsset;
 };

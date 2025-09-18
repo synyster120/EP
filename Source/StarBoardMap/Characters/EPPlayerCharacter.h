@@ -32,17 +32,13 @@ public:
     TObjectPtr<UCameraComponent> CameraComponent;
 
 
-    // ====== ICombatInterface Implementation ======
-    // 인터페이스 함수의 기본 구현을 제공합니다.
-    virtual void TakeDamage_Implementation(float DamageAmount, AController* InstigatorController, AActor* DamageCauser) override;
-    virtual void HandleDeath_Implementation() override;
-    virtual UAnimMontage* GetHitReactionMontage_Implementation(EEPHitReactionType HitReactionType) override;
-
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+    
 
 
 protected:
     virtual void BeginPlay() override;
-    virtual void InitializeCharacterData() override;
+    //virtual void InitializeCharacterData() override;
 
 
 };

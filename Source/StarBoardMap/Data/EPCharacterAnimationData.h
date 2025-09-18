@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
+#include "Data/EPCombatTypes.h"
 #include "EPCharacterAnimationData.generated.h"
 
 // 전방 선언
@@ -13,16 +14,6 @@ class UAnimMontage;
 /**
  *	피격 타입따른 애니메이션, 죽음 애니메이션	- 데이터 에셋
  */
-
- // 피격 반응(강도) 타입
-UENUM(BlueprintType)
-enum class EEPHitReactionType : uint8
-{
-    Light       UMETA(DisplayName = "가벼운 피격"), // 가벼운 피격
-    Heavy       UMETA(DisplayName = "강한 피격"), // 강한 피격
-    Knockdown   UMETA(DisplayName = "넘어짐"), // 넘어짐
-    Launch      UMETA(DisplayName = "공중으로 뜸") // 공중으로 뜸
-};
 
 // 캐릭터 애니메이션 데이터를 정의하는 데이터 에셋
 UCLASS(BlueprintType)

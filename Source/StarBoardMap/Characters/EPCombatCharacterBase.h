@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Characters/EPCharacterBase.h"
-#include "Core/Interfaces/EPCombatInterface.h"
+#include "Core/Interfaces/EPCombatQueryInterface.h"
+#include "Core/Interfaces/EPCombatEventInterface.h"
+#include "Data/EPCombatTypes.h"
 #include "EPCombatCharacterBase.generated.h"
 
 
@@ -12,12 +14,13 @@
 class UEPStatComponent;
 class UEPSkillComponent;
 class UEPCharacterAnimationData;
+struct FEPDamageInfo;
 
 /**
  *		IEPCombatInterface 상속받은 전투하는 CharacterBase
  */
 UCLASS()
-class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatInterface
+class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface
 {
 	GENERATED_BODY()
 
@@ -31,11 +34,19 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UEPSkillComponent> SkillComponent;
 
-    // ====== ICombatInterface Implementation ======
-    // 인터페이스 함수의 기본 구현을 제공합니다.
-    virtual void TakeDamage_Implementation(float DamageAmount, AController* InstigatorController, AActor* DamageCauser) override;
+    // ====== ICombat Event Interface Implementation ======
+    virtual void ApplyDamageInfo_Implementation(const FEPDamageInfo& DamageInfo) override;
+    UFUNCTION()
     virtual void HandleDeath_Implementation() override;
-    virtual UAnimMontage* GetHitReactionMontage_Implementation(EEPHitReactionType HitReactionType) override;
+    // ====== ICombat Query Interface Implementation ======
+    virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
+
+
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Mongtage")
+    void HandleHitReaction(EEPHitReactionType HitReactionType);
+
 
 protected:
     virtual void BeginPlay() override;

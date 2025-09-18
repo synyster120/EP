@@ -25,6 +25,14 @@ enum class EEPAIState : uint8
 
 };
 
+// 체력 시스템 타입을 정의하는 열거형
+UENUM(BlueprintType)
+enum class EEPHealthType : uint8
+{
+	HealthBar UMETA(DisplayName = "체력 바(float)"),
+	HealthBlock UMETA(DisplayName = "체력 칸(int)")
+};
+
 // 기본 스탯
 USTRUCT(BlueprintType)
 struct FEPBaseStat : public FTableRowBase
@@ -76,4 +84,29 @@ public:
 	// 인지 놓치는 거리
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	float LosePerceptionRadius = 0.0f;
+};
+
+// 체력 데이터
+USTRUCT(BlueprintType)
+struct FEPHealthInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	EEPHealthType HealthType;
+
+	UPROPERTY(BlueprintReadOnly)
+	float HealthRatio = 0.f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentHealth = 0.f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float MaxHealth = 0.f;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentBlocks = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 MaxBlocks = 0;
 };

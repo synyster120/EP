@@ -13,14 +13,14 @@ void UEPSkillComponent::BeginPlay()
     Super::BeginPlay();
 
     // 이 컴포넌트의 소유자(캐릭터)를 찾아 StatComponent를 가져옴
-    AActor* Owner = GetOwner();
-    if (Owner)
-    {
-        StatComponentRef = Owner->FindComponentByClass<UEPStatComponent>();
-    }
+    //AActor* Owner = GetOwner();
+    //if (Owner)
+    //{
+    //    StatComponentRef = Owner->FindComponentByClass<UEPStatComponent>();
+    //}
 
-    // StatComponent는 반드시 존재해야 하므로, 없다면 에러를 발생시켜 문제를 즉시 인지하게 함
-    check(StatComponentRef != nullptr);
+    //// StatComponent는 반드시 존재해야 하므로, 없다면 에러를 발생시켜 문제를 즉시 인지하게 함
+    //check(StatComponentRef != nullptr);
 }
 
 // 초기화 함수 (외부에서 호출)
