@@ -24,42 +24,83 @@ void AChessGameState::BeginPlay()
             break;
         }
     }
-    
+
     FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z);
     for (int i = 0;i < 10;i++) {
         for (int j = 0;j < 10;j++) {
             GridVector[i][j] = FVector(TempVector.X + (GridSize * i), TempVector.Y + (GridSize * j), TempVector.Z);
-            GridState[i][j] = 0;
+            if (i == 0 || i == 9 || j == 0 || j == 9) GridState[i][j] = -1;
+            else GridState[i][j] = 0;
         }
     }
 
     /////Spawn
-    if (KingBP)
-    {
-        UWorld* World = GetWorld();
-        if (World)
-        {
-            FActorSpawnParameters SpawnParams;
-            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    UWorld* World = GetWorld();
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    FRotator SpawnRotation = FRotator::ZeroRotator;
 
-            FRotator SpawnRotation = FRotator::ZeroRotator;
+    ACKing* TempKing = GetWorld()->SpawnActor<ACKing>(KingBP, GridVector[8][4], SpawnRotation, SpawnParams);
+    TempKing->SetOriginPoint(FIntPoint(8, 4));
+    GridState[8][4] = 1;
+    Units.Add(TempKing);
 
-            SpawnedKing = GetWorld()->SpawnActor<ACKing>(KingBP, GridVector[8][4], SpawnRotation, SpawnParams);
-            SpawnedKing->SetXY(FIntPoint(8, 4));
-            SpawnedKing->SpawnDefaultController();
-        }
+    ACQueen* TempQueen = GetWorld()->SpawnActor<ACQueen>(QueenBP, GridVector[8][5], SpawnRotation, SpawnParams);
+    TempQueen->SetOriginPoint(FIntPoint(8, 5));
+    GridState[8][5] = 2;
+    Units.Add(TempQueen);
+
+    int32 TempX = 9, TempY = 4, MovingGrid = 1;
+
+    for (int32 i = 0;i < BishopNum;i++) {
+        ACBishop* TempBishop = GetWorld()->SpawnActor<ACBishop>(BishopBP, GridVector[TempX][TempY], SpawnRotation, SpawnParams);
+        TempBishop->SetOriginPoint(FIntPoint(TempX, TempY));
+        GridState[TempX][TempY] = 2;
+        Units.Add(TempBishop);
+
+        TempY += MovingGrid;
+        MovingGrid *= (-1);
+        MovingGrid > 0 ? MovingGrid += 1 : MovingGrid -= 1;
     }
-}
 
-FIntPoint AChessGameState::GetPlayerXY()
-{
-	return PlayerXY;
+    TempX = 4, TempY = 0, MovingGrid = 1;
+    for (int32 i = 0;i < KnightNum;i++) {
+        ACKnight* TempKnight = GetWorld()->SpawnActor<ACKnight>(KnightBP, GridVector[TempX][TempY], SpawnRotation, SpawnParams);
+        TempKnight->SetOriginPoint(FIntPoint(TempX, TempY));
+        GridState[TempX][TempY] = 2;
+        Units.Add(TempKnight);
+
+        TempX += MovingGrid;
+        MovingGrid *= (-1);
+        MovingGrid > 0 ? MovingGrid += 1 : MovingGrid -= 1;
+    }
+    
+    TempX = 5, TempY = 9, MovingGrid = -1;
+    for (int32 i = 0;i < RookNum;i++) {
+        ACRook* TempRook = GetWorld()->SpawnActor<ACRook>(RookBP, GridVector[TempX][TempY], SpawnRotation, SpawnParams);
+        TempRook->SetOriginPoint(FIntPoint(TempX, TempY));
+        GridState[TempX][TempY] = 2;
+        Units.Add(TempRook);
+
+        TempX += MovingGrid;
+        MovingGrid *= (-1);
+        MovingGrid > 0 ? MovingGrid += 1 : MovingGrid -= 1;
+    }
+    
+    TempX = 0, TempY = 0;
+    for (int32 i = 0;i < PawnNum; i++) {
+        ACPawn* TempPawn = GetWorld()->SpawnActor<ACPawn>(PawnBP, GridVector[TempX][TempY], SpawnRotation, SpawnParams);
+        TempPawn->SetActorHiddenInGame(true);
+        TempPawn->SetActorEnableCollision(false);
+        Units.Add(TempPawn);
+    }
 }
 
 void AChessGameState::SetGridState(FIntPoint OldXY, FIntPoint NewXY, int32 UnitType)
 {
     GridState[OldXY.X][OldXY.Y] = 0;
-    GridState[NewXY.X][NewXY.Y] = UnitType;
+    if (OldXY.X == 0 || OldXY.X == 9 || OldXY.Y == 0 || OldXY.Y == 9) GridState[OldXY.X][OldXY.Y] = -1;
+    if (NewXY.X >= 0 && NewXY.X < 10 && NewXY.Y >= 0 && NewXY.Y < 10)GridState[NewXY.X][NewXY.Y] = UnitType;
 }
 
 int32 AChessGameState::GetGridState(FIntPoint NewXY)
@@ -72,21 +113,12 @@ int32 AChessGameState::GetGridState(FIntPoint NewXY)
     return -1;
 }
 
+void AChessGameState::OnTurn()
+{
+    Turn += 1;
+}
+
 FVector AChessGameState::GetGridVector(FIntPoint NewXY)
 {
     return GridVector[NewXY.X][NewXY.Y];
-}
-
-void AChessGameState::SetUnitState()
-{
-}
-
-int32 AChessGameState::GetUnitState()
-{
-	return int32();
-}
-
-float AChessGameState::GetGridSize()
-{
-	return 0.0f;
 }

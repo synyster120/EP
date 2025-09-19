@@ -38,6 +38,17 @@ FUnitData ACUnit::GetUnitData()
 	return Data;
 }
 
+void ACUnit::SetMovingTurn(bool TurnState)
+{
+	MovingTurn = TurnState;
+}
+
+void ACUnit::SetOriginPoint(FIntPoint NewOriginPoint)
+{
+	OriginPoint = NewOriginPoint;
+	SetXY(NewOriginPoint);
+}
+
 // Called to bind functionality to input
 void ACUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

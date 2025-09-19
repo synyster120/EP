@@ -6,6 +6,8 @@
 void ACKnight::BeginPlay()
 {
     Name = FName("Knight");
+    UnitTurnType = 2;
+    UnitType = 4;
     Super::BeginPlay();
 }
 

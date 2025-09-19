@@ -6,6 +6,11 @@
 #include "GameFramework/GameStateBase.h"
 
 #include "Chess/CKing.h"
+#include "Chess/CQueen.h"
+#include "Chess/CBishop.h"
+#include "Chess/CKnight.h"
+#include "Chess/CRook.h"
+#include "Chess/CPawn.h"
 
 #include "ChessGameState.generated.h"
 
@@ -21,7 +26,22 @@ class STARBOARDMAP_API AChessGameState : public AGameStateBase
 private: // Unit
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ACKing> KingBP;
-	//Same below
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACQueen> QueenBP;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACBishop> BishopBP;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACKnight> KnightBP;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACRook> RookBP;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACPawn> PawnBP;
+
 
 	UPROPERTY(EditAnywhere)
 	int32 BishopNum;
@@ -44,24 +64,19 @@ private: // State
 
 	bool bIsClear = false;
 
-public: //State
-	int32 Turn;
+	int32 Turn = 0;
 	float TurnTime;
 
 public: //function
 	void BeginPlay();
 
-	FIntPoint GetPlayerXY();
-
 	void SetGridState(FIntPoint OldXY, FIntPoint NewXY, int32 UnitType);
 	int32 GetGridState(FIntPoint NewXY);
 
+	int32 GetTurn() const { return Turn; }
+	void OnTurn();
+
+	TArray<ACUnit*> GetUnit() const { return Units; }
+
 	FVector GetGridVector(FIntPoint NewXY);
-
-	void SetUnitState();
-	int32 GetUnitState();
-
-	float GetGridSize();
-	UPROPERTY()
-	ACKing* SpawnedKing; // temp
 };

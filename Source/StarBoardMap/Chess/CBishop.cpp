@@ -6,6 +6,8 @@
 void ACBishop::BeginPlay()
 {
     Name = FName("Bishop");
+    UnitTurnType = 1;
+    UnitType = 3;
     Super::BeginPlay();
 }
 

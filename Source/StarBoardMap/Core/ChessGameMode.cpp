@@ -12,6 +12,13 @@ void AChessGameMode::BeginPlay()
 {
 	ChessGameState = Cast<AChessGameState>(GetWorld()->GetGameState());
 
+	for (int i = 1;i <= 9;i++) 
+	{
+		for (int j = 1;j <= 9;j++) 
+		{
+			RandomPoint.Add(FIntPoint(i, j));
+		}
+	}
 
     GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
 }
@@ -28,25 +35,83 @@ void AChessGameMode::ClearGame()
 void AChessGameMode::OnTurn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnTurn"));
+	ChessGameState->OnTurn();
 
-
-	AChessUnitController* Controller = Cast<AChessUnitController>(ChessGameState->SpawnedKing->GetController());
-
-	if (Cast<AChessUnitController>(ChessGameState->SpawnedKing->GetController()))
+	for (ACUnit* Unit : ChessGameState->GetUnit()) 
 	{
-		FIntPoint MovingPlace = Cast<AChessUnitController>(ChessGameState->SpawnedKing->GetController())->Move();
-		ChessGameState->SetGridState(ChessGameState->SpawnedKing->GetXY(), MovingPlace, 1);
+		AChessUnitController* Controller = Cast<AChessUnitController>(Unit->GetController());
+		int32 NowTurn = ChessGameState->GetTurn();
+		FIntPoint BeforeMovePoint = Unit->GetXY();
+		FIntPoint MovingPlace = FIntPoint(-1,-1);
+
+		if (NowTurn % 10 == 0) {
+			if (Unit->GetUnitTurnType() == (NowTurn / 10 + 2) % 3 + 1) {
+				MovingPlace = Controller->MoveOut();
+			}
+			else if (Unit->GetUnitName() == FName("Pawn")) {
+				BeforeMovePoint = Controller->AttackPawn();
+			}
+		}
+		else if (NowTurn % 10 == 6) {
+			if (Unit->GetUnitName() == FName("King")) {
+				Unit->SetMovingTurn(false);
+			}
+		}
+		else if (NowTurn % 10 == 7) {
+			if (Unit->GetUnitName() == FName("Pawn")) {
+				MovingPlace = BeforeMovePoint = FindRandomMoveInPlace();
+				Controller->SpawnPawn(MovingPlace);
+			}
+		}
+		else if (NowTurn % 10 == 8){
+			if (Unit->GetUnitName() == FName("King")) {
+				Unit->SetMovingTurn(true);
+			}
+			else if (Unit->GetUnitName() == FName("Pawn")) {
+				Unit->SetMovingTurn(true);
+			}
+		}
+		else if (NowTurn % 10 == 9) {
+			if (Unit->GetUnitName() == FName("Pawn")) {
+				Unit->SetMovingTurn(false);
+			}
+		}
+
+		if (Unit->GetMovingTurn())
+		{
+			MovingPlace = Controller->FindMove();
+		}
+
+		if (NowTurn % 10 == 1) {
+			if (Unit->GetUnitTurnType() == NowTurn / 10 % 3 + 1) {
+				MovingPlace = Controller->MoveIn();
+			}
+		}
+		ChessGameState->SetGridState(BeforeMovePoint, MovingPlace, Unit->GetUnitType());
 	}
 }
 
-FVector AChessGameMode::FindRandomSpawnPlace()
+FIntPoint AChessGameMode::FindRandomMoveInPlace()
 {
-	return FVector();
-}
+	FIntPoint TargetXY;
 
-FVector AChessGameMode::FindRandomMovePlace(int32 MoveState)
-{
-	return FVector();
+	const int32 LastIndex = RandomPoint.Num() - 1;
+	for (int32 i = 0; i <= LastIndex; i++)
+	{
+		int32 Index = FMath::RandRange(i, LastIndex);
+		if (i != Index)
+		{
+			RandomPoint.Swap(i, Index);
+		}
+	}
+	for (int32 i = 0;i <= LastIndex; i++)
+	{
+		if (ChessGameState->GetGridState(RandomPoint[i]) == 0) {
+			TargetXY = RandomPoint[i];
+		}
+	}
+
+	return TargetXY;
 }
 
 int32 AChessGameMode::GetGridState(FIntPoint NewXY)

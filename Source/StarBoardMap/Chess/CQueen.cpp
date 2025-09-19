@@ -1,16 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Chess/CKing.h"
+#include "Chess/CQueen.h"
 
-void ACKing::BeginPlay()
+void ACQueen::BeginPlay()
 {
-    Name = FName("King");
-    UnitType = 1;
+    Name = FName("Queen");
     MovingTurn = true;
+    UnitType = 2;
     Super::BeginPlay();
-}
-
-void ACKing::Attack()
-{
 }
