@@ -35,13 +35,16 @@ public:
 
 	void SetDefaultInformation();
 
-	FIntPoint Move();
+	FIntPoint FindMove();
+	void Move(FIntPoint TargetPoint, bool IsBigJump);
 	FIntPoint MoveIn();
 	FIntPoint MoveOut();
 
 	FIntPoint FindKingMove(TArray<FIntPoint> AvaliablePoint);
-	FIntPoint FindQueenMove(TArray<FIntPoint> AvaliablePoint);
+	FIntPoint FindQueenMove(FIntPoint Direction);
 	FIntPoint FindUnitMove(TArray<FIntPoint> AvaliablePoint);
+	void SpawnPawn(FIntPoint SpawnPoint);
+	FIntPoint AttackPawn();
 
 	void DestroyUnit();
 };

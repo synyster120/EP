@@ -8,18 +8,24 @@
 EBTNodeResult::Type UBTTask_ChessUnitMoveStart::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
-    //UE_LOG(LogTemp, Warning, TEXT("INStart"));
+
+    float JumpHeight, Speed;
+    FVector TargetVector = OwnerComp.GetBlackboardComponent()->GetValueAsVector("TargetPoint");
     if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsBigJump")) {
+        JumpHeight = 500;
+        TargetVector.Z += JumpHeight;
+
+        Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("BigMovingSpeed");
     }
     else {
-        float JumpHeight = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("JumpHeight");
-        FVector TargetVector = OwnerComp.GetBlackboardComponent()->GetValueAsVector("TargetPoint");
+        JumpHeight = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("JumpHeight");
         TargetVector.Z += JumpHeight;
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
         
-        float Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("MovingSpeed");
-        OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
+        Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("MovingSpeed");
     }
+
+    OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
+    OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
     int32 NowState = OwnerComp.GetBlackboardComponent()->GetValueAsInt("NowState");
     OwnerComp.GetBlackboardComponent()->SetValueAsInt("NowState", NowState+1);
     OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsMoving", true);

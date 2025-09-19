@@ -6,6 +6,8 @@
 void ACRook::BeginPlay()
 {
     Name = FName("Rook");
+    UnitTurnType = 3;
+    UnitType = 5;
     Super::BeginPlay();
 }
 

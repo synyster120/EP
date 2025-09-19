@@ -29,6 +29,8 @@ private:
 
 	int32 PawnExplodeCounter;
 
+	TArray<FIntPoint> RandomPoint;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,8 +39,8 @@ public:
 	void ClearGame();
 
 	void OnTurn();
-	FVector FindRandomSpawnPlace();
-	FVector FindRandomMovePlace(int32 MoveState);
+	FIntPoint FindRandomMoveInPlace();
+	
 
 	int32 GetGridState(FIntPoint NewXY);
 	FVector GetGridVector(FIntPoint NewXY);

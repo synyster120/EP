@@ -27,9 +27,11 @@ protected:
 
 protected:
 	FName Name;
+	int32 UnitTurnType = 0;
+	int32 UnitType = 0;
 	FIntPoint NowXY;
+	FIntPoint OriginPoint;
 	TArray<FIntPoint> AvaliablePoint;
-	FIntPoint OriginVector;
 	bool MovingTurn = false;
 
 public:	
@@ -40,8 +42,14 @@ public:
 	void SetXY(FIntPoint NewXY);
 	FIntPoint GetXY();
 	FName GetUnitName();
+	int32 GetUnitType() const { return UnitType; }
+	int32 GetUnitTurnType() const { return UnitTurnType; }
 	TArray<FIntPoint> GetAvaliablePoint();
 	FUnitData GetUnitData();
+	bool GetMovingTurn() const { return MovingTurn; }
+	void SetMovingTurn(bool TurnState);
+	void SetOriginPoint(FIntPoint NewOriginPoint);
+	FIntPoint GetOriginPoint() const { return OriginPoint; }
 
 	virtual void Attack();
 

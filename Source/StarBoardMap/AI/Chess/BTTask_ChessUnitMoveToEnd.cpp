@@ -9,15 +9,18 @@ EBTNodeResult::Type UBTTask_ChessUnitMoveToEnd::ExecuteTask(UBehaviorTreeCompone
 {
     APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
 
+    float Speed;
+    FVector TargetVector = OwnerComp.GetBlackboardComponent()->GetValueAsVector("TargetPoint");
+
     if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsBigJump")) {
+        Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("BigFallingSpeed");
     }
     else {
-        FVector TargetVector = OwnerComp.GetBlackboardComponent()->GetValueAsVector("TargetPoint");
-        OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
-
-        float Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("FallingSpeed");
-        OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
+        Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("FallingSpeed");
     }
+
+    OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
+    OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
     int32 NowState = OwnerComp.GetBlackboardComponent()->GetValueAsInt("NowState");
     OwnerComp.GetBlackboardComponent()->SetValueAsInt("NowState", NowState + 1);
     OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsMoving", true);
