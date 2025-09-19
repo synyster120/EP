@@ -6,8 +6,7 @@
 #include "Components/EPSkillComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/EPCharacterTypes.h"
-#include "Engine/StreamableManager.h"
-#include "Engine/AssetManager.h"
+#include "Core/Helper/EPAsyncLoadHelper.h"
 // 테스트용
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
@@ -150,46 +149,29 @@ void AEPCombatCharacterBase::ApplyDamageInfo_Implementation(const FEPDamageInfo&
 // 죽음 처리 함수
 void AEPCombatCharacterBase::HandleDeath_Implementation()
 {
-    // 데이터 애셋에서 죽음 애니메이션 몽타주를 가져와 재생
-    /*if (AnimDataAsset && AnimDataAsset->DeathAnimationMontage)
+    if (AnimDataAsset)
     {
-        PlayAnimMontage(AnimDataAsset->DeathAnimationMontage.LoadSynchronous());
-    }*/
-    // ...
-    if (AnimDataAsset && AnimDataAsset->DeathAnimationMontage.IsValid())
-    {
-        // 1. 이미 로드되어 있으면 바로 사용
-        if (UAnimMontage* Montage = AnimDataAsset->DeathAnimationMontage.Get())
-        {
-            PlayAnimMontage(Montage);
-        }
-        else // 2. 로드되어 있지 않다면 (Pending 상태), 비동기 로드를 요청
-        {
-            // UAssetManager의 싱글턴(전역 인스턴스)를 가져옴
-            UAssetManager& AssetManager = UAssetManager::Get();
-
-            // AssetManager를 통해 FStreamableManager에 대한 참조를 얻음
-            FStreamableManager& StreamableManager = AssetManager.GetStreamableManager();
-
-            const FSoftObjectPath& AssetPath = AnimDataAsset->DeathAnimationMontage.ToSoftObjectPath();
-
-            // 스트림 관리자에게 "이 애셋 로딩을 시작하고, 로딩이 끝나면 알려줘" 라고 요청
-            StreamableManager.RequestAsyncLoad(AssetPath, FStreamableDelegate::CreateUObject(this, &AEPCombatCharacterBase::OnDeathMontageLoaded));
-        }
+        // "무엇을 로드할지" (DeathAnimationMontage)를 지정
+        // "로드가 끝나면 무엇을 할지" (람다 함수)를 직접 전달
+        UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(AnimDataAsset->DeathAnimationMontage,
+            [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+            {
+                if (LoadedMontage)
+                {
+                    PlayAnimMontage(LoadedMontage);
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("DeathAnimationMontage is not set in % s!"), *AnimDataAsset->GetName());
+                }
+            }
+        );
     }
 
     // 추가적인 죽음 처리 로직 (콜리전 끄기 등)
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-// 단순 죽음 애니메이션 실행
-void AEPCombatCharacterBase::OnDeathMontageLoaded()
-{
-    if (UAnimMontage* Montage = AnimDataAsset->DeathAnimationMontage.Get())
-    {
-        PlayAnimMontage(Montage);
-    }
-}
 // 피격 타입 맞는 몽타주 검색 및 반환 함수
 UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
 {

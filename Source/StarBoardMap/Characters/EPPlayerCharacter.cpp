@@ -4,6 +4,7 @@
 #include "Characters/EPPlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/EPHealthBlockStatComponent.h"
 #include "Components/EPSkillComponent.h"
@@ -34,6 +35,8 @@ AEPPlayerCharacter::AEPPlayerCharacter()
     CameraComponent->SetupAttachment(SpringArmComponent); // 스프링 암 끝에 부착
     CameraComponent->bUsePawnControlRotation = false; // 카메라는 스프링 암의 회전을 따라가므로 자체 회전은 비활성화
 
+    // 플레이어 크기 설정
+    SetActorScale3D(FVector(0.5f, 0.5f, 0.5f));
 }
 
 void AEPPlayerCharacter::BeginPlay()
