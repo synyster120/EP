@@ -6,9 +6,12 @@
 #include "Components/EPSkillComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/EPCharacterTypes.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 // 테스트용
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
+#include "Characters/EPPlayerCharacter.h"
 
 AEPCombatCharacterBase::AEPCombatCharacterBase()
 {
@@ -35,9 +38,9 @@ void AEPCombatCharacterBase::BeginPlay()
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
     }
     
-    // === 테스트용 ===================================================================================
+    // ===================== TakeDamage 테스트용 ===================================================================================
     // 가짜(Mock) 데미지 값
-    float MockDamageAmount = 10.0f;
+    float MockDamageAmount = 20.0f;
 
     // 가짜 FDamageEvent (가장 간단한 FPointDamageEvent로 생성)
     FPointDamageEvent MockDamageEvent;
@@ -48,31 +51,41 @@ void AEPCombatCharacterBase::BeginPlay()
     AController* MockInstigator = GetController();
     AActor* MockDamageCauser = this;
 
-    // 테스트 대상이 될 캐릭터 (예: 월드에서 첫 번째 Enemy 찾기)
-    AEPCombatCharacterBase* TargetCharacter = Cast<AEPCombatCharacterBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AEPCombatCharacterBase::StaticClass()));
-
     // --- 2. SetTimer와 람다를 사용하여 3초 후에 TakeDamage를 호출합니다. ---
+    FTimerHandle TestTimerHandle;
+    float Delay = 3.0f; // 3초 후에 실행
 
-    if (TargetCharacter)
-    {
-        FTimerHandle TestTimerHandle;
-        float Delay = 3.0f; // 3초 후에 실행
-
-        GetWorld()->GetTimerManager().SetTimer(
-            TestTimerHandle,
-            [TargetCharacter, MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser]() // 람다 캡처
+    GetWorld()->GetTimerManager().SetTimer(
+        TestTimerHandle,
+        [this, MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser]() // 람다 캡처
+        {
+            // 람다 내부에서는 캡처한 변수가 유효한지 항상 확인하는 것이 안전합니다.
+            if (IsValid(this))
             {
-                // 람다 내부에서는 캡처한 변수가 유효한지 항상 확인하는 것이 안전합니다.
-                if (IsValid(TargetCharacter))
-                {
-                    // 3초 후에 이 코드가 실행됩니다.
-                    TargetCharacter->TakeDamage(MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser);
-                }
-            },
-            Delay,
-            false // 반복 안 함
-        );
-    }
+                // 3초 후에 이 코드가 실행됩니다.
+                UE_LOG(LogTemp, Warning, TEXT("This Attack"));
+                this->TakeDamage(MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser);
+            }
+        },
+        Delay,
+        false // 반복 안 함
+    );
+    FTimerHandle TestTimerHandl2e;
+    GetWorld()->GetTimerManager().SetTimer(
+        TestTimerHandl2e,
+        [this, MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser]() // 람다 캡처
+        {
+            // 람다 내부에서는 캡처한 변수가 유효한지 항상 확인하는 것이 안전합니다.
+            if (IsValid(this))
+            {
+                // 3초 후에 이 코드가 실행됩니다.
+                UE_LOG(LogTemp, Warning, TEXT("This Attack"));
+                this->TakeDamage(MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser);
+            }
+        },
+        6.0f,
+        false // 반복 안 함
+    );
 }
 
 void AEPCombatCharacterBase::InitializeCharacterData()
@@ -138,15 +151,45 @@ void AEPCombatCharacterBase::ApplyDamageInfo_Implementation(const FEPDamageInfo&
 void AEPCombatCharacterBase::HandleDeath_Implementation()
 {
     // 데이터 애셋에서 죽음 애니메이션 몽타주를 가져와 재생
-    if (AnimDataAsset && AnimDataAsset->DeathAnimationMontage)
+    /*if (AnimDataAsset && AnimDataAsset->DeathAnimationMontage)
     {
         PlayAnimMontage(AnimDataAsset->DeathAnimationMontage.LoadSynchronous());
+    }*/
+    // ...
+    if (AnimDataAsset && AnimDataAsset->DeathAnimationMontage.IsValid())
+    {
+        // 1. 이미 로드되어 있으면 바로 사용
+        if (UAnimMontage* Montage = AnimDataAsset->DeathAnimationMontage.Get())
+        {
+            PlayAnimMontage(Montage);
+        }
+        else // 2. 로드되어 있지 않다면 (Pending 상태), 비동기 로드를 요청
+        {
+            // UAssetManager의 싱글턴(전역 인스턴스)를 가져옴
+            UAssetManager& AssetManager = UAssetManager::Get();
+
+            // AssetManager를 통해 FStreamableManager에 대한 참조를 얻음
+            FStreamableManager& StreamableManager = AssetManager.GetStreamableManager();
+
+            const FSoftObjectPath& AssetPath = AnimDataAsset->DeathAnimationMontage.ToSoftObjectPath();
+
+            // 스트림 관리자에게 "이 애셋 로딩을 시작하고, 로딩이 끝나면 알려줘" 라고 요청
+            StreamableManager.RequestAsyncLoad(AssetPath, FStreamableDelegate::CreateUObject(this, &AEPCombatCharacterBase::OnDeathMontageLoaded));
+        }
     }
 
     // 추가적인 죽음 처리 로직 (콜리전 끄기 등)
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+// 단순 죽음 애니메이션 실행
+void AEPCombatCharacterBase::OnDeathMontageLoaded()
+{
+    if (UAnimMontage* Montage = AnimDataAsset->DeathAnimationMontage.Get())
+    {
+        PlayAnimMontage(Montage);
+    }
+}
 // 피격 타입 맞는 몽타주 검색 및 반환 함수
 UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
 {
@@ -157,3 +200,4 @@ UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType H
     }
     return nullptr;
 }
+

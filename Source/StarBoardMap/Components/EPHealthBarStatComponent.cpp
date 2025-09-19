@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Components/EPHealthBarStatComponent.h"
@@ -29,7 +29,7 @@ void UEPHealthBarStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     CurrentHealthBar = MaxHealthBar;
     UE_LOG(LogTemp, Warning, TEXT("MaxHealthBar: %f, CurrentHealthBar: %f, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), MaxHealthBar, CurrentHealthBar, AttackRange, AttackSpeed, MovementSpeed);
 
-    // °øÅë ½ºÅÈ ÃÊ±âÈ­
+    // ê³µí†µ ìŠ¤íƒ¯ ì´ˆê¸°í™”
     //InitializeCommonStats(BaseStatData);
 }
 
@@ -38,27 +38,27 @@ void UEPHealthBarStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     Super::ApplyDamage(DamageInfo);
     if (IsDied()) return;
 
-    // ±âº» µ¥¹ÌÁö¸¦ °¡Á®¿È
+    // ê¸°ë³¸ ë°ë¯¸ì§€ë¥¼ ê°€ì ¸ì˜´
     float FinalDamage = DamageInfo.BaseDamage;
 
-    //  FDamageInfoÀÇ Ãß°¡ Á¤º¸¸¦ È°¿ëÇÏ¿© ÃÖÁ¾ µ¥¹ÌÁö °è»ê
-    // ¿¹: Ä¡¸íÅ¸¿´´Ù¸é µ¥¹ÌÁö 2¹è
+    //  FDamageInfoì˜ ì¶”ê°€ ì •ë³´ë¥¼ í™œìš©í•˜ì—¬ ìµœì¢… ë°ë¯¸ì§€ ê³„ì‚°
+    // ì˜ˆ: ì¹˜ëª…íƒ€ì˜€ë‹¤ë©´ ë°ë¯¸ì§€ 2ë°°
     if (DamageInfo.bIsCriticalHit)
     {
         FinalDamage *= 2.0f;
     }
-    // ¿¹: Ä³¸¯ÅÍÀÇ ¹æ¾î·Â ½ºÅÈ(Defense)¸¸Å­ µ¥¹ÌÁö °¨¼Ò
+    // ì˜ˆ: ìºë¦­í„°ì˜ ë°©ì–´ë ¥ ìŠ¤íƒ¯(Defense)ë§Œí¼ ë°ë¯¸ì§€ ê°ì†Œ
     // FinalDamage -= DefenseStat;
 
     //const float OldHealth = CurrentHealth;
-    //// ÇöÀç Ã¼·Â¿¡¼­ ÃÖÁ¾ µ¥¹ÌÁö¸¦ Â÷°¨
-    //CurrentHealth = FMath::Clamp(CurrentHealth - FinalDamage, 0.f, MaxHealth);
+    // í˜„ì¬ ì²´ë ¥ì—ì„œ ìµœì¢… ë°ë¯¸ì§€ë¥¼ ì°¨ê°
+    CurrentHealthBar = FMath::Clamp(CurrentHealthBar - FinalDamage, 0.f, MaxHealthBar);
 
-    // ÀÚ½Äµé Ã¼·Â °è»ê ¹× Àû¿ë
+    // ìì‹ë“¤ ì²´ë ¥ ê³„ì‚° ë° ì ìš©
 
-    // ÃÖÁ¾ µ¥¹ÌÁö¿¡ µû¶ó ÇÇ°İ ¹İÀÀ Å¸ÀÔÀ» °áÁ¤
+    // ìµœì¢… ë°ë¯¸ì§€ì— ë”°ë¼ í”¼ê²© ë°˜ì‘ íƒ€ì…ì„ ê²°ì •
     EEPHitReactionType ReactionType = EEPHitReactionType::Light;
-    if (FinalDamage > 50.0f) // ÀÌ ·ÎÁ÷Àº ÀÌÁ¦ StatComponent°¡ ´ã´ç
+    if (FinalDamage > 50.0f) // ì´ ë¡œì§ì€ ì´ì œ StatComponentê°€ ë‹´ë‹¹
     {
         ReactionType = EEPHitReactionType::Heavy;
     }
@@ -66,16 +66,17 @@ void UEPHealthBarStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     {
         ReactionType = EEPHitReactionType::Light;
     }
+    UE_LOG(LogTemp, Warning, TEXT("Enemy == Type: %d, MaxHealthBar: %f, CurrentHealthBar: %f, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), ReactionType, MaxHealthBar, CurrentHealthBar, AttackRange, AttackSpeed, MovementSpeed);
 
-    OnHitReact.Broadcast(ReactionType);
-
-    // Ã¼·ÂÀÌ 0 ÀÌÇÏÀÌ¸é Á×À½ µ¨¸®°ÔÀÌÆ®¸¦ ¹æ¼Û
+    // ì²´ë ¥ì´ 0 ì´í•˜ì´ë©´ ì£½ìŒ ë¸ë¦¬ê²Œì´íŠ¸ë¥¼ ë°©ì†¡
     if (IsDied())
     {
         OnDied.Broadcast();
+        return;
     }
-    UE_LOG(LogTemp, Warning, TEXT("Enemy == Type: %d, MaxHealthBar: %f, CurrentHealthBar: %f, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), ReactionType, MaxHealthBar, CurrentHealthBar, AttackRange, AttackSpeed, MovementSpeed);
 
+    OnHitReact.Broadcast(ReactionType);
+    
 }
 
 bool UEPHealthBarStatComponent::IsDied() const
@@ -87,6 +88,6 @@ bool UEPHealthBarStatComponent::IsDied() const
 void UEPHealthBarStatComponent::CalculateAndApplyDamage(const FEPDamageInfo& DamageInfo)
 {
     //Super::CalculateAndApplyDamage(DamageInfo);
-	// ÀÌ ÄÄÆ÷³ÍÆ®´Â ¿ÀÁ÷ 'float Ã¼·Â °è»ê'ÀÌ¶ó´Â ÀÚ½ÅÀÇ Ã¥ÀÓ¿¡¸¸ ÁıÁßÇÕ´Ï´Ù.
+	// ì´ ì»´í¬ë„ŒíŠ¸ëŠ” ì˜¤ì§ 'float ì²´ë ¥ ê³„ì‚°'ì´ë¼ëŠ” ìì‹ ì˜ ì±…ì„ì—ë§Œ ì§‘ì¤‘í•©ë‹ˆë‹¤.
 	CurrentHealthBar = FMath::Clamp(CurrentHealthBar - DamageInfo.BaseDamage, 0.0f, MaxHealthBar);
 }

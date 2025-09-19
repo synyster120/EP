@@ -41,6 +41,8 @@ public:
     // ====== ICombat Query Interface Implementation ======
     virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
 
+    UFUNCTION()
+    void OnDeathMontageLoaded();
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 

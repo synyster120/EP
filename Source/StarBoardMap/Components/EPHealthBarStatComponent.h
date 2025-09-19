@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -18,7 +18,7 @@ class STARBOARDMAP_API UEPHealthBarStatComponent : public UEPStatComponent
 
 public:
 	UEPHealthBarStatComponent();
-	// Ã¼·Â Á¤º¸ ¹ÝÈ¯ 
+	// ì²´ë ¥ ì •ë³´ ë°˜í™˜ 
 	virtual FEPHealthInfo GetHealthInfo() const override;
 
 	virtual void Initialize(const FEPBaseStat& BaseStatData) override;

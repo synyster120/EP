@@ -38,7 +38,7 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     Super::ApplyDamage(DamageInfo);
     if (IsDied()) return;
 
-    if (DamageInfo.BaseDamage >= 0) return;
+    if (DamageInfo.BaseDamage <= 0) return;
 
     // 기본 데미지를 가져옴
     float FinalDamage = 1;
@@ -66,16 +66,17 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
         ReactionType = EEPHitReactionType::Light;
     }
 
-    OnHitReact.Broadcast(ReactionType);
     // 피격 이펙트/사운드는 어디서? (애님 노티파이?)
+    UE_LOG(LogTemp, Warning, TEXT("Player == Type: %d MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), ReactionType, MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
 
     // 체력이 0 이하이면 죽음 델리게이트를 방송
     if (IsDied())
     {
         OnDied.Broadcast();
+        return;
     }
-    UE_LOG(LogTemp, Warning, TEXT("Player == Type: %d MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), ReactionType, MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
-
+    OnHitReact.Broadcast(ReactionType);
+    
 }
 
 bool UEPHealthBlockStatComponent::IsDied() const
