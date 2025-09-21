@@ -30,7 +30,7 @@ AEPPlayerCharacter::AEPPlayerCharacter()
     // 스프링 암(카메라 암) 생성 및 설정
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
     SpringArmComponent->SetupAttachment(RootComponent); // 루트 컴포넌트(캡슐)에 부착
-    SpringArmComponent->TargetArmLength = 100.0f; // 카메라와의 거리
+    SpringArmComponent->TargetArmLength = 200.0f; // 카메라와의 거리
     SpringArmComponent->bUsePawnControlRotation = true; // 컨트롤러(마우스)의 회전을 스프링 암에 적용
 
     // 카메라 생성 및 설정
@@ -72,6 +72,9 @@ void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
         // Looking
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::Look);
+
+        // Base Attacking
+        EnhancedInputComponent->BindAction(BaseAttackAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::BaseAttack);
     }
 }
 
@@ -101,6 +104,11 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
         AddControllerYawInput(LookAxisVector.X);
         AddControllerPitchInput(LookAxisVector.Y);
     }
+}
+
+void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
 }
 
 float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

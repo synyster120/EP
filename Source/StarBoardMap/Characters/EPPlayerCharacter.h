@@ -56,6 +56,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Bast Attack Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* BaseAttackAction;
+
 protected:
     virtual void BeginPlay() override;
     //virtual void InitializeCharacterData() override;
@@ -68,6 +72,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-    
+
+	/** Called for BaseAttacking input */
+	void BaseAttack(const FInputActionValue& Value);
 
 };
