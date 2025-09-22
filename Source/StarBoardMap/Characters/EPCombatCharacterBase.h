@@ -13,6 +13,7 @@
 // 전방 선언
 class UEPStatComponent;
 class UEPSkillComponent;
+class UEPSkillDataAsset;
 class UEPCharacterAnimationData;
 struct FEPDamageInfo;
 
@@ -49,6 +50,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+    virtual void PostInitializeComponents() override;
 
     /**
     * 캐릭터의 초기 데이터를 설정합니다.
@@ -58,10 +60,10 @@ protected:
 
     // ... 데이터 테이블, 애니메이션 애셋 포인터 등 전투 관련 데이터는 모두 여기에 ...
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-    TObjectPtr<UDataTable> StatDataTable;
+    FDataTableRowHandle StatDataRowHandle;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-    FName StatDataRowName;
+    TArray<TSoftObjectPtr<UEPSkillDataAsset>> SkillDataAsset;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
     TObjectPtr<UEPCharacterAnimationData> AnimDataAsset;

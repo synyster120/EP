@@ -2,6 +2,7 @@
 #include "Data/EPSkillDataAsset.h"
 #include "Skills/EPSkillBase.h"
 #include "Components/EPStatComponent.h"
+#include "Core/Helper/EPAsyncLoadHelper.h"
 
 UEPSkillComponent::UEPSkillComponent()
 {
@@ -70,35 +71,48 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
     // SkillAssets의 개수만큼 SkillSlots 배열의 크기 할당
     SkillSlots.SetNum(SkillAssets.Num());
 
-    // 배열 수
-    int32 NewSkillIndex = SkillAssets.Num() - 1;
-
-    for (int32 Index = 0; Index < SkillAssets.Num(); ++Index)
+    for (int32 Index = 0; Index < SkillAssets.Num(); Index++)
     {
         const TSoftObjectPtr<UEPSkillDataAsset>& SkillAssetPtr = SkillAssets[Index];
 
-        // 소프트 포인터로부터 실제 데이터 에셋을 로드
-        UEPSkillDataAsset* SkillDataAsset = SkillAssetPtr.LoadSynchronous();
-        if (SkillDataAsset == nullptr) continue;
+        // [this, Index] 만 캡처합니다. 불필요한 지역 변수는 모두 제거합니다.
+        UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillDataAsset>(SkillAssetPtr,
+            [this, Index](UEPSkillDataAsset* LoadedSkillDataAsset)
+            {
+                // -- 1. 스킬 데이터 애셋 로드 완료 --
+                if (!LoadedSkillDataAsset)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillDataAsset at index %d"), Index);
+                    return;
+                }
 
-        // 데이터 에셋에서 실제 스폰할 스킬 클래스 정보를 가져옴
-        TSubclassOf<UEPSkillBase> SkillClass = SkillDataAsset->SkillData.SkillClass.LoadSynchronous();
-        if (SkillClass == nullptr) continue;
+                const FEPSkillData& SkillData = LoadedSkillDataAsset->SkillData;
 
-        // 스킬 객체 생성. 소유자는 이 컴포넌트의 소유자(캐릭터)로 지정
-        UEPSkillBase* NewSkill = NewObject<UEPSkillBase>(GetOwner(), SkillClass);
-        if (NewSkill)
-        {
-            // 생성된 스킬 객체에 필요한 데이터를 전달하여 초기화
-            NewSkill->Initialize(SkillDataAsset);
+                // [this, Index, SkillData] 를 캡처하여 다음 콜백으로 전달합니다.
+                UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillBase>(SkillData.SkillClass,
+                    [this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
+                    {
+                        // -- 2. 스킬 클래스 로드 완료 --
+                        if (!LoadedSkillClass)
+                        {
+                            UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillClass for %s"), *SkillData.SkillName);
+                            return;
+                        }
 
-            // 올바른 인덱스에 스킬 객체를 할당
-            SkillSlots[NewSkillIndex].SkillObject = NewSkill;
+                        // 3. 모든 정보가 유효하므로, 스킬 객체를 생성합니다.
+                        UEPSkillBase* NewSkill = NewObject<UEPSkillBase>(GetOwner(), LoadedSkillClass);
+                        if (NewSkill)
+                        {
+                            NewSkill->Initialize(LoadedSkillDataAsset);
+                            SkillSlots[Index].SkillObject = NewSkill;
 
-            // 스킬 Index관리Map 에 스킬 정보 추가
-            FName SkillID = NewSkill->GetSkillID();
-            SkillIDToIndexMap.Add(SkillID, NewSkillIndex);
-        }
+                            FName SkillID = FName(SkillData.SkillName); // FName은 FString으로부터 생성 가능
+                            SkillIDToIndexMap.Add(SkillID, Index);
+                            UE_LOG(LogTemp, Log, TEXT("Skill '%s' created at index %d"), *SkillID.ToString(), Index);
+                        }
+                    });
+            });
+
     }
 }
 

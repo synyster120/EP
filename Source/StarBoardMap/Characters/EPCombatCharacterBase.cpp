@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/EPCharacterTypes.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
+#include "Data/EPSkillDataAsset.h"
 // 테스트용
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
@@ -26,8 +27,6 @@ void AEPCombatCharacterBase::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 캐릭터 데이터를 초기화
-    InitializeCharacterData();
 
     if (StatComponent)
     {
@@ -38,22 +37,44 @@ void AEPCombatCharacterBase::BeginPlay()
     
 }
 
+// 블루프린트에서 설정한 변수 값들이 C++에 처음으로 연결되는 시점
+void AEPCombatCharacterBase::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+
+    // 캐릭터 데이터를 초기화
+    InitializeCharacterData();
+}
+
 void AEPCombatCharacterBase::InitializeCharacterData()
 {
     Super::InitializeCharacterData();
 
     // 스탯 초기화
-    if (StatDataTable && StatComponent) // 캐릭터가 자신의 스탯 데이터 테이블을 가지고 있다고 가정
+    //if (StatDataTable && StatComponent) // 캐릭터가 자신의 스탯 데이터 테이블을 가지고 있다고 가정
+    //{
+    //    // 데이터 테이블에서 Stat 데이터를 찾아옵니다.
+    //    FEPBaseStat* StatData = StatDataTable->FindRow<FEPBaseStat>(StatDataRowName, TEXT(""));
+    //    if (StatData)
+    //    {
+    //        // StatData로 StatComponent 초기화
+    //        StatComponent->Initialize(*StatData);
+    //    }
+    //}
+    if (StatDataRowHandle.DataTable && !StatDataRowHandle.RowName.IsNone() && StatComponent)
     {
-        // 데이터 테이블에서 Stat 데이터를 찾아옵니다.
-        FEPBaseStat* StatData = StatDataTable->FindRow<FEPBaseStat>(StatDataRowName, TEXT(""));
+        // 핸들에서 직접 데이터를 찾아옵니다.
+        FEPBaseStat* StatData = StatDataRowHandle.GetRow<FEPBaseStat>(TEXT(""));
         if (StatData)
         {
-            // StatData로 StatComponent 초기화
             StatComponent->Initialize(*StatData);
         }
     }
 
+    if (SkillDataAsset.Num() > 0 && SkillComponent)
+    {
+        SkillComponent->InitializeSkills(SkillDataAsset);
+    }
 }
 
 // 피격 몽타주 검색 및 재생
