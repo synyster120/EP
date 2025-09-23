@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/EPHealthBlockStatComponent.h"
 #include "Components/EPSkillComponent.h"
+#include "Data/EPSkillTypes.h"
  // Enhanced Input
 #include "EnhancedInputComponent.h" 
 #include "EnhancedInputSubsystems.h"
@@ -108,6 +109,7 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
+    SkillComponent->ActivateSkill(0);
     UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
 }
 

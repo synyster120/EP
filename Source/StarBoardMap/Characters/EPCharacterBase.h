@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameplayTagContainer.h"
 #include "EPCharacterBase.generated.h"
 
 // 전방 선언
@@ -15,6 +16,7 @@ class STARBOARDMAP_API AEPCharacterBase : public ACharacter
 
 public:
 	AEPCharacterBase();
+	void PlayAnimationByTag(FGameplayTag NewTag);
 
 protected:
 	virtual void BeginPlay() override;

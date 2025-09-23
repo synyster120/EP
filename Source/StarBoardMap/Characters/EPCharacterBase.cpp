@@ -1,9 +1,16 @@
 ﻿
 #include "Characters/EPCharacterBase.h"
 
+
 AEPCharacterBase::AEPCharacterBase()
 {
  	PrimaryActorTick.bCanEverTick = false;
+
+}
+
+void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
+{
+	// 태그에 맞는 몽타주 검색 후 Play
 
 }
 

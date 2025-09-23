@@ -23,6 +23,8 @@ struct FSkillRuntimeData
     UPROPERTY()
     FTimerHandle CooldownTimerHandle;
 
+    // 이 스킬의 최대 콤보 수
+    int32 MaxComboCount;
     // 나중에 필요한 데이터들을 여기에 추가...
 };
 
@@ -43,7 +45,9 @@ public:
      * @param SkillIndex 발동할 스킬의 인덱스 (Skills 배열 기준)
      * @param TargetData 스킬 발동에 필요한 타겟 정보
      */
-    void ActivateSkill(int32 SkillIndex, const FEPSkillTargetData& TargetData);
+    void ActivateSkill(int32 SkillIndex);
+
+    bool CanActivateSkill(int32 SkillIndex);
 
 protected:
     virtual void BeginPlay() override;
@@ -61,6 +65,15 @@ private:
     // 스킬 쿨타임이 종료되었을 때 호출 함수 (스킬 사용 가능)
     void OnCooldownFinished(FName SkillID);
 
+    // 콤보 유효 시간 타이머 세팅
+    void StartComboWindow(int32 SkillIndex, int32 CurrentComboIndex);
+
+    // 콤보 유효 시간 타이머 리셋 함수
+    UFUNCTION()
+    void ResetCombo();
+
+    FEPSkillTargetData PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex);
+
 private:
     // 소유 스킬 객체 / 스킬 쿨 타이머 배열 (데이터의 원본)
     UPROPERTY(VisibleAnywhere, Category = "Skill")
@@ -69,6 +82,15 @@ private:
     // SkillID를 배열 인덱스로 변환해주는 조회용 맵 (빠른 접근용)
     UPROPERTY()
     TMap<FName, int32> SkillIDToIndexMap;
+
+    // Key: 콤보 상태를 추적할 스킬슬롯의 Index (Index)
+    // Value: 현재 진행 중인 콤보 단계 (Index)
+    UPROPERTY()
+    TMap<int32, int32> ComboStateMap;
+
+    // 콤보 유효시간 타이머. 마지막으로 사용된 콤보 스킬슬롯의 Index 저장
+    FTimerHandle ComboTimerHandle;
+    int32 LastComboSkillIndex = -1;
 
     // 소유자(캐릭터)의 StatComponent에 대한 참조 (BeginPlay 시점에 찾아옴)
     /*UPROPERTY()

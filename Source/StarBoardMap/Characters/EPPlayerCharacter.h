@@ -13,7 +13,6 @@ class UCharacterAnimationData;
 class USpringArmComponent;
 class UCameraComponent;
 
-class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
