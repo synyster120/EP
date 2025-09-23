@@ -4,13 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+//#include "Data/EPSkillDataAsset.h"
 #include "EPSkillBase.generated.h"
 
 class UEPSkillDataAsset;
 struct FEPSkillTargetData;
+struct FEPSkillPhaseData;
 
 /**
- * 
+ *		Skill 클래스의 베이스가 되는 클래스
  */
 UCLASS()
 class STARBOARDMAP_API UEPSkillBase : public UObject
@@ -20,12 +22,14 @@ class STARBOARDMAP_API UEPSkillBase : public UObject
 public:
 	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
 
-	inline FName GetSkillID() { return FName("AssetID"); };
+	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex);
 
-	void Activate(const FEPSkillTargetData& NewTargetData);
 
-	inline UEPSkillDataAsset* GetSkillData() { return tempSkillData; };
+	inline UEPSkillDataAsset* GetSkillData() const { return SkillDataAsset; };
+	FName GetSkillID() const;
+	FEPSkillPhaseData GetPhaseData(int32 CurrentPhaseDataIndex);
 
 protected:
-	UEPSkillDataAsset* tempSkillData;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skill")
+	TObjectPtr<UEPSkillDataAsset> SkillDataAsset;
 };

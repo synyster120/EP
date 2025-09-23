@@ -43,6 +43,14 @@ enum class EEPSkillRangeShape : uint8
     Projectile  UMETA(DisplayName = "발사체 사거리"),
 };
 
+// 이 단계가 로컬 데이터인지, 외부 참조인지 구분하는 Enum
+UENUM(BlueprintType)
+enum class EEPSkillPhaseSource : uint8
+{
+    Local UMETA(DisplayName = "로컬 스킬 단계"),
+    Referenced UMETA(DisplayName = "참조 스킬 단계")
+};
+
 // 타겟 데이터
 USTRUCT(BlueprintType)
 struct FEPSkillTargetData
@@ -122,6 +130,25 @@ struct FEPProjectileData
     TSoftObjectPtr<USoundBase> ExpireSound; 
 };
 
+// 콤보의 한 단계를 정의하는 구조체
+USTRUCT(BlueprintType)
+struct FEPComboStep
+{
+    GENERATED_BODY()
+
+    // 이 단계가 로컬인지, 참조인지
+    UPROPERTY(EditAnywhere)
+    EEPSkillPhaseSource SourceType;
+
+    // SourceType이 Local일 경우, 사용할 LocalSkillPhases 배열의 인덱스
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "SourceType == ESkillPhaseSource::Local"))
+    int32 LocalPhaseIndex;
+
+    // SourceType이 Referenced일 경우, 사용할 DT_CommonSkillPhases의 행 이름
+    UPROPERTY(EditAnywhere, meta = (EditCondition = "SourceType == ESkillPhaseSource::Referenced"))
+    FDataTableRowHandle ReferencedPhaseRow;
+};
+
 // 스킬 단계 데이터
 USTRUCT(BlueprintType)
 struct FEPSkillPhaseData
@@ -136,6 +163,10 @@ public:
     // 콤보 유효 시간
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     float ComboValidTime;
+
+    // 타겟팅 방식
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Target")
+    EEPTargetType TargetType;
 
     // 애니메이션
     //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")

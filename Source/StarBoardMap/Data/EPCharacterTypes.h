@@ -57,8 +57,8 @@ public:
 	float MovementSpeed = 10.0f;
 
 	// 스킬 종류(Key)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-	TArray<TSoftObjectPtr<UEPSkillDataAsset>> Skills;
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+	TArray<TSoftObjectPtr<UEPSkillDataAsset>> Skills;*/
 };
 
 // 플레이어 스탯 (기본 스탯 상속)
