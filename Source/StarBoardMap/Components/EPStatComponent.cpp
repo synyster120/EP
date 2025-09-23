@@ -78,6 +78,8 @@ void UEPStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     AttackSpeed = BaseStatData.AttackSpeed;
     MovementSpeed = BaseStatData.MovementSpeed;
 
+
+
     // 부가 스탯 맵 초기화
     SecondaryStats.Empty();
 

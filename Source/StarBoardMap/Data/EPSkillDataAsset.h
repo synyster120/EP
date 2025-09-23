@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Data/EPSkillTypes.h"
 #include "EPSkillDataAsset.generated.h"
 
 class UEPSkillBase;
-struct FEPSkillPhaseData;
+
 /**
  * 
  */

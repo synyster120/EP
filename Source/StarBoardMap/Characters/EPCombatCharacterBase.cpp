@@ -7,6 +7,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/EPCharacterTypes.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
+#include "Data/EPSkillDataAsset.h"
 // 테스트용
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
@@ -26,9 +27,6 @@ void AEPCombatCharacterBase::BeginPlay()
 {
     Super::BeginPlay();
 
-    // BeginPlay는 게임이 시작될 때 호출됩니다.
-    // 여기서 캐릭터의 데이터를 초기화하는 함수를 호출하는 것이 일반적
-    InitializeCharacterData();
 
     if (StatComponent)
     {
@@ -37,54 +35,15 @@ void AEPCombatCharacterBase::BeginPlay()
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
     }
     
-    // ===================== TakeDamage 테스트용 ===================================================================================
-    // 가짜(Mock) 데미지 값
-    float MockDamageAmount = 20.0f;
+}
 
-    // 가짜 FDamageEvent (가장 간단한 FPointDamageEvent로 생성)
-    FPointDamageEvent MockDamageEvent;
-    MockDamageEvent.HitInfo.ImpactPoint = GetActorLocation(); // 피격 위치
-    MockDamageEvent.ShotDirection = GetActorForwardVector();   // 피격 방향
+// 블루프린트에서 설정한 변수 값들이 C++에 처음으로 연결되는 시점
+void AEPCombatCharacterBase::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
 
-    // 가짜 가해자 정보 (여기서는 자기 자신으로 설정)
-    AController* MockInstigator = GetController();
-    AActor* MockDamageCauser = this;
-
-    // --- 2. SetTimer와 람다를 사용하여 3초 후에 TakeDamage를 호출합니다. ---
-    FTimerHandle TestTimerHandle;
-    float Delay = 3.0f; // 3초 후에 실행
-
-    GetWorld()->GetTimerManager().SetTimer(
-        TestTimerHandle,
-        [this, MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser]() // 람다 캡처
-        {
-            // 람다 내부에서는 캡처한 변수가 유효한지 항상 확인하는 것이 안전합니다.
-            if (IsValid(this))
-            {
-                // 3초 후에 이 코드가 실행됩니다.
-                UE_LOG(LogTemp, Warning, TEXT("This Attack"));
-                this->TakeDamage(MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser);
-            }
-        },
-        Delay,
-        false // 반복 안 함
-    );
-    FTimerHandle TestTimerHandl2e;
-    GetWorld()->GetTimerManager().SetTimer(
-        TestTimerHandl2e,
-        [this, MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser]() // 람다 캡처
-        {
-            // 람다 내부에서는 캡처한 변수가 유효한지 항상 확인하는 것이 안전합니다.
-            if (IsValid(this))
-            {
-                // 3초 후에 이 코드가 실행됩니다.
-                UE_LOG(LogTemp, Warning, TEXT("This Attack"));
-                this->TakeDamage(MockDamageAmount, MockDamageEvent, MockInstigator, MockDamageCauser);
-            }
-        },
-        6.0f,
-        false // 반복 안 함
-    );
+    // 캐릭터 데이터를 초기화
+    InitializeCharacterData();
 }
 
 void AEPCombatCharacterBase::InitializeCharacterData()
@@ -92,30 +51,57 @@ void AEPCombatCharacterBase::InitializeCharacterData()
     Super::InitializeCharacterData();
 
     // 스탯 초기화
-    if (StatDataTable && StatComponent) // 캐릭터가 자신의 스탯 데이터 테이블을 가지고 있다고 가정
+    //if (StatDataTable && StatComponent) // 캐릭터가 자신의 스탯 데이터 테이블을 가지고 있다고 가정
+    //{
+    //    // 데이터 테이블에서 Stat 데이터를 찾아옵니다.
+    //    FEPBaseStat* StatData = StatDataTable->FindRow<FEPBaseStat>(StatDataRowName, TEXT(""));
+    //    if (StatData)
+    //    {
+    //        // StatData로 StatComponent 초기화
+    //        StatComponent->Initialize(*StatData);
+    //    }
+    //}
+    if (StatDataRowHandle.DataTable && !StatDataRowHandle.RowName.IsNone() && StatComponent)
     {
-        // 데이터 테이블에서 Stat 데이터를 찾아옵니다.
-        FEPBaseStat* StatData = StatDataTable->FindRow<FEPBaseStat>(StatDataRowName, TEXT(""));
+        // 핸들에서 직접 데이터를 찾아옵니다.
+        FEPBaseStat* StatData = StatDataRowHandle.GetRow<FEPBaseStat>(TEXT(""));
         if (StatData)
         {
-            // StatData로 StatComponent 초기화
             StatComponent->Initialize(*StatData);
         }
     }
 
+    if (SkillDataAsset.Num() > 0 && SkillComponent)
+    {
+        SkillComponent->InitializeSkills(SkillDataAsset);
+    }
 }
 
 // 피격 몽타주 검색 및 재생
 void AEPCombatCharacterBase::HandleHitReaction(EEPHitReactionType HitReactionType)
 {
     // 몽타주 검색
-    UAnimMontage* ReactionMontage = GetHitReactionMontage(HitReactionType);
-
-    // 몽타주 재생
-    if (ReactionMontage)
+    if (!AnimDataAsset || !AnimDataAsset->HitReactionMontages.Contains(HitReactionType))
     {
-        PlayAnimMontage(ReactionMontage);
+        return; // 재생할 몽타주가 없으므로 종료
     }
+
+    TSoftObjectPtr<UAnimMontage> MontagePtr = AnimDataAsset->HitReactionMontages[HitReactionType];
+
+    // 몽타주 플레이
+    UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(MontagePtr,
+        [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+        {
+            if (LoadedMontage)
+            {
+                this->PlayAnimMontage(LoadedMontage);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("HitReactionMontages is not set in % s!"), *AnimDataAsset->GetName());
+            }
+        }
+    );
 }
 
 // 피격 관련 데이터(FEPDamageInfo) 전달 함수
@@ -172,14 +158,7 @@ void AEPCombatCharacterBase::HandleDeath_Implementation()
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-// 피격 타입 맞는 몽타주 검색 및 반환 함수
 UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
 {
-    // 데이터 애셋의 TMap에서 HitReactionType에 맞는 몽타주를 찾아 반환
-    if (AnimDataAsset && AnimDataAsset->HitReactionMontages.Contains(HitReactionType))
-    {
-        return AnimDataAsset->HitReactionMontages[HitReactionType].LoadSynchronous();
-    }
     return nullptr;
 }
-

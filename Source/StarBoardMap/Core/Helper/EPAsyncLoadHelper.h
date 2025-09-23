@@ -53,4 +53,30 @@ public:
             }
         );
     }
+
+    /** TSoftClassPtr (클래스)를 비동기 로드합니다. */
+    template<typename T>
+    static void RequestAsyncLoad(const TSoftClassPtr<T>& ClassPtr, TFunction<void(TSubclassOf<T>)> OnLoadedCallback)
+    {
+        if (ClassPtr.IsNull())
+        {
+            if (OnLoadedCallback) { OnLoadedCallback(nullptr); }
+            return;
+        }
+
+        // .Get()은 UClass*를 반환합니다. TSubclassOf는 UClass*로 만들어집니다.
+        if (UClass* LoadedClass = ClassPtr.Get())
+        {
+            if (OnLoadedCallback) { OnLoadedCallback(LoadedClass); }
+            return;
+        }
+
+        UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(ClassPtr.ToSoftObjectPath(),
+            [ClassPtr, OnLoadedCallback]()
+            {
+                if (OnLoadedCallback) { OnLoadedCallback(ClassPtr.Get()); }
+            }
+        );
+    }
+    
 };
