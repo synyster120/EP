@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Skills/EPSkill_MeleeCombo.h"
@@ -10,20 +10,20 @@ void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData&
 {
 	Super::Activate(Caster, NewTargetData, CurrentComboIndex);
 
-    // Caster°¡ À¯È¿ÇÑÁö, SkillDataAssetÀÌ ÇÒ´çµÇ¾ú´ÂÁö È®ÀÎ
+    // Casterê°€ ìœ íš¨í•œì§€, SkillDataAssetì´ í• ë‹¹ë˜ì—ˆëŠ”ì§€ í™•ì¸
     AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
     if (!Character || !SkillDataAsset) return;
 
-    // ¾îºô¸®Æ¼ ÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿É´Ï´Ù.
+    // ì–´ë¹Œë¦¬í‹° ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
     UEPSkillComponent* SkillComp = Character->GetSkillComponent();
     if (!SkillComp) return;
 
     const FEPSkillData& Data = SkillDataAsset->SkillData;
 
-    // ÇöÀç ÄŞº¸ ´Ü°è°¡ ½ºÅ³ µ¥ÀÌÅÍ¿¡ Á¤ÀÇµÈ ´Ü°è ¹è¿­ÀÇ À¯È¿ÇÑ ¹üÀ§ ³»¿¡ ÀÖ´ÂÁö È®ÀÎ
+    // í˜„ì¬ ì½¤ë³´ ë‹¨ê³„ê°€ ìŠ¤í‚¬ ë°ì´í„°ì— ì •ì˜ëœ ë‹¨ê³„ ë°°ì—´ì˜ ìœ íš¨í•œ ë²”ìœ„ ë‚´ì— ìˆëŠ”ì§€ í™•ì¸
     if (Data.ComboSequence.IsValidIndex(CurrentComboIndex))
     {
-        // ÇöÀç ÄŞº¸ ´Ü°è¿¡ ¸Â´Â µ¥ÀÌÅÍ¸¦ °¡Á®¿È
+        // í˜„ì¬ ì½¤ë³´ ë‹¨ê³„ì— ë§ëŠ” ë°ì´í„°ë¥¼ ê°€ì ¸ì˜´
         const FEPComboStep& StepData = Data.ComboSequence[CurrentComboIndex];
         FEPSkillPhaseData SkillPhaseData;
 
@@ -35,7 +35,7 @@ void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData&
         {
             if (StepData.ReferencedPhaseRow.DataTable)
             {
-                // ÇÚµé¿¡¼­ Á÷Á¢ µ¥ÀÌÅÍ¸¦ Ã£¾Æ¿É´Ï´Ù.
+                // í•¸ë“¤ì—ì„œ ì§ì ‘ ë°ì´í„°ë¥¼ ì°¾ì•„ì˜´
                 FEPSkillPhaseData* SkillData = StepData.ReferencedPhaseRow.GetRow<FEPSkillPhaseData>(TEXT(""));
                 if (SkillData)
                 {
@@ -44,7 +44,7 @@ void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData&
             }
         }
 
-        // Ä³¸¯ÅÍ¿¡°Ô ÇØ´ç ÅÂ±×ÀÇ ¾Ö´Ï¸ŞÀÌ¼ÇÀ» Àç»ıÇÏ¶ó°í ¿äÃ»
+        // ìºë¦­í„°ì—ê²Œ í•´ë‹¹ íƒœê·¸ì˜ ì• ë‹ˆë©”ì´ì…˜ì„ ì¬ìƒí•˜ë¼ê³  ìš”ì²­
         Character->PlayAnimationByTag(SkillPhaseData.AnimationTag);
 
     }
