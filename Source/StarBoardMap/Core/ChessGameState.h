@@ -42,6 +42,9 @@ private: // Unit
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ACPawn> PawnBP;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> WarningTileBP;
+
 
 	UPROPERTY(EditAnywhere)
 	int32 BishopNum;
@@ -54,12 +57,15 @@ private: // Unit
 
 	TArray<ACUnit*> Units;
 
+	UPROPERTY()
+	TArray<AActor*> GridWarningTiles;
+
 private: // State
 	FIntPoint PlayerXY;
 	int32 UnitState;
 	int32 GridState[10][10];
+	int32 GridWarningState[10][10];
 	FVector GridVector[10][10];
-	//FVector BasicGridVector;
 	float GridSize = 150.f;
 
 	bool bIsClear = false;
@@ -79,4 +85,6 @@ public: //function
 	TArray<ACUnit*> GetUnit() const { return Units; }
 
 	FVector GetGridVector(FIntPoint NewXY);
+
+	void SetGridWarning(FIntPoint NewXY, int32 Val);
 };

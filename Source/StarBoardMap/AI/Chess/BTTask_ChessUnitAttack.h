@@ -4,16 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "BTTask_ChessUnitMove.generated.h"
+#include "BTTask_ChessUnitAttack.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class STARBOARDMAP_API UBTTask_ChessUnitMove : public UBTTask_BlackboardBase
+class STARBOARDMAP_API UBTTask_ChessUnitAttack : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
-
+	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 };

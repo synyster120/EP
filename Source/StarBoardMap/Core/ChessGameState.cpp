@@ -25,20 +25,24 @@ void AChessGameState::BeginPlay()
         }
     }
 
+    UWorld* World = GetWorld();
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    FRotator SpawnRotation = FRotator::ZeroRotator;
+
     FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z);
     for (int i = 0;i < 10;i++) {
         for (int j = 0;j < 10;j++) {
             GridVector[i][j] = FVector(TempVector.X + (GridSize * i), TempVector.Y + (GridSize * j), TempVector.Z);
+            GridWarningTiles.Add(GetWorld()->SpawnActor<AActor>(WarningTileBP, GridVector[i][j], SpawnRotation, SpawnParams));
+            GridWarningTiles[i * 10 + j]->SetActorHiddenInGame(true);
+            GridWarningState[i][j] = 0;
             if (i == 0 || i == 9 || j == 0 || j == 9) GridState[i][j] = -1;
             else GridState[i][j] = 0;
         }
     }
 
     /////Spawn
-    UWorld* World = GetWorld();
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-    FRotator SpawnRotation = FRotator::ZeroRotator;
 
     ACKing* TempKing = GetWorld()->SpawnActor<ACKing>(KingBP, GridVector[8][4], SpawnRotation, SpawnParams);
     TempKing->SetOriginPoint(FIntPoint(8, 4));
@@ -121,4 +125,10 @@ void AChessGameState::OnTurn()
 FVector AChessGameState::GetGridVector(FIntPoint NewXY)
 {
     return GridVector[NewXY.X][NewXY.Y];
+}
+
+void AChessGameState::SetGridWarning(FIntPoint NewXY, int32 Val)
+{
+    GridWarningState[NewXY.X][NewXY.Y] += Val;
+    GridWarningTiles[NewXY.X*10 + NewXY.Y]->SetActorHiddenInGame(GridWarningState[NewXY.X][NewXY.Y] == 0 ? true : false);
 }

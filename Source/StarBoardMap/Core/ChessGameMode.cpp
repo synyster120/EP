@@ -34,7 +34,6 @@ void AChessGameMode::ClearGame()
 
 void AChessGameMode::OnTurn()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnTurn"));
 	ChessGameState->OnTurn();
 
 	for (ACUnit* Unit : ChessGameState->GetUnit()) 
@@ -129,4 +128,9 @@ FVector AChessGameMode::GetPlayerVector()
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
 	APawn* PlayerPawn = PlayerController->GetPawn();
 	return PlayerPawn->GetActorLocation();
+}
+
+void AChessGameMode::SetGridWarning(FIntPoint NewXY, int32 Val)
+{
+	ChessGameState->SetGridWarning(NewXY, Val);
 }

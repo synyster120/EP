@@ -17,4 +17,14 @@ class STARBOARDMAP_API ACQueen : public ACUnit
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	int32 QueenMoveCounter = 0, QueenMoveMax = 0;
+	float QueenSpeed;
+	FIntPoint Direction;
+
+	FTimerHandle QueenWarningGridTimer;
+	void QueenWarningGridSet();
+
+public:
+	void QueenWarningGridFunction(int32 Value, FIntPoint AddDirection);
 };

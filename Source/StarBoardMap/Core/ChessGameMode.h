@@ -45,4 +45,5 @@ public:
 	int32 GetGridState(FIntPoint NewXY);
 	FVector GetGridVector(FIntPoint NewXY);
 	FVector GetPlayerVector();
+	void SetGridWarning(FIntPoint NewXY, int32 Val);
 };

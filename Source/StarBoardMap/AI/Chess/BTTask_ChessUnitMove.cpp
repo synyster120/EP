@@ -8,16 +8,22 @@
 
 EBTNodeResult::Type UBTTask_ChessUnitMove::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	bNotifyTick = true;
+	return EBTNodeResult::InProgress;
+}
+
+void UBTTask_ChessUnitMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
 	APawn* ControlledPawn = OwnerComp.GetAIOwner() ? OwnerComp.GetAIOwner()->GetPawn() : nullptr;
-	//UE_LOG(LogTemp, Warning, TEXT("INMOVE"));
+
 	FVector TargetPoint = OwnerComp.GetBlackboardComponent()->GetValueAsVector("NowTargetPoint");
 	float Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("NowMovingSpeed");
 
 	ControlledPawn->SetActorLocation(
 		FMath::VInterpConstantTo(
-			ControlledPawn->GetActorLocation(), 
+			ControlledPawn->GetActorLocation(),
 			TargetPoint,
-			GetWorld()->GetDeltaSeconds(), 
+			DeltaSeconds,
 			Speed));
 
 	FVector Current = ControlledPawn->GetActorLocation();
@@ -25,7 +31,6 @@ EBTNodeResult::Type UBTTask_ChessUnitMove::ExecuteTask(UBehaviorTreeComponent& O
 	if (Distance <= 3.0f)
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsMoving", false);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
-
-	return EBTNodeResult::Type();
 }

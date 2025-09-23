@@ -73,7 +73,8 @@ FIntPoint AChessUnitController::FindMove()
 
 void AChessUnitController::Move(FIntPoint TargetPoint, bool IsBigJump)
 {
-	Unit->SetXY(TargetPoint);
+	if(Unit->GetUnitName() != FName("Pawn") && Unit->GetUnitName() != FName("Queen")) ChessGameMode->SetGridWarning(TargetPoint, Unit->GetUnitType());
+	if(Unit->GetUnitName() != FName("Queen")) Unit->SetXY(TargetPoint);
 	BB->SetValueAsBool(FName("IsMoving"), false);
 	BB->SetValueAsBool(FName("IsBigJump"), IsBigJump);
 	BB->SetValueAsVector(FName("TargetPoint"), ChessGameMode->GetGridVector(TargetPoint));
@@ -98,6 +99,11 @@ FIntPoint AChessUnitController::MoveOut()
 	Move(TargetPoint, true);
 
 	return TargetPoint;
+}
+
+void AChessUnitController::MoveEnd()
+{
+	ChessGameMode->SetGridWarning(Unit->GetXY(), -Unit->GetUnitType());
 }
 
 FIntPoint AChessUnitController::FindKingMove(TArray<FIntPoint> AvaliablePoint)
@@ -141,16 +147,33 @@ FIntPoint AChessUnitController::FindKingMove(TArray<FIntPoint> AvaliablePoint)
 FIntPoint AChessUnitController::FindQueenMove(FIntPoint Direction)
 {
 	FIntPoint TargetXY = Unit->GetXY();
+	int32 MaxRange = FMath::RandRange(1, 9);
+	int32 QueenMoveCounter = 0;
 
-	for (int32 i = 0;i < FMath::RandRange(1, 9); i++)
+	for (int32 i = 0;i < MaxRange; i++)
 	{
 		FIntPoint NewXY = TargetXY + Direction;
 
-		if (ChessGameMode->GetGridState(NewXY) == 0) TargetXY = NewXY;
+		if (ChessGameMode->GetGridState(NewXY) == 0) {
+			TargetXY = NewXY;
+			ChessGameMode->SetGridWarning(NewXY, Unit->GetUnitType());
+			QueenMoveCounter += 1;
+		}
 		else break;
+	}
+	if (QueenMoveCounter > 1) {
+		Cast<ACQueen>(Unit)->QueenWarningGridFunction(QueenMoveCounter, Direction);
+	}
+	else {
+		Unit->SetXY(TargetXY);
 	}
 
 	return TargetXY;
+}
+
+void AChessUnitController::QueenArrivePoint(FIntPoint Point)
+{
+	ChessGameMode->SetGridWarning(Point, -2);
 }
 
 FIntPoint AChessUnitController::FindUnitMove(TArray<FIntPoint> AvaliablePoint)
@@ -187,6 +210,7 @@ FIntPoint AChessUnitController::FindUnitMove(TArray<FIntPoint> AvaliablePoint)
 
 void AChessUnitController::SpawnPawn(FIntPoint SpawnPoint)
 {
+	ChessGameMode->SetGridWarning(SpawnPoint, Unit->GetUnitType());
 	FVector SpawnVector = ChessGameMode->GetGridVector(SpawnPoint);
 	SpawnVector.Z += 500.f;
 	Unit->SetXY(SpawnPoint);
@@ -197,10 +221,14 @@ void AChessUnitController::SpawnPawn(FIntPoint SpawnPoint)
 
 FIntPoint AChessUnitController::AttackPawn()
 {
-	UE_LOG(LogTemp, Warning, TEXT("HIHIATACKPAWN"));
 	Unit->SetActorHiddenInGame(true);
 	Unit->SetActorEnableCollision(false);
 	return Unit->GetXY();
+}
+
+void AChessUnitController::Attack()
+{
+	Unit->Attack();
 }
 
 void AChessUnitController::DestroyUnit()

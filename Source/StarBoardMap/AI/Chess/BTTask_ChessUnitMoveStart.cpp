@@ -24,6 +24,8 @@ EBTNodeResult::Type UBTTask_ChessUnitMoveStart::ExecuteTask(UBehaviorTreeCompone
         Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("MovingSpeed");
     }
 
+    OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsAttack", false);
+    //attack activate if needed
     OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
     OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
     int32 NowState = OwnerComp.GetBlackboardComponent()->GetValueAsInt("NowState");
