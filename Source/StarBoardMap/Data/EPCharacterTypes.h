@@ -13,15 +13,25 @@ class UEPSkillDataAsset;
  * 
  */
 
+// 캐릭터의 행동 상태
+UENUM(BlueprintType)
+enum class EEPCharacterState : uint8
+{
+	Idle UMETA(DisplayName = "기본 상태"),		// 아무것도 안 하는 상태
+	Moving UMETA(DisplayName = "이동 중"),		// 이동 중
+	Attacking UMETA(DisplayName = "공격 중"),	// 공격 중 (이동 불가)
+	Dead UMETA(DisplayName = "죽음")				// 죽음 (행동 불가)
+};
+
 // AI의 행동 상태
 UENUM(BlueprintType)
 enum class EEPAIState : uint8
 {
-	Patrolling UMETA(DisplayName = "대기or순찰"), // 대기or순찰
-	Chasing UMETA(DisplayName = "추격"), // 추격
-	Attacking UMETA(DisplayName = "공격"), // 공격
-	Repositioning UMETA(DisplayName = "거리조절"), // 거리조절
-	Fleeing UMETA(DisplayName = "도망"), // 도망
+	Patrolling UMETA(DisplayName = "대기or순찰"),		// 대기or순찰
+	Chasing UMETA(DisplayName = "추격"),					// 추격
+	Attacking UMETA(DisplayName = "공격"),				// 공격
+	Repositioning UMETA(DisplayName = "거리조절"),		// 거리조절
+	Fleeing UMETA(DisplayName = "도망"),					// 도망
 
 };
 

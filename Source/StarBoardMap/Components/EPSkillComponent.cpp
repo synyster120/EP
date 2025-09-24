@@ -4,6 +4,7 @@
 #include "Core/Helper/EPAsyncLoadHelper.h"
 #include "Skills/EPSkillBase.h"
 #include "GameFramework/Character.h"
+#include "Characters/EPCharacterBase.h"
 
 
 UEPSkillComponent::UEPSkillComponent()
@@ -137,41 +138,51 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
 
     // 콤보 상태 결정 (가장 핵심적인 로직)
     FSkillRuntimeData& SkillSlot = SkillSlots[SkillIndex];
-    int32 CurrentComboIndex = 0; // 기본값은 항상 0 (1타 또는 단타)
 
     // 콤보 스킬인지 확인
     if (SkillSlot.MaxComboCount > 1)
     {
         int32& ComboCounter = ComboStateMap.FindOrAdd(SkillIndex); // 현재 실행할 콤보 단계 검색 및 가져오기 (없으면 생성됨)
-        if (LastComboSkillIndex == SkillIndex && ComboTimerHandle.IsValid())
+        if (LastkillSlotIndex == SkillIndex && ComboTimerHandle.IsValid())
         {
-            ComboCounter++; // 다음 콤보로
+            LastComboSkillIndex++; // 다음 콤보로
         }
         else
         {
-            ComboCounter = 0; // 콤보 초기화 (1타)
+            LastComboSkillIndex = 0; // 콤보 초기화 (1타)
         }
-
+        
         // 콤보 순환
-        if (ComboCounter >= SkillSlot.MaxComboCount)
+        if (LastComboSkillIndex >= SkillSlot.MaxComboCount)
         {
-            ComboCounter = 0;
+            LastComboSkillIndex = 0;
         }
-        CurrentComboIndex = ComboCounter; // 최종 콤보 인덱스 결정
+        ComboCounter = LastComboSkillIndex; // 최종 콤보 인덱스 결정
+
+        UE_LOG(LogTemp, Warning, TEXT("cobo state | combo num : %d"), LastComboSkillIndex);
     }
 
     // 스킬 객체에 '실행' 명령
     if (SkillToActivate)
     {
-        // 타겟팅 로직을 통해 TargetData를 여기서 만듭니다.
-        FEPSkillTargetData TargetData = PerformTargeting(SkillToActivate, SkillIndex);
+        LastkillSlotIndex = SkillIndex; // 마지막에 사용한 스킬 슬롯 저장
 
-        // 스킬 객체에게는 "이 타겟을 가지고, 너의 콤보 단계 중 'CurrentCombo' 번째 공격을 실행해" 라고 명령
-        SkillToActivate->Activate(Cast<ACharacter>(GetOwner()), TargetData, CurrentComboIndex);
+        // 타겟팅 로직을 통해 TargetData 생성
+        FEPSkillTargetData TargetData = PerformTargeting(SkillToActivate, LastComboSkillIndex);
+
+        // 스킬 사용 (최종)
+        AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
+        if (OwnerCaster)
+        {
+            // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
+            OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+            // 스킬 실행 (스킬 객체에 요청)
+            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+        }
     }
 
     // 콤보 쿨타임 설정 및 스킬 쿨타임 설정
-    StartComboWindow(SkillIndex, CurrentComboIndex);
+    StartComboWindow(SkillIndex, LastComboSkillIndex);
     //StartCooldown(SkillIndex); // index로 쿨타임 시작 
     StartCooldown(SkillToActivate->GetSkillID());
 
@@ -251,12 +262,11 @@ void UEPSkillComponent::OnCooldownFinished(FName SkillID)
 void UEPSkillComponent::StartComboWindow(int32 SkillIndex, int32 CurrentComboIndex)
 {
     // 스킬 객체에서 현재 콤보 단계의 유효시간 데이터를 가져옴
-    const float ComboWindow = SkillSlots[SkillIndex].SkillObject->GetPhaseData(CurrentComboIndex).ComboValidTime;
+    const float ComboWindow = SkillSlots[SkillIndex].SkillObject->GetPhaseData(CurrentComboIndex)->ComboValidTime;
 
     // 데이터에 콤보 유효시간이 설정되어 있을 때만 타이머를 돌림
-    if (ComboWindow > 0.f)
+    if (ComboWindow > 0.0f)
     {
-        LastComboSkillIndex = SkillIndex;
         GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &UEPSkillComponent::ResetCombo, ComboWindow, false);
     }
 }
@@ -264,6 +274,7 @@ void UEPSkillComponent::StartComboWindow(int32 SkillIndex, int32 CurrentComboInd
 // 콤보 타이머 초기화
 void UEPSkillComponent::ResetCombo()
 {
+    UE_LOG(LogTemp, Log, TEXT("reset combo"));
     // 콤보 유효시간이 지나면, 마지막 콤보 기록 초기화
     LastComboSkillIndex = -1;
 }

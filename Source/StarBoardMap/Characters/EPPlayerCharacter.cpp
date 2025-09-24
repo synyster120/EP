@@ -79,8 +79,25 @@ void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
     }
 }
 
+void AEPPlayerCharacter::Jump()
+{
+    // 공격 상태 확인
+    if (GetCurrentState() == EEPCharacterState::Attacking)
+    {
+        return;
+    }
+
+    Super::Jump();
+}
+
 void AEPPlayerCharacter::Move(const FInputActionValue& Value)
 {
+    // 공격 상태 확인
+    if (GetCurrentState() == EEPCharacterState::Attacking)
+    {
+        return;
+    }
+
     FVector2D MovementVector = Value.Get<FVector2D>();
 
     if (Controller != nullptr)

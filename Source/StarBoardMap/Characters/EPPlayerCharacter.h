@@ -66,6 +66,8 @@ protected:
 	 // APawn으로부터 상속받은, 입력 컴포넌트 설정 함수를 재정의
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Jump() override;
+
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 

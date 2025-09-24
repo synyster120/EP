@@ -47,5 +47,6 @@ void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData&
         // 캐릭터에게 해당 태그의 애니메이션을 재생하라고 요청
         Character->PlayAnimationByTag(SkillPhaseData.AnimationTag);
 
+        UE_LOG(LogTemp, Warning, TEXT("Skill_melee combo --> playing animation : %s"), *SkillPhaseData.AnimationTag.ToString());
     }
 }

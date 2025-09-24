@@ -14,7 +14,6 @@
 class UEPStatComponent;
 class UEPSkillComponent;
 class UEPSkillDataAsset;
-class UEPCharacterAnimationData;
 struct FEPDamageInfo;
 
 /**
@@ -66,6 +65,4 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
     TArray<TSoftObjectPtr<UEPSkillDataAsset>> DefaultSkills;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-    TObjectPtr<UEPCharacterAnimationData> AnimDataAsset;
 };
