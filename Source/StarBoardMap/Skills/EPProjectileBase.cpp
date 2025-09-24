@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/StaticMeshComponent.h"
+#include "Data/EPObjectPoolTypes.h"
 
 AEPProjectileBase::AEPProjectileBase()
 {
@@ -38,6 +39,28 @@ void AEPProjectileBase::Initialize(const FEPSkillPhaseData* InPhaseData, AActor*
 
     // 투사체의 주인을 설정
     SetOwner(InOwner);
+
+    // MovementComponent의 '설정값'들을 미리 세팅
+    if (MovementComponent)
+    {
+        const FEPProjectileData& ProjectileInfo = PhaseData.ProjectileInfo;
+        MovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
+        MovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
+        MovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
+    }
+
+    bIsValid = true;
+}
+
+void AEPProjectileBase::PoolableInitialize(const FEPPoolableObjectInitializer& Initializer)
+{
+    if (!&Initializer) return;
+
+    // 전달받은 데이터 전체를 멤버 변수에 저장
+    //PhaseData = *Cast<FEPSkillPhaseData>(Initializer.Data);
+    
+    // 투사체의 주인을 설정
+    SetOwner(Initializer.Owner);
 
     // MovementComponent의 '설정값'들을 미리 세팅
     if (MovementComponent)
