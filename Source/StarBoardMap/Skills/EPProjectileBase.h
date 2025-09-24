@@ -44,7 +44,10 @@ public:
 	// 스킬로부터 데이터를 받아 초기화하는 메인 함수
 	virtual void Initialize(const FEPSkillPhaseData* InPhaseData, AActor* InOwner);
 
+
 	// --- IEPPoolable 인터페이스 함수 구현 ---
+	// 초기화 함수 (Pool 에서 받아온 값으로 초기화)
+	virtual void PoolableInitialize(const FEPPoolableObjectInitializer& Initializer);
 	// 활성화 함수 (스킬에서 Pool로 받고, 활성화할 때 호출)
 	virtual void Activate() override;
 	// 소멸 준비를 시작하고, 필요한 지연 시간을 반환하는 함수 (Pool에서 호출)

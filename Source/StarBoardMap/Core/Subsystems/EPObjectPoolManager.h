@@ -6,6 +6,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "EPObjectPoolManager.generated.h"
 
+struct FEPPoolableObjectInitializer;
 /**
  * 
  */
@@ -31,6 +32,9 @@ public:
     // 서브시스템이 생성/파괴될 때 호출되는 함수들
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
+
+    // 최종적인 스폰 함수. 표준 초기화 데이터를 받음
+    AActor* SpawnObjectFromPool(TSoftClassPtr<AActor> ActorClass, const FTransform& SpawnTransform, const FEPPoolableObjectInitializer& Initializer);
 
     // 외부에서 투사체를 빌려가기 위해 호출하는 메인 함수
     AActor* GetObjectFromPool(TSoftClassPtr<AActor> ActorClass);

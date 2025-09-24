@@ -27,6 +27,28 @@ void UEPObjectPoolManager::Deinitialize()
     Super::Deinitialize();
 }
 
+AActor* UEPObjectPoolManager::SpawnObjectFromPool(TSoftClassPtr<AActor> ActorClass, const FTransform& SpawnTransform, const FEPPoolableObjectInitializer& Initializer)
+{
+    // 풀에서 비활성화된 객체를 빌려옴
+    AActor* PooledActor = GetObjectFromPool(ActorClass);
+    if (PooledActor)
+    {
+        // 위치 설정
+        PooledActor->SetActorTransform(SpawnTransform);
+
+        // 객체 데이터 초기화
+        if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(PooledActor))
+        {
+            // 표준화된 데이터를 전달하여 초기화를 위임
+            //PoolableActor->Execute_PoolableInitialize(PooledActor, Initializer);
+            //PoolableActor->poo
+            //// 활성화 명령
+            //PoolableActor->Execute_PoolableActivate(PooledActor);
+        }
+    }
+    return PooledActor;
+}
+
 // Pool 가져오기 (실패 시 최초 생성, 동적 확장)
 AActor* UEPObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
 {
@@ -49,7 +71,7 @@ AActor* UEPObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass
     // 해당 풀에서 비활성화된(사용 가능한) 투사체를 찾음
     for (AActor* PoolActor : Pool.PooledActor)
     {
-        //if (Projectile && !Projectile->IsActive()) // 비활성화 상태인지 확인
+        if (Cast<IEPPoolable>(PoolActor)->IsActive() == false)// 비활성화 상태인지 확인
         {
             return PoolActor; // 찾았으면 즉시 반환
         }
