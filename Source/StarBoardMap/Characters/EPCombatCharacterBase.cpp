@@ -35,6 +35,10 @@ void AEPCombatCharacterBase::BeginPlay()
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
     }
     
+    if (SkillComponent && DefaultSkills.Num() > 0)
+    {
+        SkillComponent->InitializeSkills(DefaultSkills);
+    }
 }
 
 // 블루프린트에서 설정한 변수 값들이 C++에 처음으로 연결되는 시점

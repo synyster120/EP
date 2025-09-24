@@ -90,6 +90,7 @@ private:
 
     // 콤보 유효시간 타이머. 마지막으로 사용된 콤보 스킬슬롯의 Index 저장
     FTimerHandle ComboTimerHandle;
+    int32 LastkillSlotIndex = -1;
     int32 LastComboSkillIndex = -1;
 
     // 소유자(캐릭터)의 StatComponent에 대한 참조 (BeginPlay 시점에 찾아옴)

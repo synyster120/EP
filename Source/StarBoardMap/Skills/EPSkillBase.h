@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-//#include "Data/EPSkillDataAsset.h"
 #include "EPSkillBase.generated.h"
 
 class UEPSkillDataAsset;
@@ -27,7 +26,7 @@ public:
 
 	inline UEPSkillDataAsset* GetSkillData() const { return SkillDataAsset; };
 	FName GetSkillID() const;
-	FEPSkillPhaseData GetPhaseData(int32 CurrentPhaseDataIndex);
+	FEPSkillPhaseData* GetPhaseData(int32 CurrentPhaseDataIndex) const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skill")
