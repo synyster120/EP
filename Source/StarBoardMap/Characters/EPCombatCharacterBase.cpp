@@ -35,6 +35,10 @@ void AEPCombatCharacterBase::BeginPlay()
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
     }
     
+    if (SkillComponent && DefaultSkills.Num() > 0)
+    {
+        SkillComponent->InitializeSkills(DefaultSkills);
+    }
 }
 
 // 블루프린트에서 설정한 변수 값들이 C++에 처음으로 연결되는 시점
@@ -51,16 +55,6 @@ void AEPCombatCharacterBase::InitializeCharacterData()
     Super::InitializeCharacterData();
 
     // 스탯 초기화
-    //if (StatDataTable && StatComponent) // 캐릭터가 자신의 스탯 데이터 테이블을 가지고 있다고 가정
-    //{
-    //    // 데이터 테이블에서 Stat 데이터를 찾아옵니다.
-    //    FEPBaseStat* StatData = StatDataTable->FindRow<FEPBaseStat>(StatDataRowName, TEXT(""));
-    //    if (StatData)
-    //    {
-    //        // StatData로 StatComponent 초기화
-    //        StatComponent->Initialize(*StatData);
-    //    }
-    //}
     if (StatDataRowHandle.DataTable && !StatDataRowHandle.RowName.IsNone() && StatComponent)
     {
         // 핸들에서 직접 데이터를 찾아옵니다.
@@ -71,9 +65,9 @@ void AEPCombatCharacterBase::InitializeCharacterData()
         }
     }
 
-    if (SkillDataAsset.Num() > 0 && SkillComponent)
+    if (DefaultSkills.Num() > 0 && SkillComponent)
     {
-        SkillComponent->InitializeSkills(SkillDataAsset);
+        SkillComponent->InitializeSkills(DefaultSkills);
     }
 }
 

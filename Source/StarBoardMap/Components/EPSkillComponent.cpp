@@ -1,8 +1,11 @@
 ﻿#include "Components/EPSkillComponent.h"
 #include "Data/EPSkillDataAsset.h"
-#include "Skills/EPSkillBase.h"
 #include "Components/EPStatComponent.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
+#include "Skills/EPSkillBase.h"
+#include "GameFramework/Character.h"
+#include "Characters/EPCharacterBase.h"
+
 
 UEPSkillComponent::UEPSkillComponent()
 {
@@ -75,11 +78,11 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
     {
         const TSoftObjectPtr<UEPSkillDataAsset>& SkillAssetPtr = SkillAssets[Index];
 
-        // [this, Index] 만 캡처합니다. 불필요한 지역 변수는 모두 제거합니다.
+        // 스킬 데이터 애셋 로드 요청
         UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillDataAsset>(SkillAssetPtr,
             [this, Index](UEPSkillDataAsset* LoadedSkillDataAsset)
             {
-                // -- 1. 스킬 데이터 애셋 로드 완료 --
+                // 스킬 데이터 애셋 로드 정상 완료 확인
                 if (!LoadedSkillDataAsset)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillDataAsset at index %d"), Index);
@@ -88,25 +91,32 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
 
                 const FEPSkillData& SkillData = LoadedSkillDataAsset->SkillData;
 
-                // [this, Index, SkillData] 를 캡처하여 다음 콜백으로 전달합니다.
+                // 스킬 클래스 비동기 로드 요청
                 UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillBase>(SkillData.SkillClass,
                     [this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
                     {
-                        // -- 2. 스킬 클래스 로드 완료 --
+                        // 스킬 클래스 로드 정상 완료 확인
                         if (!LoadedSkillClass)
                         {
                             UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillClass for %s"), *SkillData.SkillName);
                             return;
                         }
 
-                        // 3. 모든 정보가 유효하므로, 스킬 객체를 생성합니다.
+                        // 스킬 객체 생성 (UEPSkillBase는 추상화 클래스라 타입에 넣어서 생성 못함) + NewObject: 생성 객체 타입을 컴파일 시점에 결정
                         UEPSkillBase* NewSkill = NewObject<UEPSkillBase>(GetOwner(), LoadedSkillClass);
+
                         if (NewSkill)
                         {
+                            // 스킬 객체 초기화
                             NewSkill->Initialize(LoadedSkillDataAsset);
+                            // 스킬슬롯에 객체 저장
                             SkillSlots[Index].SkillObject = NewSkill;
+                            // 스킬슬롯에 최대 콤보 저장
+                            int32 MaxCombo = SkillData.ComboSequence.Num();
+                            SkillSlots[Index].MaxComboCount = MaxCombo;
 
-                            FName SkillID = FName(SkillData.SkillName); // FName은 FString으로부터 생성 가능
+                            // 스킬 검색 Map에 스킬 정보 추가
+                            FName SkillID = FName(SkillData.SkillName);
                             SkillIDToIndexMap.Add(SkillID, Index);
                             UE_LOG(LogTemp, Log, TEXT("Skill '%s' created at index %d"), *SkillID.ToString(), Index);
                         }
@@ -117,27 +127,95 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
 }
 
 // 시킬 시전 함수 (외부에서 호출)
-void UEPSkillComponent::ActivateSkill(int32 SkillIndex, const FEPSkillTargetData& TargetData)
+void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
 {
-    // 유효한 스킬 인덱스인지 확인
-    if (!SkillSlots.IsValidIndex(SkillIndex)) return;
+    // 유효성 검사 (인덱스, 쿨타임 등)
+    if (!CanActivateSkill(SkillIndex)) return;
 
     UEPSkillBase* SkillToActivate = SkillSlots[SkillIndex].SkillObject;
     if (SkillToActivate == nullptr) return;
 
-    // 쿨타임 중인지 확인
-    //if (CooldownTimers.Contains(SkillToActivate->GetSkillID()))
-    if (SkillSlots[SkillIndex].CooldownTimerHandle.IsValid())
+
+    // 콤보 상태 결정 (가장 핵심적인 로직)
+    FSkillRuntimeData& SkillSlot = SkillSlots[SkillIndex];
+
+    // 콤보 스킬인지 확인
+    if (SkillSlot.MaxComboCount > 1)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Skill [%s] is on cooldown."), *SkillToActivate->GetSkillID().ToString());
-        return;
+        int32& ComboCounter = ComboStateMap.FindOrAdd(SkillIndex); // 현재 실행할 콤보 단계 검색 및 가져오기 (없으면 생성됨)
+        if (LastkillSlotIndex == SkillIndex && ComboTimerHandle.IsValid())
+        {
+            LastComboSkillIndex++; // 다음 콤보로
+        }
+        else
+        {
+            LastComboSkillIndex = 0; // 콤보 초기화 (1타)
+        }
+        
+        // 콤보 순환
+        if (LastComboSkillIndex >= SkillSlot.MaxComboCount)
+        {
+            LastComboSkillIndex = 0;
+        }
+        ComboCounter = LastComboSkillIndex; // 최종 콤보 인덱스 결정
+
+        UE_LOG(LogTemp, Warning, TEXT("cobo state | combo num : %d"), LastComboSkillIndex);
     }
 
-    // 스킬을 발동하고, 쿨타임을 시작
-    SkillToActivate->Activate(TargetData);
+    // 스킬 객체에 '실행' 명령
+    if (SkillToActivate)
+    {
+        LastkillSlotIndex = SkillIndex; // 마지막에 사용한 스킬 슬롯 저장
+
+        // 타겟팅 로직을 통해 TargetData 생성
+        FEPSkillTargetData TargetData = PerformTargeting(SkillToActivate, LastComboSkillIndex);
+
+        // 스킬 사용 (최종)
+        AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
+        if (OwnerCaster)
+        {
+            // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
+            OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+            // 스킬 실행 (스킬 객체에 요청)
+            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+        }
+    }
+
+    // 콤보 쿨타임 설정 및 스킬 쿨타임 설정
+    StartComboWindow(SkillIndex, LastComboSkillIndex);
+    //StartCooldown(SkillIndex); // index로 쿨타임 시작 
     StartCooldown(SkillToActivate->GetSkillID());
+
 }
 
+// 스킬 사용 가능 여부 판단
+bool UEPSkillComponent::CanActivateSkill(int32 SkillIndex)
+{
+    // 유효한 스킬 인덱스인가?
+    if (!SkillSlots.IsValidIndex(SkillIndex))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Skill [%s] index is null."), *SkillSlots[SkillIndex].SkillObject->GetSkillID().ToString());
+        return false;
+    }
+
+    // 해당 스킬이 쿨타임 중인가?
+    if (SkillSlots[SkillIndex].CooldownTimerHandle.IsValid())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Skill [%s] is on cooldown."), *SkillSlots[SkillIndex].SkillObject->GetSkillID().ToString());
+        return false;
+    }
+
+    // 마나가 충분한가?
+    // if (StatComponent->GetCurrentMana() < RequiredMana) return false;
+
+    // 플레이어가 침묵 상태가 아닌가?
+    // if (StatComponent->HasState(EState::Silenced)) return false;
+
+    // 스킬 사용 가능
+    return true;
+}
+
+// 스킬 쿨타임 시작
 void UEPSkillComponent::StartCooldown(FName SkillID)
 {
     // 맵을 사용해 O(1) 시간 복잡도로 인덱스를 즉시 찾음
@@ -145,9 +223,9 @@ void UEPSkillComponent::StartCooldown(FName SkillID)
     {
         FSkillRuntimeData& SkillData = SkillSlots[*IndexPtr];
 
-        // 이제 SkillData.CooldownTimerHandle을 사용해 타이머를 설정...
+         //이제 SkillData.CooldownTimerHandle을 사용해 타이머를 설정...
 
-        // 스킬 데이터에서 쿨타임 정보를 가져옴
+        //스킬 데이터에서 쿨타임 정보를 가져옴
         const float CooldownDuration = SkillData.SkillObject->GetSkillData()->SkillData.Cooldown;
         if (CooldownDuration >= 0.0f)
         {
@@ -165,6 +243,7 @@ void UEPSkillComponent::StartCooldown(FName SkillID)
     }
 }
 
+// 스킬 쿨타임 종료 = 스킬 사용 가능 세팅
 void UEPSkillComponent::OnCooldownFinished(FName SkillID)
 {
     // 쿨타임이 종료되었으므로 맵에서 해당 스킬을 제거
@@ -177,5 +256,94 @@ void UEPSkillComponent::OnCooldownFinished(FName SkillID)
         GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
         UE_LOG(LogTemp, Log, TEXT("Skill [%s] cooldown finished."), *SkillID.ToString());
     }
+}
+
+// 콤보 타이머 시작
+void UEPSkillComponent::StartComboWindow(int32 SkillIndex, int32 CurrentComboIndex)
+{
+    // 스킬 객체에서 현재 콤보 단계의 유효시간 데이터를 가져옴
+    const float ComboWindow = SkillSlots[SkillIndex].SkillObject->GetPhaseData(CurrentComboIndex)->ComboValidTime;
+
+    // 데이터에 콤보 유효시간이 설정되어 있을 때만 타이머를 돌림
+    if (ComboWindow > 0.0f)
+    {
+        GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &UEPSkillComponent::ResetCombo, ComboWindow, false);
+    }
+}
+
+// 콤보 타이머 초기화
+void UEPSkillComponent::ResetCombo()
+{
+    UE_LOG(LogTemp, Log, TEXT("reset combo"));
+    // 콤보 유효시간이 지나면, 마지막 콤보 기록 초기화
+    LastComboSkillIndex = -1;
+}
+
+// 스킬 단계의 필요한 타겟 타입 맞춰서 타겟 지정
+FEPSkillTargetData UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex)
+{
+    FEPSkillTargetData TargetData;
+    ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+    APlayerController* PlayerController = Cast<APlayerController>(OwnerCharacter->GetController());
+    if (!OwnerCharacter || !PlayerController) return TargetData;
+
+    // 스킬 데이터에서 이 스킬단계가 어떤 종류의 타겟팅을 사용하는지 가져옴
+    FEPComboStep StepData = SkillToActivate->GetSkillData()->SkillData.ComboSequence[SkillIndex];
+    EEPSkillPhaseSource SkillSourceType = StepData.SourceType; 
+
+    if (SkillSourceType == EEPSkillPhaseSource::Local)
+    {
+        TargetData.TargetType = SkillToActivate->GetSkillData()->SkillData.LocalSkillPhases[StepData.LocalPhaseIndex].TargetType;
+    }
+    else if (SkillSourceType == EEPSkillPhaseSource::Referenced)
+    {
+        if (StepData.ReferencedPhaseRow.DataTable)
+        {
+            // 핸들에서 직접 데이터를 찾아옵니다.
+            FEPSkillPhaseData* SkillData = StepData.ReferencedPhaseRow.GetRow<FEPSkillPhaseData>(TEXT(""));
+            if (SkillData)
+            {
+                TargetData.TargetType = SkillData->TargetType;
+            }
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Skill Data -> SkillSourceType is null"));
+    }
+
+    switch (TargetData.TargetType)
+    {
+        case EEPTargetType::Self:
+        {
+            // 자기 자신을 타겟으로 설정
+            TargetData.TargetActor = OwnerCharacter;
+            break;
+        }
+        case EEPTargetType::Actor:
+        {
+            // 마우스 커서 아래에 있는 액터를 찾아 타겟으로 설정 (라인 트레이스 사용)
+            FHitResult HitResult;
+            PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+            TargetData.TargetActor = HitResult.GetActor();
+            break;
+        }
+        case EEPTargetType::Direction:
+        {
+            // 카메라가 바라보는 방향을 타겟 방향으로 설정
+            TargetData.TargetDirection = PlayerController->GetControlRotation().Vector();
+            break;
+        }
+        case EEPTargetType::Location:
+        {
+            // 마우스 커서가 충돌한 바닥의 위치를 타겟 위치로 설정
+            FHitResult HitResult;
+            PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
+            TargetData.TargetLocation = HitResult.Location;
+            break;
+        }
+    }
+
+    return TargetData;
 }
 

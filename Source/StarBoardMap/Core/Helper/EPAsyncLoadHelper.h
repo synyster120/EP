@@ -18,7 +18,7 @@ class STARBOARDMAP_API UEPAsyncLoadHelper : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-    // UObject 애셋을 비동기적으로 로드하고, 로드가 완료되면 콜백을 실행하는 범용 함수
+    // UObject 애셋을 비동기적 로드하고, 로드가 완료되면 콜백을 실행하는 범용 함수
     template<typename T>
     static void RequestAsyncLoad(const TSoftObjectPtr<T>& AssetPtr, TFunction<void(T*)> OnLoadedCallback)
     {
@@ -54,7 +54,7 @@ public:
         );
     }
 
-    /** TSoftClassPtr (클래스)를 비동기 로드합니다. */
+    // TSoftClassPtr (클래스) 비동기 로드
     template<typename T>
     static void RequestAsyncLoad(const TSoftClassPtr<T>& ClassPtr, TFunction<void(TSubclassOf<T>)> OnLoadedCallback)
     {
@@ -64,7 +64,7 @@ public:
             return;
         }
 
-        // .Get()은 UClass*를 반환합니다. TSubclassOf는 UClass*로 만들어집니다.
+        //  TSubclassOf는 UClass*로 생성
         if (UClass* LoadedClass = ClassPtr.Get())
         {
             if (OnLoadedCallback) { OnLoadedCallback(LoadedClass); }

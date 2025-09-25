@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/EPHealthBlockStatComponent.h"
 #include "Components/EPSkillComponent.h"
+#include "Data/EPSkillTypes.h"
  // Enhanced Input
 #include "EnhancedInputComponent.h" 
 #include "EnhancedInputSubsystems.h"
@@ -78,8 +79,25 @@ void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
     }
 }
 
+void AEPPlayerCharacter::Jump()
+{
+    // 공격 상태 확인
+    if (GetCurrentState() == EEPCharacterState::Attacking)
+    {
+        return;
+    }
+
+    Super::Jump();
+}
+
 void AEPPlayerCharacter::Move(const FInputActionValue& Value)
 {
+    // 공격 상태 확인
+    if (GetCurrentState() == EEPCharacterState::Attacking)
+    {
+        return;
+    }
+
     FVector2D MovementVector = Value.Get<FVector2D>();
 
     if (Controller != nullptr)
@@ -108,6 +126,7 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
+    SkillComponent->ActivateSkill(0);
     UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
 }
 

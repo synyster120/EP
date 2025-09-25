@@ -14,7 +14,6 @@
 class UEPStatComponent;
 class UEPSkillComponent;
 class UEPSkillDataAsset;
-class UEPCharacterAnimationData;
 struct FEPDamageInfo;
 
 /**
@@ -47,6 +46,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Mongtage")
     void HandleHitReaction(EEPHitReactionType HitReactionType);
 
+    inline TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
 
 protected:
     virtual void BeginPlay() override;
@@ -63,8 +63,6 @@ protected:
     FDataTableRowHandle StatDataRowHandle;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-    TArray<TSoftObjectPtr<UEPSkillDataAsset>> SkillDataAsset;
+    TArray<TSoftObjectPtr<UEPSkillDataAsset>> DefaultSkills;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
-    TObjectPtr<UEPCharacterAnimationData> AnimDataAsset;
 };
