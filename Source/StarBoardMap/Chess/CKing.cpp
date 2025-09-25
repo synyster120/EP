@@ -2,6 +2,14 @@
 
 
 #include "Chess/CKing.h"
+#include "Components/EPStatComponent.h"
+#include "Components/EPHealthBarStatComponent.h"
+#include "Data/EPCharacterTypes.h"
+
+ACKing::ACKing()
+{
+    StatComponent = CreateDefaultSubobject<UEPHealthBarStatComponent>(TEXT("StatComponent"));
+}
 
 void ACKing::BeginPlay()
 {
@@ -9,6 +17,8 @@ void ACKing::BeginPlay()
     UnitType = 1;
     MovingTurn = true;
     Super::BeginPlay();
+    UDataTable* MyTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/AssetDynamic/Data/Stats/DT_CharaterTypes_EnemyState.DT_CharaterTypes_EnemyState"));
+    StatComponent->Initialize(*MyTable->FindRow<FEPBaseStat>(FName("CKing"), TEXT("EnemyStatContext")));
 }
 
 void ACKing::Attack()

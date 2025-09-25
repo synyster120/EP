@@ -27,8 +27,6 @@ private:
 
 	FTimerHandle TurnTimer;
 
-	int32 PawnExplodeCounter;
-
 	TArray<FIntPoint> RandomPoint;
 
 protected:

@@ -8,6 +8,7 @@
 #include "CUnit.generated.h"
 
 class AChessUnitController;
+class UEPSkillComponent;
 
 UCLASS()
 class STARBOARDMAP_API ACUnit : public APawn
@@ -24,6 +25,8 @@ protected:
 
 	UPROPERTY()	TSubclassOf<AChessUnitController> ControllerClass;
 	UPROPERTY()	UChessUnitData* UnitData;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UEPSkillComponent> SkillComponent;
 
 protected:
 	FName Name;

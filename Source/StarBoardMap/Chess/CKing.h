@@ -7,17 +7,22 @@
 #include "CKing.generated.h"
 
 class AChessUnitController;
-/**
- * 
- */
+class UEPStatComponent;
+class UEPHealthBarStatComponent;
+
 UCLASS()
 class STARBOARDMAP_API ACKing : public ACUnit
 {
 	GENERATED_BODY()
 
+	ACKing();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UEPStatComponent> StatComponent;
 	
 public:
 	virtual void Attack() override;
