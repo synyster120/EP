@@ -4,6 +4,9 @@
 #include "Core/ChessGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
+
 AChessGameMode::AChessGameMode()
 {
 }
@@ -21,6 +24,12 @@ void AChessGameMode::BeginPlay()
 	}
 
     GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
+
+	HIHI = GetWorld()->SpawnActor<AEP_WeaponBase>(HIHIBP);
+	HIHI->SpawnWeapon(FName("Weapon"));
+	
+	ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	//WeaponActor->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
 }
 
 void AChessGameMode::StartGame()
