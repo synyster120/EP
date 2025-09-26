@@ -14,7 +14,7 @@ void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData&
     AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
     if (!Character || !SkillDataAsset) return;
 
-    // 어빌리티 컴포넌트를 가져옵니다.
+    // 스킬 컴포넌트를 가져옴
     UEPSkillComponent* SkillComp = Character->GetSkillComponent();
     if (!SkillComp) return;
 

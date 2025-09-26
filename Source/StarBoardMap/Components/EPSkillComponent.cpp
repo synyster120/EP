@@ -118,6 +118,7 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
                             // 스킬 검색 Map에 스킬 정보 추가
                             FName SkillID = FName(SkillData.SkillName);
                             SkillIDToIndexMap.Add(SkillID, Index);
+                            
                             UE_LOG(LogTemp, Log, TEXT("Skill '%s' created at index %d"), *SkillID.ToString(), Index);
                         }
                     });

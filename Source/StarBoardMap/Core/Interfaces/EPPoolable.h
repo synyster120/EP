@@ -28,8 +28,8 @@ class STARBOARDMAP_API IEPPoolable
 
 public:
 	// 이 객체를 초기화
-	UFUNCTION()
-	virtual void PoolableInitialize(const FEPPoolableObjectInitializer& Initializer) = 0;
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Poolable")
+	void PoolableInitialize(const FEPPoolableObjectInitializer& Initializer);
 
 	// 이 객체를 활성화
 	UFUNCTION()

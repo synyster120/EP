@@ -29,21 +29,24 @@ void UEPObjectPoolManager::Deinitialize()
 
 AActor* UEPObjectPoolManager::SpawnObjectFromPool(TSoftClassPtr<AActor> ActorClass, const FTransform& SpawnTransform, const FEPPoolableObjectInitializer& Initializer)
 {
+    UE_LOG(LogTemp, Warning, TEXT("EP_Error:: SpawnObjectFromPool"));
+
     // 풀에서 비활성화된 객체를 빌려옴
     AActor* PooledActor = GetObjectFromPool(ActorClass);
     if (PooledActor)
     {
-        // 위치 설정
-        PooledActor->SetActorTransform(SpawnTransform);
-
         // 객체 데이터 초기화
         if (IEPPoolable* PoolableActor = Cast<IEPPoolable>(PooledActor))
         {
+            UE_LOG(LogTemp, Warning, TEXT("EP_Error:: SpawnObjectFromPool --> Initialize"));
+
             // 표준화된 데이터를 전달하여 초기화를 위임
-            //PoolableActor->Execute_PoolableInitialize(PooledActor, Initializer);
-            //PoolableActor->poo
-            //// 활성화 명령
-            //PoolableActor->Execute_PoolableActivate(PooledActor);
+            IEPPoolable::Execute_PoolableInitialize(PooledActor, Initializer);
+            // 위치 설정
+            PooledActor->SetActorTransform(SpawnTransform);
+
+            // 활성화 명령
+            PoolableActor->Activate();
         }
     }
     return PooledActor;
@@ -52,6 +55,9 @@ AActor* UEPObjectPoolManager::SpawnObjectFromPool(TSoftClassPtr<AActor> ActorCla
 // Pool 가져오기 (실패 시 최초 생성, 동적 확장)
 AActor* UEPObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass)
 {
+    UE_LOG(LogTemp, Warning, TEXT("EP_Error:: GetObjectFromPool"));
+
+
     // 인터페이스 구현했는지 확인
     if (!ActorClass.LoadSynchronous()->ImplementsInterface(UEPPoolable::StaticClass()))
     {
@@ -83,7 +89,9 @@ AActor* UEPObjectPoolManager::GetObjectFromPool(TSoftClassPtr<AActor> ActorClass
     if (ClassToSpawn)
     {
         AActor* NewSpawnActor = GetWorld()->SpawnActor<AActor>(ClassToSpawn);
-        
+
+        UE_LOG(LogTemp, Warning, TEXT("actor : %s | Dynamic actor create."), *NewSpawnActor->GetName());
+
         if(NewSpawnActor)
         {
             // 스폰된 액터를 IPoolable 인터페이스로 Cast (Poolable 인터페이스 소유 확인)
@@ -161,6 +169,9 @@ void UEPObjectPoolManager::FinalizeDeactivation(AActor* ReturnActor)
 // 특정 클래스의 풀을 처음으로 생성하는 내부 함수
 void UEPObjectPoolManager::CreatePoolForClass(TSoftClassPtr<AActor> ActorClass, FEPObjectPool& PoolToFill)
 {
+    UE_LOG(LogTemp, Warning, TEXT("EP_Error:: CreatePoolForClass"));
+
+
     // 인터페이스 구현했는지 확인
     if (!ActorClass.LoadSynchronous()->ImplementsInterface(UEPPoolable::StaticClass()))
     {
@@ -170,6 +181,8 @@ void UEPObjectPoolManager::CreatePoolForClass(TSoftClassPtr<AActor> ActorClass, 
 
     // InitialPoolSizes 맵에 해당 클래스에 대한 설정값이 있는지 찾아보고, 없으면 기본값을 사용합니다.
     const int32 Size = InitialPoolSizes.Contains(ActorClass) ? InitialPoolSizes[ActorClass] : DefaultInitialPoolSize;
+
+    UE_LOG(LogTemp, Warning, TEXT("EP_Error:: CreatePoolForClass | DefaultInitialPoolSize : %d"), DefaultInitialPoolSize);
 
     for (int32 i = 0; i < Size; ++i)
     {

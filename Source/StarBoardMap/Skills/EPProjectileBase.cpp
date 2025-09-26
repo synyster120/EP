@@ -22,14 +22,23 @@ AEPProjectileBase::AEPProjectileBase()
 
 	// ... 컴포넌트 생성 로직
 
+
     // 콜리전 스피어 생성
     CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
     RootComponent = CollisionSphere;
-    CollisionSphere->SetCollisionProfileName(TEXT("Projectile"));
+    // 메시 컴포넌트 생성
+    MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+    MeshComponent->SetupAttachment(RootComponent);
 
+    // 투사체 Movement 컴포넌트 생성
+    ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+
+    // 콜리전 프로파일 설정
+    CollisionSphere->SetCollisionProfileName(TEXT("Projectile"));
+    MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
 }
 
-// 스킬 단계 데이터로 초기화 함수
+// 스킬 단계 데이터로 초기화 함수 ================================= 사용 안함 =================================
 void AEPProjectileBase::Initialize(const FEPSkillPhaseData* InPhaseData, AActor* InOwner)
 {
     if (!InPhaseData) return;
@@ -40,37 +49,50 @@ void AEPProjectileBase::Initialize(const FEPSkillPhaseData* InPhaseData, AActor*
     // 투사체의 주인을 설정
     SetOwner(InOwner);
 
-    // MovementComponent의 '설정값'들을 미리 세팅
-    if (MovementComponent)
+    // ProjectileMovementComponent의 '설정값'들을 미리 세팅
+    if (ProjectileMovementComponent)
     {
         const FEPProjectileData& ProjectileInfo = PhaseData.ProjectileInfo;
-        MovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
-        MovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
-        MovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
+        ProjectileMovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
+        ProjectileMovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
+        ProjectileMovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
     }
 
     bIsValid = true;
 }
 
-void AEPProjectileBase::PoolableInitialize(const FEPPoolableObjectInitializer& Initializer)
+// 데이터 초기화 함수
+void AEPProjectileBase::PoolableInitialize_Implementation(const FEPPoolableObjectInitializer& Initializer)
 {
     if (!&Initializer) return;
 
-    // 전달받은 데이터 전체를 멤버 변수에 저장
-    //PhaseData = *Cast<FEPSkillPhaseData>(Initializer.Data);
-    
-    // 투사체의 주인을 설정
-    SetOwner(Initializer.Owner);
-
-    // MovementComponent의 '설정값'들을 미리 세팅
-    if (MovementComponent)
+    // 전달받은 데이터 애셋이 '투사체 데이터 제공자' 인터페이스를 가지고 있는지 확인
+    if (Initializer.Data && Initializer.Data->Implements<UEPProjectileDataProvider>())
     {
-        const FEPProjectileData& ProjectileInfo = PhaseData.ProjectileInfo;
-        MovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
-        MovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
-        MovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
+        FEPProjectileData ProjectileInfo;
+        // 인터페이스를 통해 안전하게 데이터 요청
+        if (IEPProjectileDataProvider::Execute_GetProjectileData(Initializer.Data, 0, ProjectileInfo))
+        {
+            if (&ProjectileInfo)
+            {
+                // 받아온 데이터로 자신 초기화
+                //const FEPProjectileData ProjectileInfo = PhaseData.ProjectileInfo;
+                ProjectileMovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
+                ProjectileMovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
+                ProjectileMovementComponent->ProjectileGravityScale  = ProjectileInfo.GravityScale;
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("AEPProjectileBase::PoolableInitialize_Implementation --> GetProjectileData is fail"));
+            }
+
+            // ...
+            //Damage = ImpactInfo.Damage; // 데미지 등 충돌 정보도 저장
+        }
     }
 
+    // 투사체의 주인을 설정
+    SetOwner(Initializer.Owner);
     bIsValid = true;
 }
 
@@ -80,18 +102,20 @@ void AEPProjectileBase::Activate()
     if (bIsActive) return;
     bIsActive = true;
 
+    UE_LOG(LogTemp, Warning, TEXT("EP_Error:: AEPProjectileBase -- Activate"));
+
     // 액터를 보이게 하고, 충돌 및 Tick을 활성화
     SetActorHiddenInGame(false);
     SetActorTickEnabled(true);
     CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
     // ProjectileMovementComponent를 활성화하고, 저장된 속성으로 '움직임'을 시작
-    if (MovementComponent && bIsValid)
+    if (ProjectileMovementComponent && bIsValid)
     {
-        MovementComponent->Activate();
+        ProjectileMovementComponent->Activate();
 
         // 바로 이 Activate 함수에서 Velocity를 설정하여 움직임을 시작시킵니다.
-        MovementComponent->Velocity = GetActorForwardVector() * PhaseData.ProjectileInfo.InitialSpeed;
+        ProjectileMovementComponent->Velocity = GetActorForwardVector() * PhaseData.ProjectileInfo.InitialSpeed;
     }
 
     // 수명(LifeSpan)이 설정되어 있다면, '활성화'된 이 시점부터 소멸 타이머를 예약
@@ -132,10 +156,10 @@ void AEPProjectileBase::Deactivate()
     SetActorHiddenInGame(true);
     SetActorTickEnabled(false);
     CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    if (MovementComponent)
+    if (ProjectileMovementComponent)
     {
-        MovementComponent->StopMovementImmediately();
-        MovementComponent->Velocity = FVector::ZeroVector;
+        ProjectileMovementComponent->StopMovementImmediately();
+        ProjectileMovementComponent->Velocity = FVector::ZeroVector;
     }
     // 진행 중인 모든 타이머를 확실히 정리
     GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
@@ -180,7 +204,7 @@ void AEPProjectileBase::OnReturnToPool()
     if (OwnerPool)
     {
         // ReturnObjectToPool() : 투사체에게 소멸 준비를 시작하라고 통지 후 대기시간 동안 대기
-        //OwnerPool->ReturnObjectToPool(this);
+        OwnerPool->ReturnObjectToPool(this);
     }
 }
 

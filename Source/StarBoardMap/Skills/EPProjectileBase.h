@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/Interfaces/EPPoolable.h"
+#include "Core/Interfaces/EPProjectileDataProvider.h"
 #include "Data/EPSkillTypes.h"
 #include "Core/Subsystems/EPObjectPoolManager.h"
 #include "EPProjectileBase.generated.h"
@@ -29,7 +30,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UProjectileMovementComponent> MovementComponent;
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
 
 	// 자신을 관리하는 풀 매니저 저장
 	UPROPERTY()
@@ -47,7 +48,7 @@ public:
 
 	// --- IEPPoolable 인터페이스 함수 구현 ---
 	// 초기화 함수 (Pool 에서 받아온 값으로 초기화)
-	virtual void PoolableInitialize(const FEPPoolableObjectInitializer& Initializer);
+	virtual void PoolableInitialize_Implementation(const FEPPoolableObjectInitializer& Initializer);
 	// 활성화 함수 (스킬에서 Pool로 받고, 활성화할 때 호출)
 	virtual void Activate() override;
 	// 소멸 준비를 시작하고, 필요한 지연 시간을 반환하는 함수 (Pool에서 호출)
@@ -58,7 +59,6 @@ public:
 	virtual bool IsActive() const override { return bIsActive; }
 	// 풀 매니저가 자신의 주소를 이 투사체에게 알려주기 위한 함수 (Pool에서 호출)
 	virtual void SetOwnerPool(UEPObjectPoolManager* InOwnerPool) override { OwnerPool = InOwnerPool; }
-
 
 
 
