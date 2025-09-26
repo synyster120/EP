@@ -26,10 +26,11 @@ void AChessGameMode::BeginPlay()
     GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
 
 	HIHI = GetWorld()->SpawnActor<AEP_WeaponBase>(HIHIBP);
-	HIHI->SpawnWeapon(FName("Weapon"));
+	HIHI->SpawnWeapon(FName("Hammer"));
 	
 	ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	//WeaponActor->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("hand_rSocket"));
+	USkeletalMeshComponent* MeshComp = MyCharacter->GetMesh();
+	HIHI->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("HIHI"));
 }
 
 void AChessGameMode::StartGame()
