@@ -12,6 +12,8 @@ class STARBOARDMAP_API AEP_WeaponBase : public AActor
 	GENERATED_BODY()
 
 protected:
+	AEP_WeaponBase();
+
 	FName WeaponName;
 	int32 Damage;
 
@@ -25,4 +27,9 @@ public:
 	void SetAttackDamage(int32 NewDamage);
 	void OnPickedUp(AActor* Picker);
 	void OnAttack(AActor* Enemy);
+
+	AActor* ReturnWeapon() const { return WeaponBP; }
+
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* SceneRoot;
 };
