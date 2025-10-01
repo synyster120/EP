@@ -17,5 +17,7 @@ class STARBOARDMAP_API AEPEnemyCharacter : public AEPCombatCharacterBase
 public:
 	AEPEnemyCharacter();
 
+protected:
+	virtual void BeginPlay() override;
 	
 };

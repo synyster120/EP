@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/EPSkillTypes.h"
 #include "EPObjectPoolTypes.generated.h"
 
 /**
@@ -21,5 +22,13 @@ struct FEPPoolableObjectInitializer
 
     // 풀링 Object 를 초기화할 Data
     UPROPERTY(BlueprintReadWrite)
-    TObjectPtr<UDataAsset> Data;
+    TObjectPtr<UDataAsset> Data; 
+
+    // 타겟팅 정보
+    UPROPERTY(BlueprintReadWrite)
+    FEPSkillTargetData TargetData;
+
+    // 투사체를 발사할 최종 속도
+    UPROPERTY(BlueprintReadWrite)
+    FVector LaunchVelocity;
 };

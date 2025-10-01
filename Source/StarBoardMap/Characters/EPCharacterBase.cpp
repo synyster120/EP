@@ -2,12 +2,14 @@
 #include "Characters/EPCharacterBase.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
 #include "Data/EPCharacterAnimationData.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 
 AEPCharacterBase::AEPCharacterBase()
 {
  	PrimaryActorTick.bCanEverTick = false;
-
+    GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 }
 
 // 애니메이션 검색 후 Play 

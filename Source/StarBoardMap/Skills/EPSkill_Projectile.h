@@ -16,4 +16,7 @@ class STARBOARDMAP_API UEPSkill_Projectile : public UEPSkillBase
 
 public:
 	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+
+	bool CalculateLaunchVelocity(ACharacter* Caster, const FEPSkillTargetData& TargetData, const FEPSkillPhaseData& PhaseData, FTransform& OutSpawnTransform, FVector& OutLaunchVelocity) const;
+
 };

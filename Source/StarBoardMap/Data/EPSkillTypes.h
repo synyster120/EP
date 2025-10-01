@@ -107,7 +107,15 @@ struct FEPProjectileData
 
     // 투사체에 적용될 중력의 크기(0 : 직선)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
-    float GravityScale = 0.0f; 
+    float GravityScale = 0.0f;
+
+    // 투사체 유도 가속도 (유도 actor가 존재할 경우만 활성화)
+    UPROPERTY(EditAnywhere)
+    float HomingMagnitude = 3000.f;
+
+    // 투사체의 튕기는지 여부
+    UPROPERTY(EditAnywhere)
+    bool bCanBounce = false;
 
     // 투사체의 최대 수명 시간(끝나면 자동으로 소멸), -1 이면 무한 지속
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
