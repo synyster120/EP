@@ -3,6 +3,7 @@
 
 #include "Characters/EPEnemyCharacter.h"
 #include "Components/EPHealthBarStatComponent.h"
+#include "Components/EPSkillComponent.h"
 
 AEPEnemyCharacter::AEPEnemyCharacter()
 {
@@ -14,5 +15,14 @@ AEPEnemyCharacter::AEPEnemyCharacter()
 
     // 부모의 순수 C++ 포인터에 할당
     StatComponent = EnemyStatComponent;
+}
+
+void AEPEnemyCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+    if (SkillComponent)
+    {
+        SkillComponent->ActivateSkill(0);
+    }
 }
 

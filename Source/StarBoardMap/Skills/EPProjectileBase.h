@@ -39,6 +39,8 @@ protected:
 	// Initialize()함수 실행했는지 여부 확인 = 초기화 확인
 	bool bIsValid;
 
+	FVector InitializeLaunchVelocity;
+
 public:	
 	AEPProjectileBase();
 
@@ -58,19 +60,23 @@ public:
 	// 현재 활성화 상태인지 확인 (Pool에서 호출)
 	virtual bool IsActive() const override { return bIsActive; }
 	// 풀 매니저가 자신의 주소를 이 투사체에게 알려주기 위한 함수 (Pool에서 호출)
-	virtual void SetOwnerPool(UEPObjectPoolManager* InOwnerPool) override { OwnerPool = InOwnerPool; }
+	virtual void SetOwnerPool(UEPObjectPoolManager* InOwnerPool) override { OwnerPool = InOwnerPool; };
 
-
+	UProjectileMovementComponent* GetProjectileMovementComponent();
 
 protected:
 	virtual void BeginPlay() override;
 
 	// 기존 함수들 (OnHit, OnExpire, Explode 등)의 내부 로직은 Destroy() 대신 Deactivate()를 호출하도록 변경됩니다.
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	/*UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);*/
 
 	// 생명주기 종료 시 호출 될 함수
 	void OnExpire();
+
+	// Overlap 함수 선언
+	UFUNCTION()
+	void OnProjectileOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	// Manager에 반납 요청 함수
 	void OnReturnToPool();
