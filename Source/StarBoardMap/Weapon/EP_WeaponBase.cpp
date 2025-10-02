@@ -2,37 +2,25 @@
 
 
 #include "Weapon/EP_WeaponBase.h"
-#include "Data/EPWeaponTypes.h"
 
-AEP_WeaponBase::AEP_WeaponBase()
+// Sets default values for this component's properties
+UEP_WeaponBase::UEP_WeaponBase()
 {
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	RootComponent = SceneRoot;
+	
 }
 
-void AEP_WeaponBase::SpawnWeapon(FName SpawnWeaponName)
-{
-	UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
-	FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName(SpawnWeaponName));
 
-	WeaponBP = GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint);
-	WeaponBP->SetActorRelativeLocation(FVector(-1.f, 0.f, -2.f));
-	WeaponBP->SetActorRelativeRotation(FRotator(-83.f, 0, 10.f));
-	WeaponBP->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+// Called when the game starts
+void UEP_WeaponBase::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
-void AEP_WeaponBase::StartWithCharacter()
+void UEP_WeaponBase::SpawnWeapon(FName SpawnWeaponName)
 {
 }
 
-void AEP_WeaponBase::SetAttackDamage(int32 NewDamage)
+void UEP_WeaponBase::StartWithCharacter()
 {
-}
-
-void AEP_WeaponBase::OnPickedUp(AActor* Picker)
-{
-}
-
-void AEP_WeaponBase::OnAttack(AActor* Enemy)
-{
+	//attach to character
 }

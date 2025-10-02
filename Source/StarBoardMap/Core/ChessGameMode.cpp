@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
+#include "Data/EPWeaponTypes.h"
+
 AChessGameMode::AChessGameMode()
 {
 }
@@ -15,26 +17,28 @@ void AChessGameMode::BeginPlay()
 {
 	ChessGameState = Cast<AChessGameState>(GetWorld()->GetGameState());
 
-	for (int i = 1;i <= 9;i++) 
+	for (int i = 1;i <= 9;i++)
 	{
-		for (int j = 1;j <= 9;j++) 
+		for (int j = 1;j <= 9;j++)
 		{
 			RandomPoint.Add(FIntPoint(i, j));
 		}
 	}
 
-    GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
 
-	HIHI = GetWorld()->SpawnActor<AEP_WeaponBase>(HIHIBP, FVector::ZeroVector, FRotator::ZeroRotator);
-	HIHI->SetActorScale3D(FVector(1.f, 1.f, 1.f));
-	HIHI->SpawnWeapon(FName("Hammer"));
-	
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]() {
-		ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-		USkeletalMeshComponent* MeshComp = MyCharacter->GetMesh();
-		HIHI->ReturnWeapon()->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HammerSocket"));
-		}, 1.1f, false);
+
+	//weapon temp
+	UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
+	FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
+	HIHI = GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+	//HIHI->SetActorScale3D(FVector(1.f, 1.f, 1.f));
+	//HIHI->SpawnWeapon(FName("Hammer"));
+
+	ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	USkeletalMeshComponent* MeshComp = MyCharacter->GetMesh();
+	HIHI->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HammerSocket"));
+	HIHI->SetActorRotation(FRotator(-90.f, 0, 0));
 }
 
 void AChessGameMode::StartGame()

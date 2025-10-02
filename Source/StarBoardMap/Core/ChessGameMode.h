@@ -47,7 +47,7 @@ public:
 	void SetGridWarning(FIntPoint NewXY, int32 Val);
 
 	UPROPERTY()
-	AEP_WeaponBase* HIHI;
+	AActor* HIHI;
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> HIHIBP;
 };

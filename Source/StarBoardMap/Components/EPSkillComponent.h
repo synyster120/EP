@@ -9,6 +9,8 @@ class UEPStatComponent;
 class UEPSkillBase;
 class UEPSkillDataAsset;
 struct FEPSkillTargetData;
+class EPSkillTypes;
+struct FEPSkillRangeData;
 
 USTRUCT(BlueprintType)
 struct FSkillRuntimeData
@@ -48,6 +50,10 @@ public:
     void ActivateSkill(int32 SkillIndex);
 
     bool CanActivateSkill(int32 SkillIndex);
+
+    int32 ReturnLastComboSkillIndex() const { return LastComboSkillIndex; }
+    
+    FEPSkillRangeData ReturnSkillRangeData();
 
 protected:
     virtual void BeginPlay() override;

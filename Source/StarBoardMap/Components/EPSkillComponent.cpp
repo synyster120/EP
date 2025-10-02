@@ -12,6 +12,11 @@ UEPSkillComponent::UEPSkillComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+FEPSkillRangeData UEPSkillComponent::ReturnSkillRangeData()
+{
+    return SkillSlots[LastkillSlotIndex].SkillObject->GetPhaseData(LastComboSkillIndex)->SkillRange;
+}
+
 void UEPSkillComponent::BeginPlay()
 {
     Super::BeginPlay();
