@@ -27,17 +27,11 @@ void AEPCombatCharacterBase::BeginPlay()
 {
     Super::BeginPlay();
 
-
     if (StatComponent)
     {
         // 죽음, 피격(애니메이션) 바인딩
         StatComponent->OnDied.AddDynamic(this, &AEPCombatCharacterBase::HandleDeath_Implementation);
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
-    }
-    
-    if (SkillComponent && DefaultSkills.Num() > 0)
-    {
-        SkillComponent->InitializeSkills(DefaultSkills);
     }
 }
 

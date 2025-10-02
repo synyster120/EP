@@ -5,6 +5,7 @@
 #include "Skills/EPSkillBase.h"
 #include "GameFramework/Character.h"
 #include "Characters/EPCharacterBase.h"
+#include "Characters/EPEnemyCharacter.h"
 
 
 UEPSkillComponent::UEPSkillComponent()
@@ -124,7 +125,7 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
                             FName SkillID = FName(SkillData.SkillName);
                             SkillIDToIndexMap.Add(SkillID, Index);
                             
-                            UE_LOG(LogTemp, Log, TEXT("Skill '%s' created at index %d"), *SkillID.ToString(), Index);
+                            UE_LOG(LogTemp, Log, TEXT("[ %s ] Skill '%s' created at index %d"), *GetOwner()->GetName(), *SkillID.ToString(), Index);
                         }
                     });
             });
@@ -141,6 +142,7 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
     UEPSkillBase* SkillToActivate = SkillSlots[SkillIndex].SkillObject;
     if (SkillToActivate == nullptr) return;
 
+    UE_LOG(LogTemp, Warning, TEXT("[ %s ] ActivateSkill | skill index : %d"), *GetOwner()->GetName(), SkillIndex);
 
     // 콤보 상태 결정 (가장 핵심적인 로직)
     FSkillRuntimeData& SkillSlot = SkillSlots[SkillIndex];
@@ -210,6 +212,11 @@ bool UEPSkillComponent::CanActivateSkill(int32 SkillIndex)
         UE_LOG(LogTemp, Warning, TEXT("Skill [%s] is on cooldown."), *SkillSlots[SkillIndex].SkillObject->GetSkillID().ToString());
         return false;
     }
+    else 
+    {
+
+        UE_LOG(LogTemp, Warning, TEXT("CanActivateSkill | skill index : %d"), SkillIndex);
+    }
 
     // 마나가 충분한가?
     // if (StatComponent->GetCurrentMana() < RequiredMana) return false;
@@ -224,27 +231,36 @@ bool UEPSkillComponent::CanActivateSkill(int32 SkillIndex)
 // 스킬 쿨타임 시작
 void UEPSkillComponent::StartCooldown(FName SkillID)
 {
+    UE_LOG(LogTemp, Warning, TEXT("StartCooldown | skill id : %s"), *SkillID.ToString());
     // 맵을 사용해 O(1) 시간 복잡도로 인덱스를 즉시 찾음
     if (const int32* IndexPtr = SkillIDToIndexMap.Find(SkillID))
     {
         FSkillRuntimeData& SkillData = SkillSlots[*IndexPtr];
 
-         //이제 SkillData.CooldownTimerHandle을 사용해 타이머를 설정...
-
         //스킬 데이터에서 쿨타임 정보를 가져옴
         const float CooldownDuration = SkillData.SkillObject->GetSkillData()->SkillData.Cooldown;
         if (CooldownDuration >= 0.0f)
         {
-            FTimerHandle NewTimerHandle;
-            // 델리게이트를 사용하여 쿨타임이 끝나면 OnCooldownFinished 함수가 호출되도록 설정
-            FTimerDelegate CooldownDelegate = FTimerDelegate::CreateUObject(this, &UEPSkillComponent::OnCooldownFinished, SkillID);
-            
-            // 스킬 쿨 타이머 세팅 및 스킬 슬롯에 쿨타임 설정
-            GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, CooldownDelegate, CooldownDuration, false);
-        }
-        else if (CooldownDuration == -1) // 스킬 무한 지속
-        {
-            // 로직 추가 or 빈로직
+            if (Cast<AEPEnemyCharacter>(GetOwner())) // enmey 일 경우, 스킬 무한 지속
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is true --> enemy timer play :: 쿨타임 : %f"), CooldownDuration);
+                GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, [this, IndexPtr, &SkillData]()
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("enemy timer end --> activateSkill() play"));
+                        GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
+                        ActivateSkill(*IndexPtr);
+                    }, CooldownDuration, false);
+            }
+            else // 기본, 스킬 1번 쿨타임
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is false --> player timer play :: skill index : %d "), *IndexPtr);
+                FTimerHandle NewTimerHandle;
+                // 델리게이트를 사용하여 쿨타임이 끝나면 OnCooldownFinished 함수가 호출되도록 설정
+                FTimerDelegate CooldownDelegate = FTimerDelegate::CreateUObject(this, &UEPSkillComponent::OnCooldownFinished, SkillID);
+
+                // 스킬 쿨 타이머 세팅 및 스킬 슬롯에 쿨타임 설정
+                GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, CooldownDelegate, CooldownDuration, false);
+            }
         }
     }
 }
@@ -267,6 +283,7 @@ void UEPSkillComponent::OnCooldownFinished(FName SkillID)
 // 콤보 타이머 시작
 void UEPSkillComponent::StartComboWindow(int32 SkillIndex, int32 CurrentComboIndex)
 {
+    UE_LOG(LogTemp, Warning, TEXT("StartComboWindow | skill index : %d"), SkillIndex);
     // 스킬 객체에서 현재 콤보 단계의 유효시간 데이터를 가져옴
     const float ComboWindow = SkillSlots[SkillIndex].SkillObject->GetPhaseData(CurrentComboIndex)->ComboValidTime;
 
@@ -331,7 +348,7 @@ FEPSkillTargetData UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActi
             // 마우스 커서 아래에 있는 액터를 찾아 타겟으로 설정 (라인 트레이스 사용)
             FHitResult HitResult;
             PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-            TargetData.TargetActor = HitResult.GetActor();
+            TargetData.TargetActor = Cast<AEPCharacterBase>(HitResult.GetActor());
             break;
         }
         case EEPTargetType::Direction:

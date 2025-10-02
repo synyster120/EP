@@ -6,7 +6,6 @@
 #include "Data/EPSkillTypes.h"
 #include "EPProjectileDataProvider.generated.h"
 
-
 UINTERFACE(MinimalAPI)
 class UEPProjectileDataProvider : public UInterface
 {
@@ -23,5 +22,8 @@ class STARBOARDMAP_API IEPProjectileDataProvider
 public:
 	// 투사체 데이터를 반환하는 함수 규칙
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	const bool GetProjectileData(int32 PhaseIndex, FEPProjectileData& OutProjectileData) const;
+	bool GetProjectileData(int32 PhaseIndex, FEPProjectileData& OutProjectileData) const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool GetPhaseDataFromAsset(int32 PhaseIndex, FEPSkillPhaseData& OutSkillPhaseData) const;
 };
