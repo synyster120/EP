@@ -145,23 +145,11 @@ void AEPProjectileBase::Activate()
     // ProjectileMovementComponent를 활성화하고, 저장된 속성으로 '움직임'을 시작
     if (ProjectileMovementComponent && bIsValid)
     {
-        // --- 디버깅 로그 ---
-        UE_LOG(LogTemp, Warning, TEXT("--- Projectile Activation Log ---"));
-
-        // 1. Velocity 설정 전, 컴포넌트의 기본 상태 확인
-        UE_LOG(LogTemp, Warning, TEXT("Step 1: Before Velocity - IsActive: %s, UpdatedComponent: %s"),
-            (ProjectileMovementComponent->IsActive() ? TEXT("true") : TEXT("false")),
-            *GetNameSafe(ProjectileMovementComponent->UpdatedComponent));
-
-
         //  움직일 대상 재지정(이유 : Block충돌 시 내부적 중단->대상 참조도 함께 비활성화(초기화))
         ProjectileMovementComponent->SetUpdatedComponent(RootComponent);
 
         ProjectileMovementComponent->Activate();
 
-
-        UE_LOG(LogTemp, Warning, TEXT("Step 2: Final Velocity Set To: %s"), *ProjectileMovementComponent->Velocity.ToString());
-        UE_LOG(LogTemp, Warning, TEXT("--- End Log ---"));
         //ProjectileMovementComponent->Velocity = InitializeLaunchVelocity;
     }
 

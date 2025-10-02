@@ -5,6 +5,7 @@
 #include "Skills/EPSkillBase.h"
 #include "GameFramework/Character.h"
 #include "Characters/EPCharacterBase.h"
+#include "Characters/EPEnemyCharacter.h"
 
 
 UEPSkillComponent::UEPSkillComponent()
@@ -231,25 +232,30 @@ void UEPSkillComponent::StartCooldown(FName SkillID)
     {
         FSkillRuntimeData& SkillData = SkillSlots[*IndexPtr];
 
-         //이제 SkillData.CooldownTimerHandle을 사용해 타이머를 설정...
-
         //스킬 데이터에서 쿨타임 정보를 가져옴
         const float CooldownDuration = SkillData.SkillObject->GetSkillData()->SkillData.Cooldown;
         if (CooldownDuration >= 0.0f)
         {
-            FTimerHandle NewTimerHandle;
-            // 델리게이트를 사용하여 쿨타임이 끝나면 OnCooldownFinished 함수가 호출되도록 설정
-            FTimerDelegate CooldownDelegate = FTimerDelegate::CreateUObject(this, &UEPSkillComponent::OnCooldownFinished, SkillID);
-            
-            // 스킬 쿨 타이머 세팅 및 스킬 슬롯에 쿨타임 설정
-            GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, CooldownDelegate, CooldownDuration, false);
-        }
-        else if (CooldownDuration == -1) // 스킬 무한 지속
-        {
-            GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, [this, IndexPtr]()
-                {
-                    ActivateSkill(*IndexPtr);
-                }, CooldownDuration, false);
+            if (Cast<AEPEnemyCharacter>(GetOwner())) // enmey 일 경우, 스킬 무한 지속
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is true --> enemy timer play :: 쿨타임 : %f"), CooldownDuration);
+                GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, [this, IndexPtr, &SkillData]()
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("enemy timer end --> activateSkill() play"));
+                        GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
+                        ActivateSkill(*IndexPtr);
+                    }, CooldownDuration, false);
+            }
+            else // 기본, 스킬 1번 쿨타임
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is false --> player timer play :: skill index : %d "), *IndexPtr);
+                FTimerHandle NewTimerHandle;
+                // 델리게이트를 사용하여 쿨타임이 끝나면 OnCooldownFinished 함수가 호출되도록 설정
+                FTimerDelegate CooldownDelegate = FTimerDelegate::CreateUObject(this, &UEPSkillComponent::OnCooldownFinished, SkillID);
+
+                // 스킬 쿨 타이머 세팅 및 스킬 슬롯에 쿨타임 설정
+                GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, CooldownDelegate, CooldownDuration, false);
+            }
         }
     }
 }
