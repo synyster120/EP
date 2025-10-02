@@ -46,7 +46,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Mongtage")
     void HandleHitReaction(EEPHitReactionType HitReactionType);
 
-    inline TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
+    FORCEINLINE TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
+    FORCEINLINE UEPStatComponent* GetStatComponent() const { return StatComponent; }
 
 protected:
     virtual void BeginPlay() override;

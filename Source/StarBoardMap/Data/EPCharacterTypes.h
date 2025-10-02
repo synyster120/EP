@@ -27,11 +27,11 @@ enum class EEPCharacterState : uint8
 UENUM(BlueprintType)
 enum class EEPAIState : uint8
 {
-	Patrolling UMETA(DisplayName = "대기or순찰"),		// 대기or순찰
-	Chasing UMETA(DisplayName = "추격"),					// 추격
-	Attacking UMETA(DisplayName = "공격"),				// 공격
-	Repositioning UMETA(DisplayName = "거리조절"),		// 거리조절
-	Fleeing UMETA(DisplayName = "도망"),					// 도망
+	EAS_Patrolling UMETA(DisplayName = "대기or순찰"),		// 대기or순찰
+	EAS_Chasing UMETA(DisplayName = "추격"),					// 추격
+	EAS_Attacking UMETA(DisplayName = "공격"),				// 공격
+	EAS_Repositioning UMETA(DisplayName = "거리조절"),		// 거리조절
+	EAS_Fleeing UMETA(DisplayName = "도망"),					// 도망
 
 };
 
