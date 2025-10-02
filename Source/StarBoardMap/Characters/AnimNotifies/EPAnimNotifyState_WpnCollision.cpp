@@ -12,20 +12,23 @@ void UEPAnimNotifyState_WpnCollision::NotifyBegin(USkeletalMeshComponent* MeshCo
 {
 
     ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(MeshComp->GetWorld(), 0);
-    AEPPlayerCharacter* Player = Cast<AEPPlayerCharacter>(MyCharacter);
-    AttackPhase = Player->SkillComponent->ReturnLastComboSkillIndex(); //플레이어 스택 갖고오기
+    if (MyCharacter) {
+        AEPPlayerCharacter* Player = Cast<AEPPlayerCharacter>(MyCharacter);
+        AttackPhase = Player->SkillComponent->ReturnLastComboSkillIndex(); //플레이어 스택 갖고오기
 
-	UE_LOG(LogTemp, Log, TEXT("Attack %d Begin"), AttackPhase);
-	HitEnemies.Empty();
+        UE_LOG(LogTemp, Log, TEXT("Attack %d Begin"), AttackPhase);
+        HitEnemies.Empty();
 
-    SkillRangeData = Player->SkillComponent->ReturnSkillRangeData();
-    Dimensions = SkillRangeData.Dimensions;
-	//현재 공격 데미지 가져오기
+        SkillRangeData = Player->SkillComponent->ReturnSkillRangeData();
+        Dimensions = SkillRangeData.Dimensions;
+        Damage = Player->SkillComponent->ReturnDamage();
+        //현재 공격 데미지 가져오기
+    }
 }
 
 void UEPAnimNotifyState_WpnCollision::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime)
 {
-	DoAttackTrace(MeshComp);
+    if(MeshComp) DoAttackTrace(MeshComp);
 }
 
 void UEPAnimNotifyState_WpnCollision::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -89,7 +92,8 @@ void UEPAnimNotifyState_WpnCollision::DoAttackTrace(USkeletalMeshComponent* Mesh
                 if (Enemy && !HitEnemies.Contains(Enemy))
                 {
                     HitEnemies.Add(Enemy);
-                    UE_LOG(LogTemp, Warning, TEXT("Attack %d Hit: %s"), AttackPhase, *Enemy->GetName());
+                    UE_LOG(LogTemp, Warning, TEXT("Attack %d Damage %f Hit: %s"), AttackPhase, Damage, *Enemy->GetName());
+                    //UGameplayStatics::ApplyDamage(Enemy, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, nullptr);
                 }
             }
         }

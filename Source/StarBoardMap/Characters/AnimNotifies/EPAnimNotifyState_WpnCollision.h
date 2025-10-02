@@ -29,6 +29,7 @@ public:
     FEPSkillRangeData SkillRangeData;
     EEPSkillRangeShape ShapeType;
     FVector Dimensions;
+    float Damage;
 
     virtual void NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration) override;
     virtual void NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime) override;

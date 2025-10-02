@@ -18,6 +18,11 @@ FEPSkillRangeData UEPSkillComponent::ReturnSkillRangeData()
     return SkillSlots[LastkillSlotIndex].SkillObject->GetPhaseData(LastComboSkillIndex)->SkillRange;
 }
 
+float UEPSkillComponent::ReturnDamage()
+{
+    return SkillSlots[LastkillSlotIndex].SkillObject->GetPhaseData(LastComboSkillIndex)->Damage;
+}
+
 void UEPSkillComponent::BeginPlay()
 {
     Super::BeginPlay();

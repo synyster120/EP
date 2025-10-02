@@ -54,6 +54,7 @@ public:
     int32 ReturnLastComboSkillIndex() const { return LastComboSkillIndex; }
     
     FEPSkillRangeData ReturnSkillRangeData();
+    float ReturnDamage();
 
 protected:
     virtual void BeginPlay() override;
