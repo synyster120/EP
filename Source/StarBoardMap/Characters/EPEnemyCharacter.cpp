@@ -40,6 +40,7 @@ void AEPEnemyCharacter::InitializeCharacterData()
             // 4. 이 클래스 고유의 AI 스탯들을 초기화합니다.
             PerceptionRadius = EnemyStatData->PerceptionRadius;
             LosePerceptionRadius = EnemyStatData->LosePerceptionRadius;
+            UE_LOG(LogTemp, Warning, TEXT("%f  // %f"), PerceptionRadius, LosePerceptionRadius);
 
             // 5. AIController의 블랙보드를 초기화하는 로직도 이곳에서 처리하는 것이 이상적입니다.
             AEPEnemyAIController* AIController = Cast<AEPEnemyAIController>(GetController());

@@ -83,6 +83,7 @@ void UEPStatComponent::Initialize(const FEPBaseStat& BaseStatData)
 
     // 초기 상태를 UI 등에 알리기 위해 델리게이트 한번 호출
     OnHealthChanged.Broadcast();
+    OnStatInitialized.Broadcast(BaseStatData);
 }
 
 void UEPStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)

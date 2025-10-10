@@ -17,6 +17,9 @@ class STARBOARDMAP_API AEPEnemyCharacter : public AEPCombatCharacterBase
 public:
 	AEPEnemyCharacter();
 
+	inline float GetPerceptionRadius() const { return PerceptionRadius; };
+	inline float GetLosePerceptionRadius() const { return LosePerceptionRadius; };
+
 protected:
 	virtual void BeginPlay() override;
 
