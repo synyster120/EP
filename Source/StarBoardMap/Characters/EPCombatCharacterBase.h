@@ -15,6 +15,7 @@ class UEPStatComponent;
 class UEPSkillComponent;
 class UEPSkillDataAsset;
 struct FEPDamageInfo;
+class UEPTargetingStrategy;
 
 /**
  *		IEPCombatInterface 상속받은 전투하는 CharacterBase
@@ -48,6 +49,10 @@ public:
 
     FORCEINLINE TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
     FORCEINLINE UEPStatComponent* GetStatComponent() const { return StatComponent; }
+
+    // 이 캐릭터가 사용할 타겟팅 전략 클래스 (블루프rint에서 지정)
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
 
 protected:
     virtual void BeginPlay() override;

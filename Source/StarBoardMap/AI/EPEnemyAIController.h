@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "EPEnemyAIController.generated.h"
 
 struct FEPEnemyStat;
+struct FEPBaseStat;
 /**
  * 
  */
@@ -29,18 +32,30 @@ public:
 
 protected:
     virtual void OnPossess(APawn* InPawn) override;
+    virtual void BeginPlay() override;
+
+    UFUNCTION()
+    void OnStatReady(const FEPBaseStat& CurrentBaseStat);
 
     // -- 컴포넌트 --
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-    TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    //UAIPerceptionComponent* AIPerceptionComponent;
+    //TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
 
     // -- 데이터 --
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
     TObjectPtr<class UBehaviorTree> BehaviorTreeAsset;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
+    UAISenseConfig_Sight* SightConfig;
+
+    float CurrentPerceptionRadius;
+
+    float CurrentLosePerceptionRadius;
+
 private:
     /** AI Perception Component가 인식을 업데이트했을 때 호출될 함수입니다. */
     UFUNCTION()
-    void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+    void AIPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 };
