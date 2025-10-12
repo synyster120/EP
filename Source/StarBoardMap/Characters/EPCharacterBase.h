@@ -11,6 +11,9 @@
 class UAnimMontage;
 class UEPCharacterAnimationData;
 
+// 델리게이트 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDataInitializedDelegate);
+
 UCLASS()
 class STARBOARDMAP_API AEPCharacterBase : public ACharacter
 {
@@ -29,6 +32,9 @@ protected:
 
 	// 이름, 외형 등의 초기화
 	virtual void InitializeCharacterData();
+
+public:
+	FOnCharacterDataInitializedDelegate OnDataInitialized;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")

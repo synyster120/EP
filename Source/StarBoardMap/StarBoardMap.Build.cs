@@ -12,7 +12,7 @@ public class StarBoardMap : ModuleRules
         // 비표준적인 폴더 구조 사용으로 인한 헤더 검색 실패 방지용 코드(이후 public/private로 분리할지 판단)
         PublicIncludePaths.AddRange(new string[] { "StarBoardMap" });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "GameplayTags", "AIModule", "EnhancedInput" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Niagara", "GameplayTags", "AIModule", "EnhancedInput", "NavigationSystem"  });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
