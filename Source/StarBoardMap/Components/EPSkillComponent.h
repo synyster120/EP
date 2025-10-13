@@ -79,7 +79,7 @@ private:
     UFUNCTION()
     void ResetCombo();
 
-    FEPSkillTargetData PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex);
+    bool PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex, FEPSkillTargetData& OutTargetData);
 
 private:
     // 소유 스킬 객체 / 스킬 쿨 타이머 배열 (데이터의 원본)

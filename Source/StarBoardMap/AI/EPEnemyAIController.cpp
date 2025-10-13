@@ -1,0 +1,138 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "AI/EPEnemyAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
+//#include "Perception/AISenseConfig_Sight.h"
+#include "Data/EPCharacterTypes.h"
+#include "Characters/EPEnemyCharacter.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Components/EPStatComponent.h"
+
+
+// 블랙보드 키 이름 초기화
+const FName AEPEnemyAIController::TargetKey(TEXT("Target"));
+const FName AEPEnemyAIController::SelfActorKey(TEXT("SelfActor"));
+const FName AEPEnemyAIController::CurrentStateKey(TEXT("CurrentState"));
+
+AEPEnemyAIController::AEPEnemyAIController()
+{
+    PrimaryActorTick.bCanEverTick = true;
+
+    SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComponent")));
+
+    // 시야 감지 설정
+    SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+    SightConfig->SightRadius = 0.0f;
+    SightConfig->LoseSightRadius = 0.0f;
+    SightConfig->PeripheralVisionAngleDegrees = 90.0f; // 시야각
+    SightConfig->SetMaxAge(2.0f);
+    SightConfig->DetectionByAffiliation.bDetectEnemies = true; // 적대 관계
+    SightConfig->DetectionByAffiliation.bDetectNeutrals = true; // 중립 관계
+    SightConfig->DetectionByAffiliation.bDetectFriendlies = true; // 팀 관계
+
+    GetPerceptionComponent()->ConfigureSense(*SightConfig);
+    GetPerceptionComponent()->SetDominantSense(SightConfig->GetSenseImplementation());
+    GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AEPEnemyAIController::OnPerceptionUpdated);
+
+}
+
+// 빙의되었을 때, 블랙보드 초기화 및 비헤이비어 실행
+void AEPEnemyAIController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    AEPEnemyCharacter* MyCharacter = Cast<AEPEnemyCharacter>(InPawn);
+    if (MyCharacter)
+    {
+        // 캐릭터의 데이터 준비가 끝나면 OnCharacterReady 함수 호출
+        MyCharacter->OnDataInitialized.AddDynamic(this, &AEPEnemyAIController::OnCharacterReady);
+    }
+}
+
+void AEPEnemyAIController::BeginPlay()
+{
+    Super::BeginPlay();
+
+}
+
+// Character 관련 데이터로 설정 및 초기화 함수 (바인딩)
+void AEPEnemyAIController::OnCharacterReady()
+{
+    UE_LOG(LogTemp, Warning, TEXT("OnCharacterReady"));
+
+    AEPEnemyCharacter* MyCharacter = Cast<AEPEnemyCharacter>(GetPawn());
+
+    if (MyCharacter)
+    {
+        // 지각 업데이트 및 블랙보드 초기화
+        UpdatePerception(MyCharacter);
+        InitializeBlackboard(MyCharacter);
+
+        // 비헤이비어 트리 실행
+        RunBehaviorTree(BehaviorTreeAsset);
+    }
+}
+
+// Stat Data 기반 Perception 설정 update
+void AEPEnemyAIController::UpdatePerception(AEPEnemyCharacter* MyEnemyCharacter)
+{
+    if (MyEnemyCharacter)
+    {
+        if (SightConfig)
+        {
+            SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+            SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+            SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+            UE_LOG(LogTemp, Warning, TEXT("aicontroller : %f  // %f"), MyEnemyCharacter->GetPerceptionRadius(), MyEnemyCharacter->GetLosePerceptionRadius());
+            
+            SightConfig->SightRadius = MyEnemyCharacter->GetPerceptionRadius();
+            SightConfig->LoseSightRadius = MyEnemyCharacter->GetLosePerceptionRadius();
+
+            GetPerceptionComponent()->ConfigureSense(*SightConfig);
+            GetPerceptionComponent()->SetDominantSense(SightConfig->GetSenseImplementation());
+            GetPerceptionComponent()->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
+            GetPerceptionComponent()->RequestStimuliListenerUpdate();
+
+        }
+    }
+}
+
+// 블랙보드 초기화
+void AEPEnemyAIController::InitializeBlackboard(AEPEnemyCharacter* MyEnemyCharacter)
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp && MyEnemyCharacter)
+    {
+        BlackboardComp->SetValueAsObject(SelfActorKey, GetPawn());
+        BlackboardComp->SetValueAsFloat(TEXT("AttackRange"), MyEnemyCharacter->GetStatComponent()->GetAttackRange());
+        BlackboardComp->SetValueAsFloat(TEXT("SightRange"), MyEnemyCharacter->GetPerceptionRadius());
+        // ... 기타 필요한 초기값 설정 ...
+    }
+}
+
+// Player 인식 여부 판단 및 update
+void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+    if (!BlackboardComp) return;
+
+    // 감지된 액터가 플레이어 캐릭터 확인
+    if (Actor)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Target actor : %s"), *Actor->GetName());
+        if (Stimulus.WasSuccessfullySensed())
+        {
+            // 인지 성공
+            BlackboardComp->SetValueAsObject(TargetKey, Actor);
+        }
+        else
+        {
+            // 인지 실패
+            BlackboardComp->ClearValue(TargetKey);
+        }
+    }
+}

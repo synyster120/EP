@@ -18,7 +18,7 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
 {
 	Super::Activate(Caster, NewTargetData, CurrentComboIndex);
 
-    if (!Caster || !SkillDataAsset) return;
+    if (!Caster || !SkillDataAsset ) return;
 
     const FEPSkillData& Data = SkillDataAsset->SkillData;
     if (!Data.ComboSequence.IsValidIndex(0)) return;

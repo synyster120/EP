@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Characters/EPCharacterBase.h"
 #include "Characters/EPEnemyCharacter.h"
+#include "Skills/Targeting/EPTargetingStrategy.h"
 
 
 UEPSkillComponent::UEPSkillComponent()
@@ -181,16 +182,26 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
         LastkillSlotIndex = SkillIndex; // 마지막에 사용한 스킬 슬롯 저장
 
         // 타겟팅 로직을 통해 TargetData 생성
-        FEPSkillTargetData TargetData = PerformTargeting(SkillToActivate, LastComboSkillIndex);
-
-        // 스킬 사용 (최종)
-        AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
-        if (OwnerCaster)
+        FEPSkillTargetData TargetData;
+        if (PerformTargeting(SkillToActivate, LastComboSkillIndex, TargetData))
         {
-            // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
-            OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
-            // 스킬 실행 (스킬 객체에 요청)
-            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+            // 스킬 사용 (최종)
+            AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
+            if (OwnerCaster)
+            {
+                // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
+                OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+                // 스킬 실행 (스킬 객체에 요청)
+                SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Log, TEXT("Skill [%s] activate is fail."), *SkillToActivate->GetSkillID().ToString());
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Log, TEXT("Skill [%s] PerformTargeting is fail."), *SkillToActivate->GetSkillID().ToString());
         }
     }
 
@@ -308,70 +319,31 @@ void UEPSkillComponent::ResetCombo()
 }
 
 // 스킬 단계의 필요한 타겟 타입 맞춰서 타겟 지정
-FEPSkillTargetData UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex)
+bool UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex, FEPSkillTargetData& OutTargetData)
 {
-    FEPSkillTargetData TargetData;
-    ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-    APlayerController* PlayerController = Cast<APlayerController>(OwnerCharacter->GetController());
-    if (!OwnerCharacter || !PlayerController) return TargetData;
+    AEPCombatCharacterBase* OwnerCharacter = Cast<AEPCombatCharacterBase>(GetOwner());
 
-    // 스킬 데이터에서 이 스킬단계가 어떤 종류의 타겟팅을 사용하는지 가져옴
-    FEPComboStep StepData = SkillToActivate->GetSkillData()->SkillData.ComboSequence[SkillIndex];
-    EEPSkillPhaseSource SkillSourceType = StepData.SourceType; 
-
-    if (SkillSourceType == EEPSkillPhaseSource::Local)
+    if (OwnerCharacter && OwnerCharacter->TargetingStrategyClass)
     {
-        TargetData.TargetType = SkillToActivate->GetSkillData()->SkillData.LocalSkillPhases[StepData.LocalPhaseIndex].TargetType;
-    }
-    else if (SkillSourceType == EEPSkillPhaseSource::Referenced)
-    {
-        if (StepData.ReferencedPhaseRow.DataTable)
+        // 캐릭터에 지정된 전략 클래스로 '전략 객체'를 임시 생성
+        UEPTargetingStrategy* Strategy = NewObject<UEPTargetingStrategy>(this, OwnerCharacter->TargetingStrategyClass);
+        if (Strategy)
         {
-            // 핸들에서 직접 데이터를 찾아옵니다.
-            FEPSkillPhaseData* SkillData = StepData.ReferencedPhaseRow.GetRow<FEPSkillPhaseData>(TEXT(""));
-            if (SkillData)
+            // 해당 전략에 따라 타겟을 찾도록 '위임'
+            const FEPSkillPhaseData* PhaseData = SkillSlots[SkillIndex].SkillObject->GetPhaseData(LastComboSkillIndex);
+            if (!PhaseData) return false;
+
+            if (Strategy->FindTarget(OwnerCharacter, *PhaseData, OutTargetData))
             {
-                TargetData.TargetType = SkillData->TargetType;
+                return true;
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[%s] PerformTargeting() -> FindTarget() is fail"), *GetName());
             }
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Skill Data -> SkillSourceType is null"));
-    }
+    return false; // 실패 반환
 
-    switch (TargetData.TargetType)
-    {
-        case EEPTargetType::Self:
-        {
-            // 자기 자신을 타겟으로 설정
-            TargetData.TargetActor = OwnerCharacter;
-            break;
-        }
-        case EEPTargetType::Actor:
-        {
-            // 마우스 커서 아래에 있는 액터를 찾아 타겟으로 설정 (라인 트레이스 사용)
-            FHitResult HitResult;
-            PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-            TargetData.TargetActor = Cast<AEPCharacterBase>(HitResult.GetActor());
-            break;
-        }
-        case EEPTargetType::Direction:
-        {
-            // 카메라가 바라보는 방향을 타겟 방향으로 설정
-            TargetData.TargetDirection = PlayerController->GetControlRotation().Vector();
-            break;
-        }
-        case EEPTargetType::Location:
-        {
-            // 마우스 커서가 충돌한 바닥의 위치를 타겟 위치로 설정
-            FHitResult HitResult;
-            PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, HitResult);
-            TargetData.TargetLocation = HitResult.Location;
-            break;
-        }
-    }
-
-    return TargetData;
 }
 
