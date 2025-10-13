@@ -38,7 +38,8 @@ void AChessGameMode::BeginPlay()
 	ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	USkeletalMeshComponent* MeshComp = MyCharacter->GetMesh();
 	HIHI->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HammerSocket"));
-	HIHI->SetActorRotation(FRotator(-90.f, 0, 0));
+	HIHI->SetActorRelativeRotation(FRotator(-90.f, -20.f, 0));
+	UE_LOG(LogTemp, Warning, TEXT("World: %s"), *HIHI->GetActorRotation().ToString());
 }
 
 void AChessGameMode::StartGame()

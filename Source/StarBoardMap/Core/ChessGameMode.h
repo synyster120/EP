@@ -50,4 +50,9 @@ public:
 	AActor* HIHI;
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> HIHIBP;
+
+	UPROPERTY(EditAnywhere)
+	FRotator HIROT;
+	UPROPERTY(EditAnywhere)
+	bool ISRELATIVE;
 };
