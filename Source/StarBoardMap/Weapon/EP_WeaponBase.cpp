@@ -19,15 +19,26 @@ void UEP_WeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-    StartWithCharacter();
+    SpawnWeapon(FName("Hammer"));
 }
 
 void UEP_WeaponBase::SpawnWeapon(FName SpawnWeaponName)
 {
+    WeaponName = SpawnWeaponName;
+
+    FTimerHandle AttachDelayHandle;
+    GetWorld()->GetTimerManager().SetTimer(
+        AttachDelayHandle,
+        this,
+        &UEP_WeaponBase::StartWithCharacter,
+        0.1f,
+        false
+    );
 }
 
 void UEP_WeaponBase::StartWithCharacter()
 {
+    AActor* Owner = GetOwner();
     ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     USkeletalMeshComponent* MeshComp = MyCharacter->GetMesh();
     UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
@@ -47,4 +58,12 @@ void UEP_WeaponBase::StartWithCharacter()
             FloatProp->SetPropertyValue_InContainer(AnimInst, true);
         }
     }
+
+
+    Owner->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("HammerSocket"));
+   
+    FRotator DesiredWorldRot = FRotator(-90.f, -20.f, 0);
+
+    
+    Owner->SetActorRelativeRotation(FRotator::MakeFromEuler(FVector(-90.f, -20.f, 0.f)));
 }
