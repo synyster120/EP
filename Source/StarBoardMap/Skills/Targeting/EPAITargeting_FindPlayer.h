@@ -21,5 +21,5 @@ public:
 
 protected:
 	// 블랙보드 키 
-	static const FName TargetPlayerKey;
+	static const FName TargetKey;
 };
