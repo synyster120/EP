@@ -115,6 +115,7 @@ bool UEPSkill_Projectile::CalculateLaunchVelocity(ACharacter* Caster, const FEPS
     {
     case EEPTargetType::Direction:
     {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- direction"), *Caster->GetName());
         const FVector ForwardVector = Caster->GetActorForwardVector();
         const float Distance = 50.0f;
         const FVector SpawnLocation = CasterLocation + (ForwardVector * Distance);
@@ -143,6 +144,10 @@ bool UEPSkill_Projectile::CalculateLaunchVelocity(ACharacter* Caster, const FEPS
                 // 발사 방향을 속도 방향과 일치
                 OutSpawnTransform = FTransform(SuggestedVelocity.Rotation(), CasterLocation);
             }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- actor is not set"), *Caster->GetName());
         }
         break;
     }
