@@ -31,7 +31,26 @@ void AChessGameMode::BeginPlay()
 	//weapon temp
 	UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
 	FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
-	HIHI = GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+	GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+
+	FTimerHandle TempHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TempHandle,
+		FTimerDelegate::CreateLambda([this]()
+			{
+
+				if (GameUIWidgetClass)
+				{
+					GameUIInstance = CreateWidget<UChessUserWidget>(GetWorld(), GameUIWidgetClass);
+					if (GameUIInstance)
+					{
+						GameUIInstance->AddToViewport();
+					}
+				}
+			}),
+		0.5f,  // 딜레이 (초)
+		false  // 반복 여부 (false = 한 번만 실행)
+	);
 }
 
 void AChessGameMode::StartGame()

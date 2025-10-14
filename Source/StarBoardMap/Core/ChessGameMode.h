@@ -9,6 +9,7 @@
 #include "AI/ChessUnitController.h"
 #include "Chess/CKing.h"
 #include "Weapon/EP_WeaponBase.h"
+#include "ChessUserWidget.h"
 
 #include "ChessGameMode.generated.h"
 
@@ -46,13 +47,10 @@ public:
 	FVector GetPlayerVector();
 	void SetGridWarning(FIntPoint NewXY, int32 Val);
 
-	UPROPERTY()
-	AActor* HIHI;
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> HIHIBP;
 
-	UPROPERTY(EditAnywhere)
-	FRotator HIROT;
-	UPROPERTY(EditAnywhere)
-	bool ISRELATIVE;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UChessUserWidget> GameUIWidgetClass;
+
+	UPROPERTY()
+	UChessUserWidget* GameUIInstance;
 };
