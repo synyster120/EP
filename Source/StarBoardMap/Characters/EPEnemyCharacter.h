@@ -20,10 +20,15 @@ public:
 	inline float GetPerceptionRadius() const { return PerceptionRadius; };
 	inline float GetLosePerceptionRadius() const { return LosePerceptionRadius; };
 
+	void BaseAttack(); 
+	virtual void OnDied() override;
+	virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) override;
+
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void InitializeCharacterData() override;
+
 
 protected:
 	float PerceptionRadius;

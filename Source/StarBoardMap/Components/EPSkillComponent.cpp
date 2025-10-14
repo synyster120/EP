@@ -204,6 +204,10 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
             UE_LOG(LogTemp, Log, TEXT("Skill [%s] PerformTargeting is fail."), *SkillToActivate->GetSkillID().ToString());
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("Skill [%s] object is null ptr."), *GetName());
+    }
 
     // 콤보 쿨타임 설정 및 스킬 쿨타임 설정
     StartComboWindow(SkillIndex, LastComboSkillIndex);
@@ -257,17 +261,17 @@ void UEPSkillComponent::StartCooldown(FName SkillID)
         const float CooldownDuration = SkillData.SkillObject->GetSkillData()->SkillData.Cooldown;
         if (CooldownDuration >= 0.0f)
         {
-            if (Cast<AEPEnemyCharacter>(GetOwner())) // enmey 일 경우, 스킬 무한 지속
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is true --> enemy timer play :: 쿨타임 : %f"), CooldownDuration);
-                GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, [this, IndexPtr, &SkillData]()
-                    {
-                        UE_LOG(LogTemp, Warning, TEXT("enemy timer end --> activateSkill() play"));
-                        GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
-                        ActivateSkill(*IndexPtr);
-                    }, CooldownDuration, false);
-            }
-            else // 기본, 스킬 1번 쿨타임
+            //if (Cast<AEPEnemyCharacter>(GetOwner())) // enmey 일 경우, 스킬 무한 지속
+            //{
+            //    UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is true --> enemy timer play :: 쿨타임 : %f"), CooldownDuration);
+            //    GetWorld()->GetTimerManager().SetTimer(SkillData.CooldownTimerHandle, [this, IndexPtr, &SkillData]()
+            //        {
+            //            UE_LOG(LogTemp, Warning, TEXT("enemy timer end --> activateSkill() play"));
+            //            GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
+            //            ActivateSkill(*IndexPtr);
+            //        }, CooldownDuration, false);
+            //}
+            //else // 기본, 스킬 1번 쿨타임
             {
                 UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is false --> player timer play :: skill index : %d "), *IndexPtr);
                 FTimerHandle NewTimerHandle;

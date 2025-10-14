@@ -20,7 +20,7 @@ class UEPTargetingStrategy;
 /**
  *		IEPCombatInterface 상속받은 전투하는 CharacterBase
  */
-UCLASS()
+UCLASS(Abstract)
 class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface
 {
 	GENERATED_BODY()
@@ -43,6 +43,14 @@ public:
     virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+    
+    // Die 바인딩 함수
+    UFUNCTION()
+    virtual void OnDied() PURE_VIRTUAL(AEPCombatCharacterBase::OnDied, );
+
+    // 몽타주 플레이 함수
+    UFUNCTION()
+    virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) PURE_VIRTUAL(AEPCombatCharacterBase::CurrentMontagePlay, );
 
     UFUNCTION(BlueprintCallable, Category = "Mongtage")
     void HandleHitReaction(EEPHitReactionType HitReactionType);
@@ -50,8 +58,8 @@ public:
     FORCEINLINE TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
     FORCEINLINE UEPStatComponent* GetStatComponent() const { return StatComponent; }
 
-    // 이 캐릭터가 사용할 타겟팅 전략 클래스 (블루프rint에서 지정)
-    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    // 이 캐릭터가 사용할 타겟팅 전략 클래스 (Character 블루프린트에서 지정)
+    UPROPERTY(EditDefaultsOnly, Category = "Data")
     TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
 
 protected:

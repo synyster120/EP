@@ -46,11 +46,11 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
             // 투사체가 생성될 위치와 방향(Transform)을 계산
             //    (예: 캐릭터의 특정 소켓 위치, 타겟 방향 등)
 
-            // 1. 헬퍼 함수를 호출하여 모든 복잡한 계산을 위임합니다.
+            // 헬퍼 함수를 호출하여 모든 복잡한 계산을 위임
             if (CalculateLaunchVelocity(Caster, NewTargetData, PhaseData, SpawnTransform, LaunchVelocity))
             {
 
-                // 2. 풀 매니저에게 스폰을 요청합니다.
+                // 풀 매니저에게 스폰을 요청
                 if (UEPObjectPoolManager* PoolManager = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>())
                 {
                     // TSubclassOf<AEPProjectileBase>를 범용 TSoftClassPtr<AActor>로 변환 후 actor 반환 받음
@@ -69,7 +69,7 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
 
                     //if (Projectile && Projectile->GetProjectileMovementComponent())
                     //{
-                    //    // 3. 최종적으로 계산된 속도를 투사체에 적용합니다.
+                    //    // 최종적으로 계산된 속도를 투사체에 적용
                     //    Projectile->GetProjectileMovementComponent()->Velocity = LaunchVelocity;
                     //}
                 }
@@ -115,6 +115,7 @@ bool UEPSkill_Projectile::CalculateLaunchVelocity(ACharacter* Caster, const FEPS
     {
     case EEPTargetType::Direction:
     {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- direction"), *Caster->GetName());
         const FVector ForwardVector = Caster->GetActorForwardVector();
         const float Distance = 50.0f;
         const FVector SpawnLocation = CasterLocation + (ForwardVector * Distance);
@@ -143,6 +144,10 @@ bool UEPSkill_Projectile::CalculateLaunchVelocity(ACharacter* Caster, const FEPS
                 // 발사 방향을 속도 방향과 일치
                 OutSpawnTransform = FTransform(SuggestedVelocity.Rotation(), CasterLocation);
             }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- actor is not set"), *Caster->GetName());
         }
         break;
     }

@@ -15,6 +15,9 @@
 const FName AEPEnemyAIController::TargetKey(TEXT("Target"));
 const FName AEPEnemyAIController::SelfActorKey(TEXT("SelfActor"));
 const FName AEPEnemyAIController::CurrentStateKey(TEXT("CurrentState"));
+const FName AEPEnemyAIController::IsDeadKey(TEXT("IsDead"));
+const FName AEPEnemyAIController::IsHitKey(TEXT("IsHit"));
+const FName AEPEnemyAIController::MontageToPlayKey(TEXT("MontageToPlay"));
 
 AEPEnemyAIController::AEPEnemyAIController()
 {
@@ -68,7 +71,7 @@ void AEPEnemyAIController::OnCharacterReady()
     {
         // 지각 업데이트 및 블랙보드 초기화
         UpdatePerception(MyCharacter);
-        InitializeBlackboard(MyCharacter);
+        InitializeBlackboardUpdate(MyCharacter);
 
         // 비헤이비어 트리 실행
         RunBehaviorTree(BehaviorTreeAsset);
@@ -101,7 +104,7 @@ void AEPEnemyAIController::UpdatePerception(AEPEnemyCharacter* MyEnemyCharacter)
 }
 
 // 블랙보드 초기화
-void AEPEnemyAIController::InitializeBlackboard(AEPEnemyCharacter* MyEnemyCharacter)
+void AEPEnemyAIController::InitializeBlackboardUpdate(AEPEnemyCharacter* MyEnemyCharacter)
 {
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 
@@ -134,5 +137,44 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
             // 인지 실패
             BlackboardComp->ClearValue(TargetKey);
         }
+    }
+}
+
+// Blackboard 에 Die 상태 업데이트
+void AEPEnemyAIController::NotifyDeathUpdate()
+{
+    UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- ok"));
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    // 인지 컴포넌트 비활성화, target 리셋
+
+    if (BlackboardComp)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- Success"));
+        BlackboardComp->SetValueAsBool(IsDeadKey, true);
+    }
+}
+
+// Blackboard 에 Hit 상태 업데이트
+void AEPEnemyAIController::NotifyHitUpdate()
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsBool(IsHitKey, true);
+    }
+}
+
+// Blackboard 에 Play 할 Montage 업데이트
+void AEPEnemyAIController::PlayMontageUpdate(UAnimMontage* CurrentMontage)
+{
+    if (!CurrentMontage) return;
+
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsObject(MontageToPlayKey, CurrentMontage);
     }
 }

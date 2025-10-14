@@ -19,6 +19,16 @@ enum class EEPHitReactionType : uint8
     Launch      UMETA(DisplayName = "공중으로 뜸") // 공중으로 뜸
 };
 
+// Animation Montage의 타입
+UENUM(BlueprintType)
+enum class EEPCombatMontageType : uint8
+{
+    None  UMETA(DisplayName = "None"),
+    Attack  UMETA(DisplayName = "공격"),
+    Hit  UMETA(DisplayName = "피격"),
+    Death  UMETA(DisplayName = "죽음"),
+    Dodge  UMETA(DisplayName = "회피"),
+};
 
 /**
  * 데미지 이벤트에 대한 모든 정보를 담는 구조체

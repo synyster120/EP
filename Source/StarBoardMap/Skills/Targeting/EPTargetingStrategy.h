@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -17,7 +17,7 @@ class STARBOARDMAP_API UEPTargetingStrategy : public UObject
 	GENERATED_BODY()
 
 public:
-	// ¸ğµç ÀÚ½Ä Àü·« Å¬·¡½º´Â ÀÌ ÇÔ¼ö¸¦ ¹İµå½Ã ±¸ÇöÇØ¾ß ÇÔ
+	// ì¶”ìƒ í•¨ìˆ˜
 	virtual bool FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) PURE_VIRTUAL(UEPTargetingStrategy::FindTarget, return false;);
 
 };

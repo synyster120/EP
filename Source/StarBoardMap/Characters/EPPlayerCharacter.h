@@ -36,7 +36,9 @@ public:
 
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-    
+	virtual void OnDied() override;
+	virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) override;
+
 protected:
     // 입출력
 	/** MappingContext */

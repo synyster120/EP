@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Skills/Targeting/EPAITargeting_FindPlayer.h"
@@ -7,8 +7,8 @@
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
-// ºí·¢º¸µå Å° ÀÌ¸§ ÃÊ±âÈ­
-const FName UEPAITargeting_FindPlayer::TargetPlayerKey(TEXT("TargetPlayer"));
+// ë¸”ë™ë³´ë“œ í‚¤ ì´ë¦„ ì´ˆê¸°í™”
+const FName UEPAITargeting_FindPlayer::TargetKey(TEXT("Target"));
 
 
 bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
@@ -29,24 +29,35 @@ bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPha
         break;
 
     case EEPTargetType::Actor:
-        // ºí·¢º¸µå¿¡ ÀúÀåµÈ 'TargetPlayer'¸¦ Å¸°Ù ¾×ÅÍ·Î ¼³Á¤ÇÕ´Ï´Ù.
-        OutTargetData.TargetActor = Cast<AActor>(Blackboard->GetValueAsObject(TargetPlayerKey));
+        // ë¸”ë™ë³´ë“œì— ì €ì¥ëœ 'TargetPlayer'ë¥¼ íƒ€ê²Ÿ ì•¡í„°ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
+        if (Cast<AActor>(Blackboard->GetValueAsObject(TargetKey)))
+        {
+            OutTargetData.TargetActor = Cast<AActor>(Blackboard->GetValueAsObject(TargetKey));
+        }
+        else
+        {
+            return false;
+        }
         break;
 
     case EEPTargetType::Direction:
     {
-        // Å¸°Ù(ÇÃ·¹ÀÌ¾î)À» ÇâÇÏ´Â ¹æÇâÀ» °ø°İ ¹æÇâÀ¸·Î ¼³Á¤ÇÕ´Ï´Ù.
-        AActor* TargetPlayer = Cast<AActor>(Blackboard->GetValueAsObject(TargetPlayerKey));
+        // íƒ€ê²Ÿ(í”Œë ˆì´ì–´)ì„ í–¥í•˜ëŠ” ë°©í–¥ì„ ê³µê²© ë°©í–¥ìœ¼ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
+        AActor* TargetPlayer = Cast<AActor>(Blackboard->GetValueAsObject(TargetKey));
         if (TargetPlayer)
         {
             OutTargetData.TargetDirection = (TargetPlayer->GetActorLocation() - Caster->GetActorLocation()).GetSafeNormal();
+        }
+        else
+        {
+            return false;
         }
         break;
     }
     case EEPTargetType::Location:
     {
-        // Å¸°Ù(ÇÃ·¹ÀÌ¾î)ÀÇ ÇöÀç À§Ä¡¸¦ °ø°İ À§Ä¡·Î ¼³Á¤ÇÕ´Ï´Ù.
-        AActor* TargetPlayer = Cast<AActor>(Blackboard->GetValueAsObject(TargetPlayerKey));
+        // íƒ€ê²Ÿ(í”Œë ˆì´ì–´)ì˜ í˜„ì¬ ìœ„ì¹˜ë¥¼ ê³µê²© ìœ„ì¹˜ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
+        AActor* TargetPlayer = Cast<AActor>(Blackboard->GetValueAsObject(TargetKey));
         if (TargetPlayer)
         {
             OutTargetData.TargetLocation = TargetPlayer->GetActorLocation();

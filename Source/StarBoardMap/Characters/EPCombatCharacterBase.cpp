@@ -30,7 +30,7 @@ void AEPCombatCharacterBase::BeginPlay()
     if (StatComponent)
     {
         // 죽음, 피격(애니메이션) 바인딩
-        StatComponent->OnDied.AddDynamic(this, &AEPCombatCharacterBase::HandleDeath_Implementation);
+        StatComponent->OnDied.AddDynamic(this, &AEPCombatCharacterBase::OnDied);
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
     }
 }
@@ -82,7 +82,7 @@ void AEPCombatCharacterBase::HandleHitReaction(EEPHitReactionType HitReactionTyp
         {
             if (LoadedMontage)
             {
-                this->PlayAnimMontage(LoadedMontage);
+                CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Hit);
             }
             else
             {
@@ -132,7 +132,7 @@ void AEPCombatCharacterBase::HandleDeath_Implementation()
             {
                 if (LoadedMontage)
                 {
-                    PlayAnimMontage(LoadedMontage);
+                    CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Death);
                 }
                 else
                 {

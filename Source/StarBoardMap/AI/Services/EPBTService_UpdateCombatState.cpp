@@ -19,10 +19,10 @@ const FName UEPBTService_UpdateCombatState::CurrentStateKey(TEXT("CurrentState")
 
 UEPBTService_UpdateCombatState::UEPBTService_UpdateCombatState()
 {
-    NodeName = TEXT("Update Combat State");
+    NodeName = TEXT("EP Update Combat State");
     bNotifyTick = true;
     bCallTickOnSearchStart = true;
-    Interval = 0.5f; // 0.5초마다 상황 판단
+    Interval = 1.5f; // 0.5초마다 상황 판단
 
     UE_LOG(LogTemp, Warning, TEXT("Service ok"));
     
@@ -31,8 +31,6 @@ UEPBTService_UpdateCombatState::UEPBTService_UpdateCombatState()
 void UEPBTService_UpdateCombatState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
     Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
-
-
 
     AAIController* AIController = OwnerComp.GetAIOwner();
     UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
@@ -46,16 +44,6 @@ void UEPBTService_UpdateCombatState::TickNode(UBehaviorTreeComponent& OwnerComp,
     // 블랙보드에서 타겟 플레이어 정보를 가져옴
     UObject* TargetObject = BlackboardComp->GetValueAsObject(TargetKey);
     AActor* TargetPlayer = Cast<AActor>(TargetObject);
-
-
-    auto* CM = ControlledCharacter->GetCharacterMovement();
-    //UE_LOG(LogTemp, Warning, TEXT("tick ok --------------- Mode=%d Speed=%.1f"), // CanMove=%d
-    //    (int32)CM->MovementMode, CM->MaxWalkSpeed); //IsMovementEnabled()
-    auto* PFC = AIController->GetPathFollowingComponent();
-    UE_LOG(LogTemp, Warning, TEXT("PathFollowingComponent valid = %d, NavSys = %d"),
-        PFC != nullptr,
-        FNavigationSystem::GetCurrent<UNavigationSystemV1>(AIController->GetWorld()) != nullptr);
-    UE_LOG(LogTemp, Warning, TEXT("BTComponent paused = %d"), OwnerComp.IsPaused());
 
     EEPAIState NewState;
 
@@ -83,11 +71,12 @@ void UEPBTService_UpdateCombatState::TickNode(UBehaviorTreeComponent& OwnerComp,
         //UE_LOG(LogTemp, Warning, TEXT("MoveTo Code=%d HasPath=%d NumPts=%d"),
         //    (int32)Code, OutPath.IsValid(), OutPath.IsValid() ? OutPath->GetPathPoints().Num() : 0);
 
-        AIController->GetPathFollowingComponent()->OnRequestFinished.AddLambda(
-            [](FAIRequestID, const FPathFollowingResult& Res) {
-                UE_LOG(LogTemp, Warning, TEXT("PF finished: %s"),
-                    *UEnum::GetValueAsString(Res.Code)); // Success, Blocked, Aborted, Invalid, AlreadyAtGoal
-            });
+        //AIController->GetPathFollowingComponent()->OnRequestFinished.AddLambda(
+        //    [](FAIRequestID, const FPathFollowingResult& Res) {
+        //        UE_LOG(LogTemp, Warning, TEXT("PF finished: %s"),
+        //            *UEnum::GetValueAsString(Res.Code)); // Success, Blocked, Aborted, Invalid, AlreadyAtGoal
+        //    });
+
 
         // 타겟이 있으면, 거리와 상태를 기반으로 '전투' 상태를 결정
         const float DistanceToTarget = FVector::Dist(ControlledCharacter->GetActorLocation(), TargetPlayer->GetActorLocation());
