@@ -1,4 +1,5 @@
-﻿#include "Components/EPSkillComponent.h"
+﻿
+#include "Components/EPSkillComponent.h"
 #include "Data/EPSkillDataAsset.h"
 #include "Components/EPStatComponent.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
@@ -7,6 +8,7 @@
 #include "Characters/EPCharacterBase.h"
 #include "Characters/EPEnemyCharacter.h"
 #include "Skills/Targeting/EPTargetingStrategy.h"
+#include "Components/EPMovementLockComponent.h"
 
 
 UEPSkillComponent::UEPSkillComponent()
@@ -148,8 +150,6 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
     UEPSkillBase* SkillToActivate = SkillSlots[SkillIndex].SkillObject;
     if (SkillToActivate == nullptr) return;
 
-    UE_LOG(LogTemp, Warning, TEXT("[ %s ] ActivateSkill | skill index : %d"), *GetOwner()->GetName(), SkillIndex);
-
     // 콤보 상태 결정 (가장 핵심적인 로직)
     FSkillRuntimeData& SkillSlot = SkillSlots[SkillIndex];
 
@@ -165,7 +165,7 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
         {
             LastComboSkillIndex = 0; // 콤보 초기화 (1타)
         }
-        
+
         // 콤보 순환
         if (LastComboSkillIndex >= SkillSlot.MaxComboCount)
         {
@@ -175,6 +175,50 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
 
         UE_LOG(LogTemp, Warning, TEXT("cobo state | combo num : %d"), LastComboSkillIndex);
     }
+
+
+    AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
+    FName text = TEXT("Skill");
+    if (SkillToActivate->RequiresMovementLock(LastComboSkillIndex))
+    {
+        if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
+            // Lock 설정
+            Lock->Acquire(text);
+    }
+
+    const float Windup = SkillToActivate->GetWindupSeconds(LastComboSkillIndex);
+    UE_LOG(LogTemp, Warning, TEXT("windup seconds : %f"), Windup);
+    if (Windup > KINDA_SMALL_NUMBER)
+    {
+        // aicontroller 바인딩 함수(블랙보드 update)
+        
+        GetWorld()->GetTimerManager().SetTimer(WindupHandle, [this, SkillIndex, OwnerCaster, text]()
+            {
+                ActivateSkillFinished(SkillIndex);
+                // Lock 해제
+                if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
+                {
+                    Lock->Release(text);
+                }
+            }
+        , Windup, false);
+    }
+    else
+    {
+        ActivateSkillFinished(SkillIndex);
+    }
+
+}
+
+void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
+{
+    OnMovementLockEnded.Broadcast();
+
+    UEPSkillBase* SkillToActivate = SkillSlots[SkillIndex].SkillObject;
+    if (SkillToActivate == nullptr) return;
+
+    UE_LOG(LogTemp, Warning, TEXT("[ %s ] ActivateSkill | skill index : %d"), *GetOwner()->GetName(), SkillIndex);
+
 
     // 스킬 객체에 '실행' 명령
     if (SkillToActivate)
@@ -213,7 +257,6 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
     StartComboWindow(SkillIndex, LastComboSkillIndex);
     //StartCooldown(SkillIndex); // index로 쿨타임 시작 
     StartCooldown(SkillToActivate->GetSkillID());
-
 }
 
 // 스킬 사용 가능 여부 판단

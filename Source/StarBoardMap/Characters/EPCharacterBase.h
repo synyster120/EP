@@ -10,6 +10,7 @@
 // 전방 선언
 class UAnimMontage;
 class UEPCharacterAnimationData;
+class UEPMovementLockComponent;
 
 // 델리게이트 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDataInitializedDelegate);
@@ -20,6 +21,8 @@ class STARBOARDMAP_API AEPCharacterBase : public ACharacter
 	GENERATED_BODY()
 
 public:
+	FORCEINLINE UEPMovementLockComponent* GetMovementLockComponent() const { return MovementLockComponent; }
+
 	AEPCharacterBase();
 	void PlayAnimationByTag(FGameplayTag NewTag);
 
@@ -39,6 +42,9 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	TObjectPtr<UEPCharacterAnimationData> AnimDataAsset;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UEPMovementLockComponent> MovementLockComponent;
 
 	// 캐릭터 현재 행동 상태
 	EEPCharacterState CurrentState = EEPCharacterState::Idle;
