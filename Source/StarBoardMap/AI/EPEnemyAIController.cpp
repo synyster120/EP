@@ -12,12 +12,13 @@
 
 
 // 블랙보드 키 이름 초기화
-const FName AEPEnemyAIController::TargetKey(TEXT("Target"));
+const FName AEPEnemyAIController::TargetKey(TEXT("Target")); 
 const FName AEPEnemyAIController::SelfActorKey(TEXT("SelfActor"));
 const FName AEPEnemyAIController::CurrentStateKey(TEXT("CurrentState"));
 const FName AEPEnemyAIController::IsDeadKey(TEXT("IsDead"));
 const FName AEPEnemyAIController::IsHitKey(TEXT("IsHit"));
 const FName AEPEnemyAIController::MontageToPlayKey(TEXT("MontageToPlay"));
+const FName AEPEnemyAIController::IsWindupKey(TEXT("IsWindup"));
 
 AEPEnemyAIController::AEPEnemyAIController()
 {
@@ -179,3 +180,21 @@ void AEPEnemyAIController::PlayMontageUpdate(UAnimMontage* CurrentMontage)
         BlackboardComp->SetValueAsObject(MontageToPlayKey, CurrentMontage);
     }
 }
+
+void AEPEnemyAIController::NotifyIsWindupUpdate()
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        if (IsWindup) // true 일때
+        {
+            BlackboardComp->SetValueAsBool(IsWindupKey, false); // 대기 상태 해제
+        }
+        else // false 일때
+        {
+            BlackboardComp->SetValueAsBool(IsWindupKey, true); // 대기 상태로 전환
+        }
+    }
+}
+

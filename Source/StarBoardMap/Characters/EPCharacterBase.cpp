@@ -5,12 +5,15 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "Characters/EPCombatCharacterBase.h"
+#include "Components/EPMovementLockComponent.h"
 
 
 AEPCharacterBase::AEPCharacterBase()
 {
  	PrimaryActorTick.bCanEverTick = false;
     GetCapsuleComponent()->SetGenerateOverlapEvents(true);
+
+    MovementLockComponent = CreateDefaultSubobject<UEPMovementLockComponent>(TEXT("MovementLockComponent"));
 }
 
 // 애니메이션 검색 후 Play 

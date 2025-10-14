@@ -24,11 +24,13 @@ private:
 	TObjectPtr<UBehaviorTreeComponent> MyOwnerComp;
 
 	UBlackboardComponent* BlackboardComponent;
-
+	AAIController* AIController;
 protected:
 	UEPBTTask_Attack();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
+	
 	UFUNCTION()
 	void OnSkillReady(int32 SkillIndex, UObject* Instigator);
+	UFUNCTION()
+	void OnMovementLockEnded();
 };

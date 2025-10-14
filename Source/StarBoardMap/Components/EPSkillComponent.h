@@ -14,6 +14,7 @@ struct FEPSkillRangeData;
 
 // 델리게이트 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSkillCooldownEnded, int32, SkillIndex, UObject*, Instigator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMovementLockEnded);
 
 USTRUCT(BlueprintType)
 struct FSkillRuntimeData
@@ -51,6 +52,7 @@ public:
      * @param TargetData 스킬 발동에 필요한 타겟 정보
      */
     void ActivateSkill(int32 SkillIndex);
+    void ActivateSkillFinished(int32 SkillIndex);
 
     bool CanActivateSkill(int32 SkillIndex);
 
@@ -86,6 +88,7 @@ private:
 
 public:
     FOnSkillCooldownEnded OnSkillCooldownEnded;
+    FOnMovementLockEnded OnMovementLockEnded;
 
 private:
     // 소유 스킬 객체 / 스킬 쿨 타이머 배열 (데이터의 원본)
@@ -105,6 +108,8 @@ private:
     FTimerHandle ComboTimerHandle;
     int32 LastkillSlotIndex = 0;
     int32 LastComboSkillIndex = 0;
+
+    FTimerHandle WindupHandle;
 
     // 소유자(캐릭터)의 StatComponent에 대한 참조 (BeginPlay 시점에 찾아옴)
     /*UPROPERTY()
