@@ -41,6 +41,9 @@ AEPPlayerCharacter::AEPPlayerCharacter()
 
     // 플레이어 크기 설정
     SetActorScale3D(FVector(0.5f, 0.5f, 0.5f));
+
+
+    TeamID = 0;
 }
 
 void AEPPlayerCharacter::BeginPlay()

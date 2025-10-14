@@ -29,11 +29,11 @@ AEPEnemyAIController::AEPEnemyAIController()
     SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
     SightConfig->SightRadius = 0.0f;
     SightConfig->LoseSightRadius = 0.0f;
-    SightConfig->PeripheralVisionAngleDegrees = 90.0f; // 시야각
+    SightConfig->PeripheralVisionAngleDegrees = 180.0f; // 시야각
     SightConfig->SetMaxAge(2.0f);
     SightConfig->DetectionByAffiliation.bDetectEnemies = true; // 적대 관계
-    SightConfig->DetectionByAffiliation.bDetectNeutrals = true; // 중립 관계
-    SightConfig->DetectionByAffiliation.bDetectFriendlies = true; // 팀 관계
+    SightConfig->DetectionByAffiliation.bDetectNeutrals = false; // 중립 관계
+    SightConfig->DetectionByAffiliation.bDetectFriendlies = false; // 팀 관계
 
     GetPerceptionComponent()->ConfigureSense(*SightConfig);
     GetPerceptionComponent()->SetDominantSense(SightConfig->GetSenseImplementation());
@@ -126,16 +126,17 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
     // 감지된 액터가 플레이어 캐릭터 확인
     if (Actor)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Target actor : %s"), *Actor->GetName());
         if (Stimulus.WasSuccessfullySensed())
         {
             // 인지 성공
             BlackboardComp->SetValueAsObject(TargetKey, Actor);
+            UE_LOG(LogTemp, Warning, TEXT("Target actor -> Blackboard set update : %s"), *Actor->GetName());
         }
         else
         {
             // 인지 실패
             BlackboardComp->ClearValue(TargetKey);
+            UE_LOG(LogTemp, Warning, TEXT("Target actor -> Blackboard clear update : %s"), *Actor->GetName());
         }
     }
 }
