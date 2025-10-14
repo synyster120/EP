@@ -12,7 +12,7 @@ UEPBTTask_PlayMontageFromBB::UEPBTTask_PlayMontageFromBB()
 {
 	bNotifyTick = false;
 	bNotifyTaskFinished = true;
-	NodeName = TEXT("EP PlayMontage From BlackBoard");
+	NodeName = TEXT("PlayMontage From BlackBoard");
 }
 
 EBTNodeResult::Type UEPBTTask_PlayMontageFromBB::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

@@ -297,6 +297,9 @@ void UEPSkillComponent::OnCooldownFinished(FName SkillID)
         // 타이머를 완전히 정리하고 핸들 무효화
         GetWorld()->GetTimerManager().ClearTimer(SkillData.CooldownTimerHandle);
         UE_LOG(LogTemp, Log, TEXT("Skill [%s] cooldown finished."), *SkillID.ToString());
+
+        // task 바인딩
+        OnSkillCooldownEnded.Broadcast(*IndexPtr, GetOwner());
     }
 }
 

@@ -12,6 +12,9 @@ struct FEPSkillTargetData;
 class EPSkillTypes;
 struct FEPSkillRangeData;
 
+// 델리게이트 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSkillCooldownEnded, int32, SkillIndex, UObject*, Instigator);
+
 USTRUCT(BlueprintType)
 struct FSkillRuntimeData
 {
@@ -80,6 +83,9 @@ private:
     void ResetCombo();
 
     bool PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex, FEPSkillTargetData& OutTargetData);
+
+public:
+    FOnSkillCooldownEnded OnSkillCooldownEnded;
 
 private:
     // 소유 스킬 객체 / 스킬 쿨 타이머 배열 (데이터의 원본)
