@@ -4,6 +4,7 @@
 #include "Data/EPCharacterAnimationData.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "Characters/EPCombatCharacterBase.h"
 
 
 AEPCharacterBase::AEPCharacterBase()
@@ -36,7 +37,22 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
                 if (LoadedMontage)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("anim helper in playing animmontage"));
-                    PlayAnimMontage(LoadedMontage);
+                    AEPCombatCharacterBase* CombatCharacter = Cast<AEPCombatCharacterBase>(this);
+                    if (CombatCharacter)
+                    {
+                        if (CurrentState == EEPCharacterState::Attacking)
+                        {
+                            CombatCharacter->CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Attack);
+                        }
+                        else
+                        {
+                            CombatCharacter->CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::None);
+                        }
+                    }
+                    else
+                    {
+                        PlayAnimMontage(LoadedMontage);
+                    }
                 }
                 else
                 {

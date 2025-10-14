@@ -148,3 +148,16 @@ float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dam
     return ActualDamage;
 }
 
+void AEPPlayerCharacter::OnDied()
+{
+    // Die 처리 함수 호출
+    HandleDeath_Implementation();
+}
+
+void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType)
+{
+    if (!CurrentMontage) return;
+
+    this->PlayAnimMontage(CurrentMontage);
+}
+

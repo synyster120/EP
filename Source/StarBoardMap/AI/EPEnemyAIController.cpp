@@ -15,6 +15,9 @@
 const FName AEPEnemyAIController::TargetKey(TEXT("Target"));
 const FName AEPEnemyAIController::SelfActorKey(TEXT("SelfActor"));
 const FName AEPEnemyAIController::CurrentStateKey(TEXT("CurrentState"));
+const FName AEPEnemyAIController::IsDeadKey(TEXT("IsDead"));
+const FName AEPEnemyAIController::IsHitKey(TEXT("IsHit"));
+const FName AEPEnemyAIController::MontageToPlayKey(TEXT("MontageToPlay"));
 
 AEPEnemyAIController::AEPEnemyAIController()
 {
@@ -134,5 +137,42 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
             // 인지 실패
             BlackboardComp->ClearValue(TargetKey);
         }
+    }
+}
+
+// Blackboard 에 Die 상태 업데이트
+void AEPEnemyAIController::NotifyDeath()
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    // 인지 컴포넌트 비활성화, target 리셋
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsBool(IsDeadKey, true);
+    }
+}
+
+// Blackboard 에 Hit 상태 업데이트
+void AEPEnemyAIController::NotifyHit()
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsBool(IsHitKey, true);
+    }
+}
+
+// Blackboard 에 Play 할 Montage 업데이트
+void AEPEnemyAIController::PlayMontageUpdate(UAnimMontage* CurrentMontage)
+{
+    if (!CurrentMontage) return;
+
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsObject(MontageToPlayKey, CurrentMontage);
     }
 }
