@@ -30,7 +30,7 @@ void AChessGameState::BeginPlay()
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     FRotator SpawnRotation = FRotator::ZeroRotator;
 
-    FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z);
+    FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z + 1.f);
     for (int i = 0;i < 10;i++) {
         for (int j = 0;j < 10;j++) {
             GridVector[i][j] = FVector(TempVector.X + (GridSize * i), TempVector.Y + (GridSize * j), TempVector.Z);

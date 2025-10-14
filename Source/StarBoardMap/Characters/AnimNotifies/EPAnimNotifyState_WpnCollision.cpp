@@ -83,16 +83,17 @@ void UEPAnimNotifyState_WpnCollision::DoAttackTrace(USkeletalMeshComponent* Mesh
             Params
         );
 
+        AActor* OwnerActor = MeshComp->GetOwner();
         if (bHit)
         {
             for (auto& Hit : HitResults)
             {
                 AActor* Enemy = Hit.GetActor();
-                if (Enemy && !HitEnemies.Contains(Enemy))
+                if (Enemy->ActorHasTag(FName("Enemy")) && !HitEnemies.Contains(Enemy))
                 {
                     HitEnemies.Add(Enemy);
                     UE_LOG(LogTemp, Warning, TEXT("Attack %d Damage %f Hit: %s"), AttackPhase, Damage, *Enemy->GetName());
-                    //UGameplayStatics::ApplyDamage(Enemy, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, nullptr);
+                    UGameplayStatics::ApplyDamage(Enemy, Damage, OwnerActor->GetInstigatorController(), OwnerActor, UDamageType::StaticClass());
                 }
             }
         }

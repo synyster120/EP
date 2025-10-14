@@ -4,6 +4,7 @@
 #include "Chess/CUnit.h"
 #include "UObject/ConstructorHelpers.h"
 #include "AI/ChessUnitController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ACUnit::ACUnit()

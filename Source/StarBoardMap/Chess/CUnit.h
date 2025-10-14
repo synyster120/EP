@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Data/Chess/ChessUnitData.h"
+#include "Characters/EPEnemyCharacter.h"
 #include "CUnit.generated.h"
 
 class AChessUnitController;
 class UEPSkillComponent;
 
 UCLASS()
-class STARBOARDMAP_API ACUnit : public APawn
+class STARBOARDMAP_API ACUnit : public AEPEnemyCharacter
 {
 	GENERATED_BODY()
 
@@ -25,8 +26,6 @@ protected:
 
 	UPROPERTY()	TSubclassOf<AChessUnitController> ControllerClass;
 	UPROPERTY()	UChessUnitData* UnitData;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UEPSkillComponent> SkillComponent;
 
 protected:
 	FName Name;

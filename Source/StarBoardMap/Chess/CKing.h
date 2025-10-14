@@ -20,9 +20,6 @@ class STARBOARDMAP_API ACKing : public ACUnit
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UEPStatComponent> StatComponent;
 	
 public:
 	virtual void Attack() override;

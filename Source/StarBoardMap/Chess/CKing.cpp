@@ -8,7 +8,6 @@
 
 ACKing::ACKing()
 {
-    StatComponent = CreateDefaultSubobject<UEPHealthBarStatComponent>(TEXT("StatComponent"));
 }
 
 void ACKing::BeginPlay()
