@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Skills/Targeting/EPPlayerTargeting_Mouse.h"
@@ -10,7 +10,7 @@ bool UEPPlayerTargeting_Mouse::FindTarget(ACharacter* Caster, const FEPSkillPhas
     APlayerController* PlayerController = Cast<APlayerController>(Caster->GetController());
     if (!PlayerController) return false;
 
-    // ½ºÅ³ ´Ü°è µ¥ÀÌÅÍ¿¡¼­ Å¸°Ù Å¸ÀÔÀ» Á÷Á¢ »ç¿ëÇÕ´Ï´Ù.
+    // ìŠ¤í‚¬ ë‹¨ê³„ ë°ì´í„°ì—ì„œ íƒ€ê²Ÿ íƒ€ì…ì„ ì§ì ‘ ì‚¬ìš©í•©ë‹ˆë‹¤.
     const EEPTargetType TargetingType = PhaseData.TargetType;
     OutTargetData.TargetType = TargetingType;
 
@@ -39,8 +39,8 @@ bool UEPPlayerTargeting_Mouse::FindTarget(ACharacter* Caster, const FEPSkillPhas
         break;
     }
     default:
-        return false; // À¯È¿ÇÏÁö ¾ÊÀº Å¸°Ù Å¸ÀÔ
+        return false; // ìœ íš¨í•˜ì§€ ì•Šì€ íƒ€ê²Ÿ íƒ€ì…
     }
 
-    return true; // Å¸°Ù Å½»ö ¼º°ø
+    return true; // íƒ€ê²Ÿ íƒìƒ‰ ì„±ê³µ
 }

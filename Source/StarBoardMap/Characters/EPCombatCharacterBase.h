@@ -58,8 +58,8 @@ public:
     FORCEINLINE TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
     FORCEINLINE UEPStatComponent* GetStatComponent() const { return StatComponent; }
 
-    // 이 캐릭터가 사용할 타겟팅 전략 클래스 (블루프rint에서 지정)
-    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    // 이 캐릭터가 사용할 타겟팅 전략 클래스 (Character 블루프린트에서 지정)
+    UPROPERTY(EditDefaultsOnly, Category = "Data")
     TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
 
 protected:

@@ -4,6 +4,7 @@
 #include "AI/Tasks/EPBTTask_Die.h"
 #include "AIController.h"
 #include "Core/Interfaces/EPCombatEventInterface.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UEPBTTask_Die::UEPBTTask_Die()
 {
@@ -16,13 +17,19 @@ EBTNodeResult::Type UEPBTTask_Die::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	AAIController* AIController = OwnerComp.GetAIOwner();
     AActor* OwnerActor = AIController ? AIController->GetPawn() : nullptr;
 	if (!OwnerActor) return EBTNodeResult::Failed;
+    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
-    if (OwnerActor->Implements<UEPCombatEventInterface>()) // interface 확인
+    if (BlackboardComp)
     {
-        // 죽음 함수 호출
-        IEPCombatEventInterface::Execute_HandleDeath(OwnerActor);
+        if (OwnerActor->Implements<UEPCombatEventInterface>()) // interface 확인
+        {
+            // 죽음 함수 호출
+            IEPCombatEventInterface::Execute_HandleDeath(OwnerActor);
+            
+            BlackboardComp->SetValueAsBool(HasProcessedDeathKey.SelectedKeyName, true);
 
-        return EBTNodeResult::Succeeded;
+            return EBTNodeResult::Succeeded;
+        }
     }
 
     return EBTNodeResult::Failed;

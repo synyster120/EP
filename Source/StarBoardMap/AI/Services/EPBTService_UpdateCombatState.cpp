@@ -32,8 +32,6 @@ void UEPBTService_UpdateCombatState::TickNode(UBehaviorTreeComponent& OwnerComp,
 {
     Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-
-
     AAIController* AIController = OwnerComp.GetAIOwner();
     UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
     AEPCombatCharacterBase* ControlledCharacter = Cast<AEPCombatCharacterBase>(AIController->GetPawn());
@@ -46,16 +44,6 @@ void UEPBTService_UpdateCombatState::TickNode(UBehaviorTreeComponent& OwnerComp,
     // 블랙보드에서 타겟 플레이어 정보를 가져옴
     UObject* TargetObject = BlackboardComp->GetValueAsObject(TargetKey);
     AActor* TargetPlayer = Cast<AActor>(TargetObject);
-
-
-    auto* CM = ControlledCharacter->GetCharacterMovement();
-    //UE_LOG(LogTemp, Warning, TEXT("tick ok --------------- Mode=%d Speed=%.1f"), // CanMove=%d
-    //    (int32)CM->MovementMode, CM->MaxWalkSpeed); //IsMovementEnabled()
-    auto* PFC = AIController->GetPathFollowingComponent();
-    UE_LOG(LogTemp, Warning, TEXT("PathFollowingComponent valid = %d, NavSys = %d"),
-        PFC != nullptr,
-        FNavigationSystem::GetCurrent<UNavigationSystemV1>(AIController->GetWorld()) != nullptr);
-    UE_LOG(LogTemp, Warning, TEXT("BTComponent paused = %d"), OwnerComp.IsPaused());
 
     EEPAIState NewState;
 

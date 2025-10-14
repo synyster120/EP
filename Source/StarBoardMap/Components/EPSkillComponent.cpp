@@ -194,6 +194,10 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
             UE_LOG(LogTemp, Log, TEXT("Skill [%s] PerformTargeting is fail."), *SkillToActivate->GetSkillID().ToString());
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("Skill [%s] object is null ptr."), *GetName());
+    }
 
     // 콤보 쿨타임 설정 및 스킬 쿨타임 설정
     StartComboWindow(SkillIndex, LastComboSkillIndex);

@@ -14,6 +14,10 @@ class STARBOARDMAP_API UEPBTTask_Die : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
+public: 
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector HasProcessedDeathKey;
+
 protected:
 	UEPBTTask_Die();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;

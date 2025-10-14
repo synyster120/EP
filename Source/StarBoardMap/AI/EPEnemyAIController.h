@@ -44,10 +44,10 @@ public:
 	AEPEnemyAIController();
 
     // Blackboard 에 Die 상태 업데이트
-    void NotifyDeath();
+    void NotifyDeathUpdate();
 
     // Blackboard 에 Hit 상태 업데이트
-    void NotifyHit();
+    void NotifyHitUpdate();
 
     // Blackboard 에 Play 할 Montage 업데이트
     void PlayMontageUpdate(UAnimMontage* CurrentMontage);
@@ -64,7 +64,7 @@ protected:
     void UpdatePerception(AEPEnemyCharacter* MyEnemyCharacter);
 
     // 블랙보드 업데이트
-    void InitializeBlackboard(AEPEnemyCharacter* MyEnemyCharacter);
+    void InitializeBlackboardUpdate(AEPEnemyCharacter* MyEnemyCharacter);
     
 
 private:

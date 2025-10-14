@@ -16,10 +16,7 @@ EBTNodeResult::Type UEPBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	AEPEnemyCharacter* OwnerEnemy = AIController ? Cast<AEPEnemyCharacter>(AIController->GetPawn()) : nullptr;
 	if (!OwnerEnemy) return EBTNodeResult::Failed;
 
-<<<<<<< Updated upstream
 	OwnerEnemy->BaseAttack();
-=======
->>>>>>> Stashed changes
 
 	return EBTNodeResult::Succeeded;
 }

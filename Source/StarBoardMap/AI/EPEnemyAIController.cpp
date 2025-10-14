@@ -71,7 +71,7 @@ void AEPEnemyAIController::OnCharacterReady()
     {
         // 지각 업데이트 및 블랙보드 초기화
         UpdatePerception(MyCharacter);
-        InitializeBlackboard(MyCharacter);
+        InitializeBlackboardUpdate(MyCharacter);
 
         // 비헤이비어 트리 실행
         RunBehaviorTree(BehaviorTreeAsset);
@@ -104,7 +104,7 @@ void AEPEnemyAIController::UpdatePerception(AEPEnemyCharacter* MyEnemyCharacter)
 }
 
 // 블랙보드 초기화
-void AEPEnemyAIController::InitializeBlackboard(AEPEnemyCharacter* MyEnemyCharacter)
+void AEPEnemyAIController::InitializeBlackboardUpdate(AEPEnemyCharacter* MyEnemyCharacter)
 {
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 
@@ -141,20 +141,22 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 }
 
 // Blackboard 에 Die 상태 업데이트
-void AEPEnemyAIController::NotifyDeath()
+void AEPEnemyAIController::NotifyDeathUpdate()
 {
+    UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- ok"));
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 
     // 인지 컴포넌트 비활성화, target 리셋
 
     if (BlackboardComp)
     {
+        UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- Success"));
         BlackboardComp->SetValueAsBool(IsDeadKey, true);
     }
 }
 
 // Blackboard 에 Hit 상태 업데이트
-void AEPEnemyAIController::NotifyHit()
+void AEPEnemyAIController::NotifyHitUpdate()
 {
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 
