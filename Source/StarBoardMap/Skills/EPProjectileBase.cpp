@@ -9,6 +9,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Components/StaticMeshComponent.h"
 #include "Data/EPObjectPoolTypes.h"
+#include "GenericTeamAgentInterface.h" 
 
 AEPProjectileBase::AEPProjectileBase()
 {
@@ -248,6 +249,7 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
         return;
     }
 
+
     UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> takedamage pless"), *SweepResult.GetActor()->GetName());
 
     // OnExpire가 호출되기 전에 타이머를 명시적으로 취소
@@ -257,8 +259,28 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
     // PhaseData를 참조하여 데미지와 충돌 이펙트를 가져와 사용합니다.
     if (bIsValid && OtherActor != GetOwner())
     {
-        // 데미지 전달 로직
-        UGameplayStatics::ApplyDamage(OtherActor, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, nullptr);
+        // 팀 구별
+        FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
+        if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(GetOwner()))
+        {
+            CasterTeamId = TeamAgent->GetGenericTeamId();
+        }
+
+        // perception actor 가 같은 팀인지 확인
+        if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
+        {
+            IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(OtherActor);
+            // 대상이 다른 팀이라면
+            if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() != CasterTeamId)
+            {
+                // 데미지 전달 로직
+                UGameplayStatics::ApplyDamage(OtherActor, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, nullptr);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> team is true, applydamage fail "), *SweepResult.GetActor()->GetName());
+            }
+        }
         // 충돌 이펙트 재생 로직
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PhaseData.VFX.Get(), GetActorLocation());
     }

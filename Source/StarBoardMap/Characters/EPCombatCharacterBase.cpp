@@ -97,6 +97,8 @@ float AEPCombatCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const&
 {
     Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+    UE_LOG(LogTemp, Warning, TEXT("AEPCombatCharacterBase --> TakeDamage is [%s]"), *GetName());
+
     // FDamageInfo 구조체를 생성하여 모든 데미지 정보 채움
     FEPDamageInfo DamageInfo;
     DamageInfo.BaseDamage = DamageAmount;

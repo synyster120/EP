@@ -55,6 +55,8 @@ public:
 
     void NotifyIsWindupUpdate(); // 블랙보드에 IsWindup 값 true or false 로 업데이트
 
+    virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+
 protected:
     virtual void OnPossess(APawn* InPawn) override;
     virtual void BeginPlay() override;
