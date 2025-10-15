@@ -8,12 +8,13 @@
 #include "Characters/EPCombatCharacterBase.h"
 #include "Components/EPSkillComponent.h"
 
+#include "Characters/EPCombatCharacterBase.h" // TeamID를 가져오기 위해
+#include "GenericTeamAgentInterface.h"       // IGenericTeamAgentInterface를 사용하기 위해
+#include "Kismet/KismetSystemLibrary.h"      // SphereOverlapActors를 사용하기 위해
+
 
 void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
-	// 부모의 Activate를 호출하여 공통 로직(쿨타임 시작 등)을 처리할 수 있습니다.
-	// Super::Activate(Caster, TargetData);
-
 	// 시전자가 유효한지, 스킬 데이터가 할당되었는지 확인
 	AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
 	if (!Character || !SkillDataAsset) return;
@@ -70,6 +71,48 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 		EnemyAIController->NotifyIsWindupUpdate();
 	}
 
+	// ------------ 팀 식별 로직 시작 ------------
+	// 피해를 무시할 액터들을 담을 배열 생성
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(Caster); // 시전자 자신은 항상 무시 목록에 포함
+
+	// 시전자의 팀 ID를 가져옴
+	FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
+	if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(Caster))
+	{
+		CasterTeamId = TeamAgent->GetGenericTeamId();
+	}
+
+	// 폭발 범위 내의 모든 캐릭터를 검색
+	TArray<AActor*> OverlappedActors;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn)); // Pawn 타입만 검색
+
+	UKismetSystemLibrary::SphereOverlapActors(
+		Caster->GetWorld(),
+		ExplosionLocation,
+		DamageRadius,
+		ObjectTypes,
+		ACharacter::StaticClass(),
+		TArray<AActor*>(),
+		OverlappedActors
+	);
+
+	// 찾은 액터들을 순회하며 같은 팀인지 확인
+	if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
+	{
+		for (AActor* OverlappedActor : OverlappedActors)
+		{
+			IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(OverlappedActor);
+			// 대상이 같은 팀이라면, 무시 목록에 추가합니다.
+			if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() == CasterTeamId)
+			{
+				ActorsToIgnore.Add(OverlappedActor);
+			}
+		}
+	}
+	// -----------------------------------------------
+
 	// 해당 위치에 광역 피해(Radial Damage)를 입힘
 	UGameplayStatics::ApplyRadialDamage(
 		Caster->GetWorld(),
@@ -77,7 +120,7 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 		ExplosionLocation,
 		DamageRadius,
 		UDamageType::StaticClass(),
-		TArray<AActor*>(), // 피해를 무시할 액터 목록 (필요하다면)
+		ActorsToIgnore, // 피해를 무시할 액터 목록
 		Caster, // 피해를 입힌 가해자
 		Caster->GetController() // 가해자의 컨트롤러
 	);
