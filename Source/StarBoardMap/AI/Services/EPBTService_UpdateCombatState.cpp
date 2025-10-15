@@ -19,7 +19,7 @@ const FName UEPBTService_UpdateCombatState::CurrentStateKey(TEXT("CurrentState")
 
 UEPBTService_UpdateCombatState::UEPBTService_UpdateCombatState()
 {
-    NodeName = TEXT("EP Update Combat State");
+    NodeName = TEXT("Update Combat State");
     bNotifyTick = true;
     bCallTickOnSearchStart = true;
     Interval = 1.5f; // 0.5초마다 상황 판단

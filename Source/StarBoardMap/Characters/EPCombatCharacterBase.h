@@ -7,6 +7,7 @@
 #include "Core/Interfaces/EPCombatQueryInterface.h"
 #include "Core/Interfaces/EPCombatEventInterface.h"
 #include "Data/EPCombatTypes.h"
+#include "GenericTeamAgentInterface.h" // team interface
 #include "EPCombatCharacterBase.generated.h"
 
 
@@ -21,7 +22,7 @@ class UEPTargetingStrategy;
  *		IEPCombatInterface 상속받은 전투하는 CharacterBase
  */
 UCLASS(Abstract)
-class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface
+class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -42,6 +43,10 @@ public:
     // ====== ICombat Query Interface Implementation ======
     virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
 
+    // interface
+    virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
+
+
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
     
     // Die 바인딩 함수
@@ -61,6 +66,9 @@ public:
     // 이 캐릭터가 사용할 타겟팅 전략 클래스 (Character 블루프린트에서 지정)
     UPROPERTY(EditDefaultsOnly, Category = "Data")
     TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
+    FGenericTeamId TeamID;
 
 protected:
     virtual void BeginPlay() override;

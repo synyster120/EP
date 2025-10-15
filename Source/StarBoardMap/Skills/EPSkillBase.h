@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Core/Interfaces/EPSkillCastInterface.h" // skill is Movement lock
 #include "EPSkillBase.generated.h"
 
 class UEPSkillDataAsset;
@@ -14,11 +15,16 @@ struct FEPSkillPhaseData;
  *		Skill 클래스의 베이스가 되는 클래스
  */
 UCLASS()
-class STARBOARDMAP_API UEPSkillBase : public UObject
+class STARBOARDMAP_API UEPSkillBase : public UObject, public IEPSkillCastInterface
 {
 	GENERATED_BODY()
 	
 public:
+	// interface (IEPSkillCastInterface)
+	virtual bool RequiresMovementLock(int32 CurrentPhaseDataIndex) const override;
+	virtual float GetWindupSeconds(int32 CurrentPhaseDataIndex) const override;
+
+
 	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
 
 	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex);

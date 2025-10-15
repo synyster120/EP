@@ -9,7 +9,7 @@
 UEPBTTask_Die::UEPBTTask_Die()
 {
 	bNotifyTick = false;
-    NodeName = TEXT("EP Die");
+    NodeName = TEXT("Die");
 }
 
 EBTNodeResult::Type UEPBTTask_Die::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

@@ -38,6 +38,7 @@ private:
     static const FName IsDeadKey;
     static const FName IsHitKey;
     static const FName MontageToPlayKey;
+    static const FName IsWindupKey;
 
 
 public:
@@ -51,6 +52,10 @@ public:
 
     // Blackboard 에 Play 할 Montage 업데이트
     void PlayMontageUpdate(UAnimMontage* CurrentMontage);
+
+    void NotifyIsWindupUpdate(); // 블랙보드에 IsWindup 값 true or false 로 업데이트
+
+    virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
 protected:
     virtual void OnPossess(APawn* InPawn) override;
@@ -72,6 +77,8 @@ private:
     UFUNCTION()
     void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
+    // 대기/연출 위한 Blackboard의 bool 값
+    bool IsWindup = false;
 
 
 };

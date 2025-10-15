@@ -164,6 +164,14 @@ struct FEPSkillPhaseData
     GENERATED_BODY()
 
 public:
+    // 공격 시 Movement Lock 여부
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bRequiresMovementLock = false;
+
+    // 공격 시 Movement Lock 대기 시간
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "bRequiresMovementLock", EditConditionHides, ClampMin = "0.0"))
+    float WindupSeconds = 0.f;
+
     // 데미지
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     float Damage; 
@@ -175,10 +183,6 @@ public:
     // 타겟팅 방식
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Target")
     EEPTargetType TargetType;
-
-    // 애니메이션
-    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-    //TSoftObjectPtr<UAnimMontage> Animation;
 
     // 어떤 애니메이션을 쓸지"에 대한 태그 (CharacterAnimation과 연결) -> CharacterAnimation 에서 검색용
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")

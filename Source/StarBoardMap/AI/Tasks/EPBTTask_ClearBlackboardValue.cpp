@@ -7,6 +7,7 @@
 UEPBTTask_ClearBlackboardValue::UEPBTTask_ClearBlackboardValue()
 {
 	bNotifyTick = false;
+	NodeName = TEXT("Clear Blackboard Value");
 }
 
 EBTNodeResult::Type UEPBTTask_ClearBlackboardValue::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
