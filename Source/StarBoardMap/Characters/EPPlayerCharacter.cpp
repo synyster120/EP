@@ -129,8 +129,10 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
-    SkillComponent->ActivateSkill(0);
-    UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
+    if (SkillComponent)
+    {
+        SkillComponent->ActivateSkill(0);
+    }
 }
 
 float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

@@ -44,6 +44,12 @@ void AEPCombatCharacterBase::PostInitializeComponents()
     InitializeCharacterData();
 }
 
+void AEPCombatCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+
+}
+
 void AEPCombatCharacterBase::InitializeCharacterData()
 {
     Super::InitializeCharacterData();
