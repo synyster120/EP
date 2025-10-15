@@ -7,7 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
-#include "Data/EPWeaponTypes.h"
+//#include "Data/EPWeaponTypes.h"
 
 AChessGameMode::AChessGameMode()
 {
@@ -28,10 +28,10 @@ void AChessGameMode::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
 
 
-	//weapon temp
-	UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
-	FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
-	GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+	////weapon temp
+	//UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
+	//FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
+	//GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
 
 	FTimerHandle TempHandle;
 	GetWorld()->GetTimerManager().SetTimer(
