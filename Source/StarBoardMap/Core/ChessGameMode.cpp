@@ -60,6 +60,8 @@ void AChessGameMode::StartGame()
 
 void AChessGameMode::ClearGame()
 {
+	// 타이머 제거
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 void AChessGameMode::OnTurn()

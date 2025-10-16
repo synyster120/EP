@@ -25,6 +25,6 @@ public:
     UPROPERTY(meta = (BindWidget))
     UImage* Image3;
 
-    /*UFUNCTION(BlueprintNativeEvent, Category = "HUD")
-    void UpdateHealthFloat(float NewHealth, float MaxHealth);*/
+    UFUNCTION(BlueprintNativeEvent, Category = "HUD")
+    void UpdateHealthFloat(float NewHealth, float MaxHealth);
 };

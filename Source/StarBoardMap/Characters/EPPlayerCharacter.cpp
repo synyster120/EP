@@ -204,7 +204,7 @@ void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)
     if (EPHUDWidgetInstance)
     {
         // 여기서 최종적으로 위젯의 함수를 호출합니다.
-        //EPHUDWidgetInstance->UpdateHealthFloat(NewHealth, MaxHealth);
+        EPHUDWidgetInstance->UpdateHealthFloat(NewHealth, MaxHealth);
     }
 }
 

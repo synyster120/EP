@@ -5,6 +5,7 @@
 #include "Components/EPStatComponent.h"
 #include "Components/EPHealthBarStatComponent.h"
 #include "Data/EPCharacterTypes.h"
+#include "Core/ChessGameMode.h"
 
 ACKing::ACKing()
 {
@@ -22,4 +23,21 @@ void ACKing::BeginPlay()
 
 void ACKing::Attack()
 {
+}
+
+void ACKing::OnDied()
+{
+    Super::OnDied();
+
+    if (StatComponent)
+    {
+        StatComponent->OnHealthChanged.Broadcast();
+    }
+
+    AChessGameMode* GameMode = Cast<AChessGameMode>(GetWorld()->GetAuthGameMode());
+    if (GameMode)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("gamemode clear"));
+        GameMode->ClearGame();
+    }
 }

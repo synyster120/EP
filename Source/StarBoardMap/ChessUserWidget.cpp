@@ -10,9 +10,9 @@
 
 void UChessUserWidget::NativeConstruct()
 {
-	Image[0] = Image1;
+	/*Image[0] = Image1;
 	Image[1] = Image2;
-	Image[2] = Image3;
+	Image[2] = Image3;*/
 
     FString TargetActorName = TEXT("BP_CKing_C_0");
 
