@@ -76,7 +76,7 @@ void UEPHealthBarStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     }
 
     OnHitReact.Broadcast(ReactionType);
-    
+    OnHealthChanged.Broadcast();
 }
 
 bool UEPHealthBarStatComponent::IsDied() const

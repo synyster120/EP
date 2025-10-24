@@ -13,6 +13,11 @@
 #include "EnhancedInputComponent.h" 
 #include "EnhancedInputSubsystems.h"
 
+// weapon
+#include "Data/EPWeaponTypes.h"
+
+#include "UI/EPHUDWidget.h"
+
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -49,6 +54,35 @@ AEPPlayerCharacter::AEPPlayerCharacter()
 void AEPPlayerCharacter::BeginPlay()
 {
     Super::BeginPlay();
+
+    //weapon temp
+    UEPWeaponTypes* WeaponData = LoadObject<UEPWeaponTypes>(nullptr, TEXT("/Game/AssetDynamic/Data/Weapon/BP_WeaponTypes.BP_WeaponTypes"));
+    if (WeaponData)
+    {
+        FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
+        GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("weapon data is null -- spawn fail"));
+    }
+
+
+    // user widget
+    if (EPHUDWidgetClass)
+    {
+        EPHUDWidgetInstance = CreateWidget<UEPHUDWidget>(GetWorld(), EPHUDWidgetClass);
+        if (EPHUDWidgetInstance)
+        {
+            EPHUDWidgetInstance->AddToViewport();
+        }
+    }
+
+    if (StatComponent)
+    {
+        // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'합니다.
+        StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
+    }
 }
 
 void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -150,6 +184,7 @@ float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dam
         //UpdateQuestProgress();
     }
 
+
     return ActualDamage;
 }
 
@@ -164,5 +199,14 @@ void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCom
     if (!CurrentMontage) return;
 
     this->PlayAnimMontage(CurrentMontage);
+}
+
+void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)
+{
+    if (EPHUDWidgetInstance)
+    {
+        // 여기서 최종적으로 위젯의 함수를 호출합니다.
+        EPHUDWidgetInstance->UpdateHealthFloat(NewHealth, MaxHealth);
+    }
 }
 

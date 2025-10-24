@@ -23,4 +23,5 @@ protected:
 	
 public:
 	virtual void Attack() override;
+	virtual void OnDied() override;
 };

@@ -16,6 +16,8 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+
+class UEPHUDWidget;
 /**
  * 
  */
@@ -39,6 +41,9 @@ public:
 	virtual void OnDied() override;
 	virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) override;
 
+	UFUNCTION()
+	void HandleHealthChanged(float NewHealth, float MaxHealth);
+
 protected:
     // 입출력
 	/** MappingContext */
@@ -61,6 +66,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* BaseAttackAction;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<UEPHUDWidget> EPHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UEPHUDWidget> EPHUDWidgetInstance;
+
 protected:
     virtual void BeginPlay() override;
     //virtual void InitializeCharacterData() override;
@@ -78,5 +90,6 @@ protected:
 
 	/** Called for BaseAttacking input */
 	void BaseAttack(const FInputActionValue& Value);
+
 
 };
