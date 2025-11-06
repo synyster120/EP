@@ -52,8 +52,11 @@ public:
 	void SetMovingTurn(bool TurnState);
 	void SetOriginPoint(FIntPoint NewOriginPoint);
 	FIntPoint GetOriginPoint() const { return OriginPoint; }
+	bool IsOnBoard(FIntPoint XY);
 
 	virtual void Attack();
+	virtual FIntPoint FindMove();
+	virtual void Warning();
 
 	virtual void PossessedBy(AController* NewController) override;
 };

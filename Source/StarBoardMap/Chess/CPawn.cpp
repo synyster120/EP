@@ -13,4 +13,6 @@ void ACPawn::BeginPlay()
 
 void ACPawn::Attack()
 {
+    SetActorHiddenInGame(true);
+    SetActorEnableCollision(false);
 }

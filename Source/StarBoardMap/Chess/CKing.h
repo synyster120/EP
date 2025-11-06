@@ -24,4 +24,7 @@ protected:
 public:
 	virtual void Attack() override;
 	virtual void OnDied() override;
+	virtual void Warning() override;
+
+	virtual FIntPoint FindMove() override;
 };

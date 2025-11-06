@@ -27,4 +27,6 @@ protected:
 
 public:
 	void QueenWarningGridFunction(int32 Value, FIntPoint AddDirection);
+
+	virtual FIntPoint FindMove();
 };

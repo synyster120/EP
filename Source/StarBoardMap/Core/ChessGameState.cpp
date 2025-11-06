@@ -15,7 +15,6 @@ void AChessGameState::BeginPlay()
     TArray<AActor*> AllActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllActors);
 
-    // 이름 비교로 액터 찾기
     for (AActor* Actor : AllActors)
     {
         if (Actor && Actor->GetName() == TargetActorName)

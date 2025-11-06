@@ -12,10 +12,10 @@ EBTNodeResult::Type UBTTask_ChessUnitAttack::ExecuteTask(UBehaviorTreeComponent&
     AChessUnitController* Controller = Cast<AChessUnitController>(ControlledPawn->GetController());
 
     Controller->MoveEnd();
-    if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsAttack")) {
+    if (OwnerComp.GetBlackboardComponent()->GetValueAsBool(FName("IsAttack"))) {
         Controller->Attack();
     }
-    OwnerComp.GetBlackboardComponent()->SetValueAsInt("NowState", 0);
+    OwnerComp.GetBlackboardComponent()->SetValueAsInt(FName("NowState"), 0);
 
     return EBTNodeResult::Type();
 }
