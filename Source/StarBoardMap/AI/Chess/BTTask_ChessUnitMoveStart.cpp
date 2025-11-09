@@ -34,7 +34,7 @@ EBTNodeResult::Type UBTTask_ChessUnitMoveStart::ExecuteTask(UBehaviorTreeCompone
             Controller->Warning();
         }
     }
-    else if(HIHI < OwnerComp.GetBlackboardComponent()->GetValueAsInt(FName("AttackProbability"))) {
+    else if(!OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsBigJump") && HIHI < OwnerComp.GetBlackboardComponent()->GetValueAsInt(FName("AttackProbability"))) {
         OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsAttack", true);
         Controller->Warning();
     }

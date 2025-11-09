@@ -4,16 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Skills/EPSkillBase.h"
-#include "EPSkill_ChessExplosion.generated.h"
+#include "EPSkill_CKingPawn.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class STARBOARDMAP_API UEPSkill_ChessExplosion : public UEPSkillBase
+class STARBOARDMAP_API UEPSkill_CKingPawn : public UEPSkillBase
 {
 	GENERATED_BODY()
-
-public:
+	
 	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 };

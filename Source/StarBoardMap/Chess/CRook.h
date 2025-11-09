@@ -20,4 +20,5 @@ protected:
 
 public:
 	virtual void Attack() override;
+	virtual void Warning() override;
 };

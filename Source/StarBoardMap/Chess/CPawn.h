@@ -6,9 +6,10 @@
 #include "Chess/CUnit.h"
 #include "CPawn.generated.h"
 
-/**
- * 
- */
+class AChessUnitController;
+class UEPStatComponent;
+class UEPHealthBarStatComponent;
+
 UCLASS()
 class STARBOARDMAP_API ACPawn : public ACUnit
 {
@@ -20,4 +21,5 @@ protected:
 
 public:
 	virtual void Attack() override;
+	virtual void Warning() override;
 };

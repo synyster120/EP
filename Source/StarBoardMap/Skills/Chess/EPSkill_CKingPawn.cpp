@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Skills/EPSkill_ChessExplosion.h"
+#include "Skills/Chess/EPSkill_CKingPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/EPSkillDataAsset.h"
 #include "Characters/EPCombatCharacterBase.h"
@@ -9,9 +9,8 @@
 #include "Kismet/KismetSystemLibrary.h"  
 #include "AI/ChessUnitController.h"
 
-void UEPSkill_ChessExplosion::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_CKingPawn::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HIHI"));
 	// 시전자가 유효한지, 스킬 데이터가 할당되었는지 확인
 	AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
 	if (!Character || !SkillDataAsset) return;
@@ -49,9 +48,9 @@ void UEPSkill_ChessExplosion::Activate(ACharacter* Caster, const FEPSkillTargetD
 	UNiagaraSystem* Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
 	USoundBase* Sound = PhaseData->SFX.Get();
 
-	FIntPoint TempXY[8] = { 
-		FIntPoint(0,150), 
-		FIntPoint(0, -150), 
+	FIntPoint TempXY[8] = {
+		FIntPoint(0,150),
+		FIntPoint(0, -150),
 		FIntPoint(150, 150),
 		FIntPoint(150, 0),
 		FIntPoint(150,-150),
@@ -73,7 +72,7 @@ void UEPSkill_ChessExplosion::Activate(ACharacter* Caster, const FEPSkillTargetD
 		FIntPoint NewVec = Controller->GetXY();
 		NewVec.X += TempXY[i].X / 150;
 		NewVec.Y += TempXY[i].Y / 150;
-		if(Controller->IsOnBoard(NewVec)) Controller->SetGridWarning(NewVec, -1);
+		if (Controller->IsOnBoard(NewVec)) Controller->SetGridWarning(NewVec, -Controller->GetUnitType());
 	}
 
 	// ------------ 팀 식별 로직 시작 ------------
@@ -119,7 +118,7 @@ void UEPSkill_ChessExplosion::Activate(ACharacter* Caster, const FEPSkillTargetD
 				{
 					ActorsToIgnore.Add(OverlappedActor);
 				}
-				else if(!ActorsToIgnore.Contains(OverlappedActor))
+				else if (!ActorsToIgnore.Contains(OverlappedActor))
 				{
 					ActorsToIgnore.Add(OverlappedActor);
 					TargetActors.Add(OverlappedActor);
@@ -150,3 +149,4 @@ void UEPSkill_ChessExplosion::Activate(ACharacter* Caster, const FEPSkillTargetD
 		UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, ExplosionLocation);
 	}
 }
+

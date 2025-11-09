@@ -5,7 +5,6 @@
 #include "Components/EPStatComponent.h"
 #include "Components/EPHealthBarStatComponent.h"
 #include "Core/ChessGameMode.h"
-#include "Skills/EPSkill_ExplodeSelf.h"
 #include "Components/EPSkillComponent.h"
 
 ACKing::ACKing()

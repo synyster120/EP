@@ -45,6 +45,7 @@ public:
 	void SpawnPawn(FIntPoint SpawnPoint);
 	FIntPoint Attack();
 	FIntPoint GetXY() const { return Unit->GetXY(); }
+	int32 GetUnitType() const { return Unit->GetUnitType(); }
 	int32 GetGridState(FIntPoint XY);
 	FVector GetPlayerVector();
 	FVector GetGridVector(FIntPoint NewXY);
