@@ -38,6 +38,37 @@ void ACQueen::QueenWarningGridFunction(int32 Value, FIntPoint AddDirection)
     );
 }
 
+FIntPoint ACQueen::FindMove()
+{
+    FIntPoint TargetXY = Super::FindMove();
+    Direction = TargetXY - NowXY;
+    AChessUnitController* MyController = Cast<AChessUnitController>(GetController());
+
+    TargetXY = NowXY;
+    int32 MaxRange = FMath::RandRange(1, 9);
+    QueenMoveCounter = 0;
+
+    for (int32 i = 0;i < MaxRange; i++)
+    {
+        FIntPoint NewXY = TargetXY + Direction;
+
+        if (MyController->GetGridState(NewXY) == 0) {
+            TargetXY = NewXY;
+            MyController->SetGridWarning(NewXY, 2);
+            QueenMoveCounter += 1;
+        }
+        else break;
+    }
+    if (QueenMoveCounter > 1) {
+        QueenWarningGridFunction(QueenMoveCounter, Direction);
+    }
+    else {
+        SetXY(TargetXY);
+    }
+
+    return TargetXY;
+}
+
 void ACQueen::QueenWarningGridSet()
 {
     AChessUnitController* QueenController = Cast<AChessUnitController>(GetController());

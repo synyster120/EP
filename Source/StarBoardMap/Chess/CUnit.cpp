@@ -50,6 +50,12 @@ void ACUnit::SetOriginPoint(FIntPoint NewOriginPoint)
 	SetXY(NewOriginPoint);
 }
 
+bool ACUnit::IsOnBoard(FIntPoint XY)
+{
+	if (XY.X > 0 && XY.X < 9 && XY.Y > 0 && XY.Y < 9) return true;
+	return false;
+}
+
 // Called to bind functionality to input
 void ACUnit::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -78,5 +84,40 @@ TArray<FIntPoint> ACUnit::GetAvaliablePoint()
 }
 
 void ACUnit::Attack()
+{
+}
+
+FIntPoint ACUnit::FindMove()
+{
+	FIntPoint TargetXY = NowXY;
+	AChessUnitController* MyController = Cast<AChessUnitController>(GetController());
+
+	const int32 LastIndex = AvaliablePoint.Num() - 1;
+	for (int32 j = 0;j < 3;j++) {
+		for (int32 i = 0; i <= LastIndex; ++i)
+		{
+			int32 Index = FMath::RandRange(i, LastIndex);
+			if (i != Index)
+			{
+				AvaliablePoint.Swap(i, Index);
+			}
+		}
+	}
+
+	for (const FIntPoint& Offset : AvaliablePoint)
+	{
+		FIntPoint NewXY = NowXY + Offset;
+
+		if (MyController->GetGridState(NewXY) == 0)
+		{
+			TargetXY = NewXY;
+			break;
+		}
+	}
+
+	return TargetXY;
+}
+
+void ACUnit::Warning()
 {
 }

@@ -41,13 +41,18 @@ public:
 	FIntPoint MoveOut();
 	void MoveEnd();
 
-	FIntPoint FindKingMove(TArray<FIntPoint> AvaliablePoint);
-	FIntPoint FindQueenMove(FIntPoint Direction);
 	void QueenArrivePoint(FIntPoint Point);
-	FIntPoint FindUnitMove(TArray<FIntPoint> AvaliablePoint);
 	void SpawnPawn(FIntPoint SpawnPoint);
-	FIntPoint AttackPawn();
-	void Attack();
+	FIntPoint Attack();
+	FIntPoint GetXY() const { return Unit->GetXY(); }
+	int32 GetUnitType() const { return Unit->GetUnitType(); }
+	int32 GetGridState(FIntPoint XY);
+	FVector GetPlayerVector();
+	FVector GetGridVector(FIntPoint NewXY);
+	void SetGridWarning(FIntPoint XY, int32 Value);
+
+	void Warning() const { Unit->Warning(); }
+	bool IsOnBoard(FIntPoint XY) const { return Unit->IsOnBoard(XY); }
 
 	void DestroyUnit();
 };

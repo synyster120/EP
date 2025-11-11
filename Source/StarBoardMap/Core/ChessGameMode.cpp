@@ -48,8 +48,8 @@ void AChessGameMode::BeginPlay()
 					}
 				}
 			}),
-		0.5f,  // 딜레이 (초)
-		false  // 반복 여부 (false = 한 번만 실행)
+		0.5f,
+		false
 	);
 }
 
@@ -60,7 +60,6 @@ void AChessGameMode::StartGame()
 
 void AChessGameMode::ClearGame()
 {
-	// 타이머 제거
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
@@ -80,7 +79,7 @@ void AChessGameMode::OnTurn()
 				MovingPlace = Controller->MoveOut();
 			}
 			else if (Unit->GetUnitName() == FName("Pawn")) {
-				BeforeMovePoint = Controller->AttackPawn();
+				BeforeMovePoint = Controller->Attack();
 			}
 		}
 		else if (NowTurn % 10 == 6) {

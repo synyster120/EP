@@ -4,6 +4,7 @@
 #include "AI/Chess/BTTask_ChessUnitMoveStart.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "AI/ChessUnitController.h"
 
 EBTNodeResult::Type UBTTask_ChessUnitMoveStart::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
@@ -24,8 +25,20 @@ EBTNodeResult::Type UBTTask_ChessUnitMoveStart::ExecuteTask(UBehaviorTreeCompone
         Speed = OwnerComp.GetBlackboardComponent()->GetValueAsFloat("MovingSpeed");
     }
 
+    AChessUnitController* Controller = Cast<AChessUnitController>(ControlledPawn->GetController());
     OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsAttack", false);
-    //attack activate if needed
+    int32 HIHI = FMath::RandRange(0, 100);
+    if (OwnerComp.GetBlackboardComponent()->GetValueAsName("Name") == FName("King")) {
+        if (FMath::Abs(TargetVector.X - ControlledPawn->GetActorLocation().X) + FMath::Abs(TargetVector.Y - ControlledPawn->GetActorLocation().Y) < 15.f) {
+            OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsAttack", true);
+            Controller->Warning();
+        }
+    }
+    else if(!OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsBigJump") && HIHI < OwnerComp.GetBlackboardComponent()->GetValueAsInt(FName("AttackProbability"))) {
+        OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsAttack", true);
+        Controller->Warning();
+    }
+
     OwnerComp.GetBlackboardComponent()->SetValueAsVector("NowTargetPoint", TargetVector);
     OwnerComp.GetBlackboardComponent()->SetValueAsFloat("NowMovingSpeed", Speed);
     int32 NowState = OwnerComp.GetBlackboardComponent()->GetValueAsInt("NowState");

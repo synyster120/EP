@@ -10,6 +10,7 @@
 class UImage;
 class UProgressBar;
 class ACKing;
+class AEPPlayerCharacter;
 /**
  * 
  */
@@ -18,7 +19,7 @@ class STARBOARDMAP_API UChessUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
-public:/*
+public:
     UPROPERTY(meta = (BindWidget))
     UImage* Image1;
 
@@ -29,15 +30,17 @@ public:/*
     UImage* Image3;
 
     UPROPERTY()
-    UImage* Image[3];*/
+    UImage* Image[3];
 
     UPROPERTY(meta = (BindWidget))
     UProgressBar* ProgressBar;
 
     virtual void NativeConstruct() override;
 
+    AEPPlayerCharacter* Player;
     ACKing* King;
 
+    UFUNCTION() void OnPlayerHealthChange();
     UFUNCTION()
     void OnHealthChange();
 };

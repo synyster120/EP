@@ -6,9 +6,8 @@
 #include "Chess/CUnit.h"
 #include "CBishop.generated.h"
 
-/**
- * 
- */
+class AChessUnitController;
+
 UCLASS()
 class STARBOARDMAP_API ACBishop : public ACUnit
 {
@@ -20,4 +19,5 @@ protected:
 
 public:
 	virtual void Attack() override;
+	virtual void Warning() override;
 };
