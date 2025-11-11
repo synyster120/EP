@@ -33,14 +33,24 @@ void AChessGameMode::BeginPlay()
 	//FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
 	//GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
 
-	/*if (GameUIWidgetClass)
-	{
-		GameUIInstance = CreateWidget<UChessUserWidget>(GetWorld(), GameUIWidgetClass);
-		if (GameUIInstance)
-		{
-			GameUIInstance->AddToViewport();
-		}
-	}*/
+	FTimerHandle TempHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TempHandle,
+		FTimerDelegate::CreateLambda([this]()
+			{
+
+				if (GameUIWidgetClass)
+				{
+					GameUIInstance = CreateWidget<UChessUserWidget>(GetWorld(), GameUIWidgetClass);
+					if (GameUIInstance)
+					{
+						GameUIInstance->AddToViewport();
+					}
+				}
+			}),
+		0.5f,
+		false
+	);
 }
 
 void AChessGameMode::StartGame()

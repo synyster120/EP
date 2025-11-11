@@ -29,7 +29,7 @@ void UEPHealthBlockStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     //UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %d, AttackSpeed: %d, MovementSpeed: %d"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
     UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
 
-    // °øÅë ½ºÅÈ ÃÊ±âÈ­
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
     //InitializeCommonStats(BaseStatData);
 }
 
@@ -40,24 +40,24 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
 
     if (DamageInfo.BaseDamage <= 0) return;
 
-    // ±âº» µ¥¹ÌÁö¸¦ °¡Á®¿È
+    // ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     float FinalDamage = 1;
 
-    // Ä¡¸íÅ¸¿´´Ù¸é µ¥¹ÌÁö 2¹è
+    // Ä¡ï¿½ï¿½Å¸ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½
     if (DamageInfo.bIsCriticalHit)
     {
         FinalDamage *= 2;
     }
 
-    // Ä³¸¯ÅÍÀÇ ¹æ¾î·Â ½ºÅÈ(Defense)¸¸Å­ µ¥¹ÌÁö °¨¼Ò
+    // Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(Defense)ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     // FinalDamage -= DefenseStat;
 
-    // ÇöÀç Ã¼·Â¿¡¼­ ÃÖÁ¾ µ¥¹ÌÁö¸¦ Â÷°¨
+    // ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     CurrentHealthBlocks = (int)FMath::Clamp(CurrentHealthBlocks - FinalDamage, 0.f, MaxHealthBlocks);
 
-    // ÃÖÁ¾ µ¥¹ÌÁö¿¡ µû¶ó ÇÇ°Ý ¹ÝÀÀ Å¸ÀÔÀ» °áÁ¤
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     EEPHitReactionType ReactionType = EEPHitReactionType::Light;
-    if (FinalDamage > 50.0f) // ÀÌ ·ÎÁ÷Àº ÀÌÁ¦ StatComponent°¡ ´ã´ç
+    if (FinalDamage > 50.0f) // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ StatComponentï¿½ï¿½ ï¿½ï¿½ï¿½
     {
         ReactionType = EEPHitReactionType::Heavy;
     }
@@ -66,10 +66,10 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
         ReactionType = EEPHitReactionType::Light;
     }
 
-    // ÇÇ°Ý ÀÌÆåÆ®/»ç¿îµå´Â ¾îµð¼­? (¾Ö´Ô ³ëÆ¼ÆÄÀÌ?)
+    // ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®/ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½? (ï¿½Ö´ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½?)
     UE_LOG(LogTemp, Warning, TEXT("Player == Type: %d MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), ReactionType, MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
 
-    // Ã¼·ÂÀÌ 0 ÀÌÇÏÀÌ¸é Á×À½ µ¨¸®°ÔÀÌÆ®¸¦ ¹æ¼Û
+    // Ã¼ï¿½ï¿½ï¿½ï¿½ 0 ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½
     if (IsDied())
     {
         OnDied.Broadcast();
@@ -81,6 +81,7 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     {
         OnHealthChanged_Two.Broadcast((float)CurrentHealthBlocks, (float)MaxHealthBlocks);
     }
+    OnHealthChanged.Broadcast();
 }
 
 bool UEPHealthBlockStatComponent::IsDied() const
@@ -92,7 +93,7 @@ bool UEPHealthBlockStatComponent::IsDied() const
 void UEPHealthBlockStatComponent::CalculateAndApplyDamage(const FEPDamageInfo& DamageInfo)
 {
     //Super::CalculateAndApplyDamage(DamageInfo);
-    // ÀÌ ÄÄÆ÷³ÍÆ®´Â ¿ÀÁ÷ 'Ä­ ´ÜÀ§ Ã¼·Â °è»ê'ÀÌ¶ó´Â ÀÚ½ÅÀÇ Ã¥ÀÓ¿¡¸¸ ÁýÁßÇÕ´Ï´Ù.
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 'Ä­ ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½'ï¿½Ì¶ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ Ã¥ï¿½Ó¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
     const int32 DamageInBlocks = FMath::CeilToInt(DamageInfo.BaseDamage / 50.0f);
     CurrentHealthBlocks = FMath::Clamp(CurrentHealthBlocks - DamageInBlocks, 0, MaxHealthBlocks);
 
