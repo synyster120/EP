@@ -10,6 +10,7 @@
 
 class AChessUnitController;
 class UEPSkillComponent;
+class UCapsuleComponent;
 
 UCLASS()
 class STARBOARDMAP_API ACUnit : public AEPEnemyCharacter
@@ -36,6 +37,21 @@ protected:
 	TArray<FIntPoint> AvaliablePoint;
 	bool MovingTurn = false;
 
+	UPROPERTY()
+	UCapsuleComponent* CapsuleComp;
+
+	bool bIsCollisionHitEnable = true;
+	void CollisionHitEnable();
+
+	UFUNCTION()
+	void OnCapsuleOverlap(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
 public:	
 
 	// Called to bind functionality to input
@@ -59,4 +75,6 @@ public:
 	virtual void Warning();
 
 	virtual void PossessedBy(AController* NewController) override;
+	
+	
 };

@@ -29,7 +29,7 @@ void UBTTask_ChessUnitMove::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* N
 
 	if (Distance <= MovementDelta)
 	{
-		Character->SetActorLocation(TargetPoint); // 정확히 위치 고정
+		Character->SetActorLocation(TargetPoint);
 		Character->GetCharacterMovement()->StopMovementImmediately();
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsMoving", false);
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

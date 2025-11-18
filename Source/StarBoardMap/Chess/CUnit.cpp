@@ -5,6 +5,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "AI/ChessUnitController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACUnit::ACUnit()
@@ -21,10 +23,44 @@ ACUnit::ACUnit()
 void ACUnit::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CapsuleComp = Cast<UCapsuleComponent>(GetCapsuleComponent()->GetChildComponent(2)->GetChildComponent(0));
+
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay inin"));
+	if (CapsuleComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginPlay %s"), *CapsuleComp->GetName());
+		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ACKing::OnCapsuleOverlap);
+	}
 }
 void ACUnit::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+}
+
+void ACUnit::CollisionHitEnable()
+{
+	bIsCollisionHitEnable = true;
+}
+
+void ACUnit::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	{
+		ACharacter* OtherChar = Cast<ACharacter>(OtherActor);
+		FVector Dir = (OtherChar->GetActorLocation() - GetActorLocation());
+		Dir.Z = 0;
+		Dir.Normalize();
+
+		OtherChar->AddActorWorldOffset(Dir * 50.f, true);
+
+		if (bIsCollisionHitEnable) {
+			bIsCollisionHitEnable = false;
+			UGameplayStatics::ApplyDamage(OtherActor, 20.f, GetController(), this, UDamageType::StaticClass());
+			FTimerHandle HitTimer;
+			GetWorld()->GetTimerManager().SetTimer(HitTimer, this, &ACUnit::CollisionHitEnable, 1.0f, false);
+		}
+	}
 }
 
 FUnitData ACUnit::GetUnitData()
