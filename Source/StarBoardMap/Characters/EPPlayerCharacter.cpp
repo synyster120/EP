@@ -77,6 +77,11 @@ void AEPPlayerCharacter::BeginPlay()
             EPHUDWidgetInstance->AddToViewport();
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("user widget data is null -- spawn fail"));
+    }
+
 
     if (StatComponent)
     {

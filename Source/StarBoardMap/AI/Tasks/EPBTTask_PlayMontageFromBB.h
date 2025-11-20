@@ -15,8 +15,16 @@ class STARBOARDMAP_API UEPBTTask_PlayMontageFromBB : public UBTTask_BlackboardBa
 	GENERATED_BODY()
 	
 public:
+	// Loop 판단 값
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector IsLoopingKey;
+
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector MontageToPlayKey;
+
+	/** MontageToPlayKey와 마찬가지로, 이 몽타주가 성공적으로 끝나면 false로 설정할 Blackboard Bool Key입니다. */
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector KeyToClearOnEnd;
 
 private:
 	UPROPERTY()

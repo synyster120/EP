@@ -24,11 +24,13 @@ public:
 	FORCEINLINE UEPMovementLockComponent* GetMovementLockComponent() const { return MovementLockComponent; }
 
 	AEPCharacterBase();
-	void PlayAnimationByTag(FGameplayTag NewTag);
+	//* @param OnMontageEndedDelegate 몽타주 종료/중단 시 호출될 델리게이트
+	void PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageEnded& OnMontageEndedDelegate = FOnMontageEnded());
 
 	// 현재 상태 Getter/Setter
 	inline EEPCharacterState GetCurrentState() const { return CurrentState; }
 	inline void SetCurrentState(EEPCharacterState NewState) { CurrentState = NewState; };
+	FORCEINLINE TObjectPtr<UEPCharacterAnimationData> GetAnimDataAsset() { return AnimDataAsset; };
 
 protected:
 	virtual void BeginPlay() override;

@@ -17,7 +17,7 @@ AEPCharacterBase::AEPCharacterBase()
 }
 
 // 애니메이션 검색 후 Play 
-void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
+void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageEnded& OnMontageEndedDelegate)
 {
 	// 태그에 맞는 몽타주 검색 후 Play
     if (!AnimDataAsset) return;
@@ -34,15 +34,31 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
     {
         // 비동기 로드 로드 (헬퍼 사용)
         UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(*FoundMontagePtr,
-            [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+            [this, OnMontageEndedDelegate] (UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
             {
-                UE_LOG(LogTemp, Warning, TEXT("anim helper in"));
                 if (LoadedMontage)
                 {
-                    UE_LOG(LogTemp, Warning, TEXT("anim helper in playing animmontage"));
                     AEPCombatCharacterBase* CombatCharacter = Cast<AEPCombatCharacterBase>(this);
                     if (CombatCharacter)
                     {
+                        // ### 핵심 로직 ###
+                        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+                        if (AnimInstance)
+                        {
+                            // const를 non-const로 사용하기 위해 복사
+                            FOnMontageEnded NonConstDelegateCopy = OnMontageEndedDelegate;
+
+                            UE_LOG(LogTemp, Warning, TEXT("anim helper in playing animmontage"));
+
+                            // 몽타주 재생
+                            AnimInstance->Montage_Play(LoadedMontage);
+
+                            // "몽타주를 재생 후" 스킬로부터 넘겨받은 델리게이트 등록
+                            AnimInstance->Montage_SetEndDelegate(NonConstDelegateCopy, LoadedMontage);
+                        }
+                        // ### ###
+
+
                         if (CurrentState == EEPCharacterState::Attacking)
                         {
                             CombatCharacter->CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Attack);

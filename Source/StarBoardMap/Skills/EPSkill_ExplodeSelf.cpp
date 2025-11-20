@@ -8,9 +8,12 @@
 #include "Characters/EPCombatCharacterBase.h"
 #include "Components/EPSkillComponent.h"
 
-#include "Characters/EPCombatCharacterBase.h" // TeamID를 가져오기 위해
 #include "GenericTeamAgentInterface.h"       // IGenericTeamAgentInterface를 사용하기 위해
 #include "Kismet/KismetSystemLibrary.h"      // SphereOverlapActors를 사용하기 위해
+
+#include "Core/Helper/EPAsyncLoadHelper.h"
+#include "Components/EPMovementLockComponent.h"
+#include "Data/EPCharacterAnimationData.h"
 
 
 void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
@@ -24,20 +27,17 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 	const FEPSkillPhaseData* PhaseData = GetPhaseData(0);
 	if (!PhaseData) return;
 
-	// --- 자폭 로직 시작 ---
-
 	// Enemy일 경우, Blackboard 의 대기 상태 true 로 업데이트
 	if (AEPEnemyAIController* EnemyAIController = Cast<AEPEnemyAIController>(Caster->GetController()))
 	{
-		EnemyAIController->NotifyIsWindupUpdate();
+		//EnemyAIController->NotifyIsWindupUpdate();
 	}
 
-
 	// 폭발 위치 지정 (사용자 위치)
-	const FVector ExplosionLocation = Caster->GetActorLocation();
+	ExplosionLocation = Caster->GetActorLocation();
 
-	// 스킬 데이터의 피해량, 범위, 이펙트, 사운드 정보를 가져옴
-	const float Damage = PhaseData->Damage;
+	// 스킬 데이터의 피해량, 범위, 이펙트, 사운드 정보를 가져옴 ----
+	Damage = PhaseData->Damage;
 
 	if (PhaseData->TargetType != EEPTargetType::Self)
 	{
@@ -55,30 +55,100 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 	{
 		TempRadius = PhaseData->SkillRange.Dimensions.X; // Sphere의 X를 반지름으로 사용
 	}
-	const float DamageRadius = TempRadius;
+	DamageRadius = TempRadius;
 
-	UNiagaraSystem* Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
-	USoundBase* Sound = PhaseData->SFX.Get();
+	Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
+	Sound = PhaseData->SFX.Get();
+	// --------------------
+
+	// 움직임 제어 (Lock)
+	OwnerCaster = Cast<AEPCharacterBase>(Caster);
+	if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent()) 
+	{
+		// Lock 설정
+		Lock->Acquire(Locktext);
+	}
+
+	// 몽타주 태그로 TSoftObjectPtr 검색
+	TSoftObjectPtr<UAnimMontage>* FoundMontagePtr = OwnerCaster->GetAnimDataAsset()->SkillAnimationMontage.Find(PhaseData->AnimationTag);
+	if (!FoundMontagePtr) 
+	{
+		//FoundMontagePtr = OwnerCaster->GetAnimDataAsset()->InteractionMontages.Find(PhaseData->AnimationTag); // 이건 왜 하는 거야
+		CancelSkillActivation();
+		return;
+	}
+
+	// 몽타주 비동기 로드 및 재생 요청
+	UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(*FoundMontagePtr,
+		[this, CurrentComboIndex](UAnimMontage* LoadedMontage) // 'this'는 SkillBase
+		{
+			if (!LoadedMontage || !OwnerCaster)
+			{
+				CancelSkillActivation(); // 로드 실패 시 중단
+				return;
+			}
+
+			// [핵심] 몽타주 재생 로직 (Player/AI 공용)
+			UAnimInstance* AnimInstance = OwnerCaster->GetMesh()->GetAnimInstance();
+			if (AnimInstance)
+			{
+				AnimInstance->Montage_Play(LoadedMontage);
+			}
+
+			// 4. 스킬 타이머 시작 (자폭 등)
+			GetWorld()->GetTimerManager().SetTimer(
+				SkillTimerHandle,
+				this,
+				&UEPSkill_ExplodeSelf::OnSkillEffectFinished,
+				GetWindupSeconds(CurrentComboIndex),
+				false
+			);
+		}
+	);
+
+	// 폭발 이펙트 및 사운드 재생
+	if (Effect)
+	{
+		//UGameplayStatics::SpawnEmitterAtLocation(Caster->GetWorld(), Effect, ExplosionLocation);
+	}
+	if (Sound)
+	{
+		//UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, ExplosionLocation);
+	}
+}
+
+// 정상적 종료
+void UEPSkill_ExplodeSelf::OnSkillEffectFinished()
+{
+	if (!Damage || !DamageRadius || ExplosionLocation.IsZero())
+	{
+		return;
+	}
+
+	// 폭발 이펙트 및 사운드 재생
+	if (Effect)
+	{
+		//UGameplayStatics::SpawnEmitterAtLocation(Caster->GetWorld(), Effect, ExplosionLocation);
+	}
+	if (Sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(OwnerCaster->GetWorld(), Sound, ExplosionLocation);
+	}
 
 #if !(UE_BUILD_SHIPPING)
 	// 디버그용
-	DrawDebugSphere(Caster->GetWorld(), Caster->GetActorLocation(), DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
+	DrawDebugSphere(OwnerCaster->GetWorld(), OwnerCaster->GetActorLocation(), DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
 #endif
 
-	// Enemy일 경우, Blackboard 의 대기 상태 false 로 업데이트
-	if (AEPEnemyAIController* EnemyAIController = Cast<AEPEnemyAIController>(Caster->GetController()))
-	{
-		EnemyAIController->NotifyIsWindupUpdate();
-	}
 
 	// ------------ 팀 식별 로직 시작 ------------
 	// 피해를 무시할 액터들을 담을 배열 생성
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(Caster); // 시전자 자신은 항상 무시 목록에 포함
+	ActorsToIgnore.Add(OwnerCaster); // 시전자 자신은 항상 무시 목록에 포함
 
 	// 시전자의 팀 ID를 가져옴
 	FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
-	if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(Caster))
+	if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(OwnerCaster))
 	{
 		CasterTeamId = TeamAgent->GetGenericTeamId();
 	}
@@ -89,7 +159,7 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn)); // Pawn 타입만 검색
 
 	UKismetSystemLibrary::SphereOverlapActors(
-		Caster->GetWorld(),
+		OwnerCaster->GetWorld(),
 		ExplosionLocation,
 		DamageRadius,
 		ObjectTypes,
@@ -111,31 +181,39 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 			}
 		}
 	}
-	// -----------------------------------------------
 
 	// 해당 위치에 광역 피해(Radial Damage)를 입힘
 	UGameplayStatics::ApplyRadialDamage(
-		Caster->GetWorld(),
+		OwnerCaster->GetWorld(),
 		Damage,
 		ExplosionLocation,
 		DamageRadius,
 		UDamageType::StaticClass(),
 		ActorsToIgnore, // 피해를 무시할 액터 목록
-		Caster, // 피해를 입힌 가해자
-		Caster->GetController() // 가해자의 컨트롤러
+		OwnerCaster, // 피해를 입힌 가해자
+		OwnerCaster->GetController() // 가해자의 컨트롤러
 	);
 
-	// 폭발 이펙트 및 사운드 재생
-	if (Effect)
+	// Lock 해제
+	if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
 	{
-		//UGameplayStatics::SpawnEmitterAtLocation(Caster->GetWorld(), Effect, ExplosionLocation);
-	}
-	if (Sound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, ExplosionLocation);
+		Lock->Release(Locktext);
 	}
 
 	// 시전자 자신 파괴
-	Caster->Destroy();
+	OwnerCaster->Destroy();
+}
+
+// 스킬 강제 중단
+void UEPSkill_ExplodeSelf::CancelSkillActivation()
+{
+	// 타이머 정지
+	GetWorld()->GetTimerManager().ClearTimer(SkillTimerHandle);
+
+	// Lock 해제
+	if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
+	{
+		Lock->Release(Locktext);
+	}
 }
 

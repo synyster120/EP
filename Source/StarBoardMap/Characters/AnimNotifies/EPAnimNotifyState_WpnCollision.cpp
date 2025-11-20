@@ -58,15 +58,15 @@ void UEPAnimNotifyState_WpnCollision::DoAttackTrace(USkeletalMeshComponent* Mesh
     if (AttackOrigin != FVector::ZeroVector) {
         FQuat CapsuleRot = FRotationMatrix::MakeFromX(MeshComp->GetForwardVector()).ToQuat();
 
-        /*DrawDebugBox(
-            World,
-            AttackOrigin,          // 캡슐 중심 = WeaponSocket 위치
-            Dimensions,
-            CapsuleRot,     // 회전 (Forward 방향)
-            FColor::Green,  // 색상
-            false,
-            1.f             // 지속 시간
-        );*/
+        //DrawDebugBox(
+        //    World,
+        //    AttackOrigin,          // 캡슐 중심 = WeaponSocket 위치
+        //    Dimensions,
+        //    CapsuleRot,     // 회전 (Forward 방향)
+        //    FColor::Green,  // 색상
+        //    false,
+        //    1.f             // 지속 시간
+        //);
 
         // 필요하다면 SweepMultiByChannel도 같은 파라미터로 돌릴 수 있음
         TArray<FHitResult> HitResults;
