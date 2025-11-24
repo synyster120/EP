@@ -41,7 +41,7 @@ EBTNodeResult::Type UEPBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 		return EBTNodeResult::Succeeded;
 	}
-
+	
 	return EBTNodeResult::Failed;
 }
 
@@ -57,6 +57,6 @@ void UEPBTTask_Attack::OnMovementLockEnded()
 {
 	if (AEPEnemyAIController* EnemyAIConteroller = Cast<AEPEnemyAIController>(AIController))
 	{
-		EnemyAIConteroller->NotifyIsWindupUpdate();
+		//EnemyAIConteroller->NotifyIsWindupUpdate();
 	}
 }

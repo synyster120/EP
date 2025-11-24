@@ -176,40 +176,11 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
         UE_LOG(LogTemp, Warning, TEXT("cobo state | combo num : %d"), LastComboSkillIndex);
     }
 
-
-    AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
-    FName text = TEXT("Skill");
-    if (SkillToActivate->RequiresMovementLock(LastComboSkillIndex))
-    {
-        if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
-            // Lock 설정
-            Lock->Acquire(text);
-    }
-
-    const float Windup = SkillToActivate->GetWindupSeconds(LastComboSkillIndex);
-    UE_LOG(LogTemp, Warning, TEXT("windup seconds : %f"), Windup);
-    if (Windup > KINDA_SMALL_NUMBER)
-    {
-        // aicontroller 바인딩 함수(블랙보드 update)
-        
-        GetWorld()->GetTimerManager().SetTimer(WindupHandle, [this, SkillIndex, OwnerCaster, text]()
-            {
-                ActivateSkillFinished(SkillIndex);
-                // Lock 해제
-                if (UEPMovementLockComponent* Lock = OwnerCaster->GetMovementLockComponent())
-                {
-                    Lock->Release(text);
-                }
-            }
-        , Windup, false);
-    }
-    else
-    {
-        ActivateSkillFinished(SkillIndex);
-    }
-
+    // 스킬 실행   
+    ActivateSkillFinished(SkillIndex);
 }
 
+// 실제 스킬 실행 처리
 void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
 {
     OnMovementLockEnded.Broadcast();

@@ -24,6 +24,7 @@ public:
 	virtual void OnDied() override;
 	virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) override;
 
+	virtual void HandleDeath_Implementation() override;
 
 protected:
 	virtual void BeginPlay() override;

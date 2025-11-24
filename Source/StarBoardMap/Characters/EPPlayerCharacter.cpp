@@ -86,6 +86,11 @@ void AEPPlayerCharacter::BeginPlay()
             EPHUDWidgetInstance->AddToViewport();
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("user widget data is null -- spawn fail"));
+    }
+
 
     if (StatComponent)
     {
@@ -175,8 +180,10 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
-    SkillComponent->ActivateSkill(0);
-    UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
+    if (SkillComponent)
+    {
+        SkillComponent->ActivateSkill(0);
+    }
 }
 
 void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)

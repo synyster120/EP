@@ -5,6 +5,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Characters/EPCombatCharacterBase.h"
+//#include "Animation/AnimMontage.h"
 
 const FName UEPBTTask_PlayMontageFromBB::IsHitKey(TEXT("IsHit"));
 
@@ -26,6 +27,17 @@ EBTNodeResult::Type UEPBTTask_PlayMontageFromBB::ExecuteTask(UBehaviorTreeCompon
 	UAnimMontage* MontageToPlay = Cast<UAnimMontage>(BlackboardComp->GetValueAsObject(MontageToPlayKey.SelectedKeyName));
 	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
 	if (!MontageToPlay || !AnimInstance) return EBTNodeResult::Failed;
+
+	// 블랙보드에서 루프 여부(IsSelfDestructSkill)를 읽어옴
+	bool bShouldLoop = false;
+	if (BlackboardComp && IsLoopingKey.IsSet())
+	{
+		bShouldLoop = BlackboardComp->GetValueAsBool(IsLoopingKey.SelectedKeyName);
+		if (bShouldLoop)
+		{
+			MontageToPlay->bLoop = true;
+		}
+	}
 
 	// 바인딩
 	FOnMontageEnded MontageEndedDelegate;
@@ -52,19 +64,55 @@ EBTNodeResult::Type UEPBTTask_PlayMontageFromBB::AbortTask(UBehaviorTreeComponen
 		AnimInstance->Montage_Stop(0.1f);
 	}
 
+	// KeyToClearOnEnd가 지정되었다면, 해당 키를 false로 설정
+	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+
+	if (BlackboardComp)
+	{
+		if (BlackboardComp->GetValueAsBool(KeyToClearOnEnd.SelectedKeyName)) // true 일 경우
+		{
+			UE_LOG(LogTemp, Warning, TEXT("abort :: blackboard update is IwWindup --> false setting"));
+			// IsWindup 같은 키를 false로 설정
+			BlackboardComp->SetValueAsBool(KeyToClearOnEnd.SelectedKeyName, false);
+		}
+	}
+
 	// MyOwnerComp를 초기화하여 OnMontageEnded가 실수로 호출되는 것을 방지
 	MyOwnerComp = nullptr;
-
-	// 혹시 모를 바인딩 클리어 로직 추가 필요
 
 	return EBTNodeResult::Succeeded;
 }
 
 void UEPBTTask_PlayMontageFromBB::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	// 태스크 성공 알림
-	if (MyOwnerComp && !bInterrupted)
+	// 태스크 성공 알림// MyOwnerComp가 유효하고, 몽타주가 (AbortTask 등으로) 중단되지 않았을 때
+	if (!MyOwnerComp)
 	{
-		FinishLatentTask(*MyOwnerComp, EBTNodeResult::Succeeded);
+		return;
 	}
+
+	if (bInterrupted)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Montage Interrupted - Delegate ignores FinishLatentTask"));
+		return;
+	}
+
+	UBlackboardComponent* BlackboardComp = MyOwnerComp->GetBlackboardComponent();
+	// KeyToClearOnEnd가 지정되었다면, 해당 키를 false로 설정
+	if (BlackboardComp)
+	{
+		if (BlackboardComp->GetValueAsBool(KeyToClearOnEnd.SelectedKeyName)) // true 일 경우
+		{
+			UE_LOG(LogTemp, Warning, TEXT("end binding :: blackboard update is IwWindup --> false setting"));
+			if (BlackboardComp)
+			{
+				// IsWindup 같은 키를 false로 설정
+				BlackboardComp->SetValueAsBool(KeyToClearOnEnd.SelectedKeyName, false);
+			}
+		}
+	}
+
+	// 태스크를 성공으로 종료
+	FinishLatentTask(*MyOwnerComp, EBTNodeResult::Succeeded);
+	return;
 }

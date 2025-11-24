@@ -61,13 +61,13 @@ public:
     FEPSkillRangeData ReturnSkillRangeData();
     float ReturnDamage();
 
+    // 기존 킬 객체들이나 실행 중이던 쿨타임 타이머 정리 함수
+    void ClearSkills();
+
 protected:
     virtual void BeginPlay() override;
 
 private:
-    // 기존 킬 객체들이나 실행 중이던 쿨타임 타이머 정리 함수
-    void ClearSkills();
-
     // 스킬 데이터 에셋을 기반으로 실제 스킬 인스턴스들 생성 함수
     void CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAsset>>& SkillAssets);
 

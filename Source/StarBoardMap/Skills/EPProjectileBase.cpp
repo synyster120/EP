@@ -18,7 +18,7 @@ AEPProjectileBase::AEPProjectileBase()
 	// 처음 스폰될 때는 기본적으로 Tick이 '꺼진 상태'로 시작 but 기본은 켜두는 게 좋음
 	//PrimaryActorTick.bStartWithTickEnabled = false;
 
-	bIsActive = false;
+	bIsActive = true;
     bIsValid = false;
 
     // 콜리전 스피어 생성

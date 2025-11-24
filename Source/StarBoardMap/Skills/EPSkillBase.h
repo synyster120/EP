@@ -28,7 +28,7 @@ public:
 	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
 
 	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex);
-
+	void CancelSkillActivation();
 
 	inline UEPSkillDataAsset* GetSkillData() const { return SkillDataAsset; };
 	FName GetSkillID() const;

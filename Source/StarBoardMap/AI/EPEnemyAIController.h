@@ -53,7 +53,7 @@ public:
     // Blackboard 에 Play 할 Montage 업데이트
     void PlayMontageUpdate(UAnimMontage* CurrentMontage);
 
-    void NotifyIsWindupUpdate(); // 블랙보드에 IsWindup 값 true or false 로 업데이트
+    void NotifyIsWindupUpdate(); // 블랙보드에 IsWindup 값 true 로 업데이트
 
     virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
@@ -76,9 +76,6 @@ private:
     //  Perception Component가 인식 업데이트 시 호출 함수
     UFUNCTION()
     void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-
-    // 대기/연출 위한 Blackboard의 bool 값
-    bool IsWindup = false;
 
 
 };

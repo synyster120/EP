@@ -144,7 +144,6 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
         // perception actor 가 같은 팀인지 확인
         if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
         {
-
             IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(Actor);
             // 대상이 같은 팀이라면, 함수 탈출
             if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() == CasterTeamId)
@@ -162,9 +161,12 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
         }
         else
         {
-            // 인지 실패
-            BlackboardComp->ClearValue(TargetKey);
-            UE_LOG(LogTemp, Warning, TEXT("Target actor -> Blackboard clear update : %s"), *Actor->GetName());
+            if (!BlackboardComp->GetValueAsBool(IsWindupKey)) // IsWindup일 경우 타겟 놓치는 거 방지
+            {
+                // 인지 실패
+                BlackboardComp->ClearValue(TargetKey);
+                UE_LOG(LogTemp, Warning, TEXT("Target actor -> Blackboard clear update : %s"), *Actor->GetName());
+            }
         }
     }
 }
@@ -211,17 +213,11 @@ void AEPEnemyAIController::PlayMontageUpdate(UAnimMontage* CurrentMontage)
 void AEPEnemyAIController::NotifyIsWindupUpdate()
 {
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
-
+    
     if (BlackboardComp)
     {
-        if (IsWindup) // true 일때
-        {
-            BlackboardComp->SetValueAsBool(IsWindupKey, false); // 대기 상태 해제
-        }
-        else // false 일때
-        {
-            BlackboardComp->SetValueAsBool(IsWindupKey, true); // 대기 상태로 전환
-        }
+        UE_LOG(LogTemp, Warning, TEXT("IsWindup is false --> blackboard update true"));
+        BlackboardComp->SetValueAsBool(IsWindupKey, true); // 대기 상태로 전환
     }
 }
 
