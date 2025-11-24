@@ -16,6 +16,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class UCapsuleComponent;
 
 class UEPHUDWidget;
 /**
@@ -44,6 +45,7 @@ public:
 	UFUNCTION()
 	void HandleHealthChanged(float NewHealth, float MaxHealth);
 
+
 protected:
     // 입출력
 	/** MappingContext */
@@ -65,6 +67,9 @@ protected:
 	/** Bast Attack Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* BaseAttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DropAndPickUpAction;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
@@ -91,5 +96,37 @@ protected:
 	/** Called for BaseAttacking input */
 	void BaseAttack(const FInputActionValue& Value);
 
+	void DropAndPickUp(const FInputActionValue& Value);
+
+	UPROPERTY()
+	AActor* OnHandActor;
+
+	UPROPERTY()
+	UCapsuleComponent* ItemCollision;
+
+	UPROPERTY()
+	TSet<AActor*> NearbyItems;
+
+	UFUNCTION()
+	void OnOverlapBegin(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult
+	);
+
+	UFUNCTION()
+	void OnOverlapEnd(
+		UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex
+	);
+
+	public:
+		void Drop();
+		void PickUp();
 
 };

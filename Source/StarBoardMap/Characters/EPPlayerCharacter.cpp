@@ -15,6 +15,9 @@
 
 // weapon
 #include "Data/EPWeaponTypes.h"
+#include "Weapon/EP_WeaponBase.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "UI/EPHUDWidget.h"
 
@@ -60,12 +63,18 @@ void AEPPlayerCharacter::BeginPlay()
     if (WeaponData)
     {
         FWeaponInfo Data = WeaponData->GetWeaponInfoByName(FName("Hammer"));
-        GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
+        OnHandActor = GetWorld()->SpawnActor<AActor>(Data.WeaponBlueprint, FVector::ZeroVector, FRotator::ZeroRotator);
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("weapon data is null -- spawn fail"));
     }
+
+    //item capsule
+    ItemCollision = Cast<UCapsuleComponent>(GetDefaultSubobjectByName(TEXT("ItemCapsule")));
+
+    ItemCollision->OnComponentBeginOverlap.AddDynamic(this, &AEPPlayerCharacter::OnOverlapBegin);
+    ItemCollision->OnComponentEndOverlap.AddDynamic(this, &AEPPlayerCharacter::OnOverlapEnd);
 
 
     // user widget
@@ -113,6 +122,9 @@ void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
         // Base Attacking
         EnhancedInputComponent->BindAction(BaseAttackAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::BaseAttack);
+
+        // Drop
+        EnhancedInputComponent->BindAction(DropAndPickUpAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::DropAndPickUp);
     }
 }
 
@@ -165,6 +177,78 @@ void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
     SkillComponent->ActivateSkill(0);
     UE_LOG(LogTemp, Warning, TEXT("Player --> Base Atttacking"));
+}
+
+void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
+{
+    //if walking or running
+
+    if (OnHandActor == nullptr) {
+        this->PlayAnimationByTag(FGameplayTag::RequestGameplayTag(FName("InputUserSettings.PickUpHammer")));
+    }
+    else {
+        this->PlayAnimationByTag(FGameplayTag::RequestGameplayTag(FName("InputUserSettings.DropHammer")));
+    }
+}
+
+void AEPPlayerCharacter::Drop()
+{
+    //change to interface
+    Cast<AEP_WeaponBase>(OnHandActor)->DetachFromCharacter();
+
+    NearbyItems.Empty();
+    OnHandActor = nullptr;
+    ItemCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEPPlayerCharacter::PickUp()
+{
+    if (NearbyItems.Num() == 0) return;
+
+    AActor* ClosestActor = nullptr;
+    float BestDist = FLT_MAX;
+
+    for (AActor* Item : NearbyItems)
+    {
+        if (!IsValid(Item)) continue;
+
+        float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
+        if (Dist < BestDist)
+        {
+            BestDist = Dist;
+            ClosestActor = Item;
+        }
+    }
+    if (ClosestActor == nullptr) {
+        UE_LOG(LogTemp, Warning, TEXT("ClosestActor is Nullptr"));
+        return;
+    }
+
+    ItemCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    OnHandActor = ClosestActor;
+
+    //change to interface
+    Cast<AEP_WeaponBase>(OnHandActor)->AttachToCharacter();
+}
+
+void AEPPlayerCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (!OtherActor || OtherActor == this) return;
+  
+    if (!(OtherActor->ActorHasTag("Item") || OtherActor->ActorHasTag("Weapon")))
+        return;
+
+    NearbyItems.Add(OtherActor);
+}
+
+void AEPPlayerCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    if (!OtherActor || OtherActor == this) return;
+
+    if (!(OtherActor->ActorHasTag("Item") || OtherActor->ActorHasTag("Weapon")))
+        return;
+
+    NearbyItems.Remove(OtherActor);
 }
 
 float AEPPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

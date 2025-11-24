@@ -3,37 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "GameFramework/Actor.h"
 #include "EP_WeaponBase.generated.h"
 
-
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class STARBOARDMAP_API UEP_WeaponBase : public UActorComponent
+UCLASS()
+class STARBOARDMAP_API AEP_WeaponBase : public AActor
 {
 	GENERATED_BODY()
-
-public:	
-	// Sets default values for this component's properties
-	UEP_WeaponBase();
 	
-protected:
-	FName WeaponName;
-	int32 Damage;
+public:	
+	// Sets default values for this actor's properties
+	AEP_WeaponBase();
 
 protected:
-	// Called when the game starts
+	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void SpawnWeapon(FName SpawnWeaponName);
-	void StartWithCharacter();
+	//void SpawnWeapon(FName SpawnWeaponName);
 
-public:	
-	void SetAttackDamage(int32 NewDamage);
-	void OnPickedUp(AActor* Picker);
-	void OnPutDown();
+public:
+	UPROPERTY(EditAnywhere)
+	FName Name;
 
-	void OnAttack(AActor* Enemy);
-
-	UPROPERTY(VisibleAnywhere)
-	USceneComponent* SceneRoot;
+	void AttachToCharacter();
+	void DetachFromCharacter();
 };
