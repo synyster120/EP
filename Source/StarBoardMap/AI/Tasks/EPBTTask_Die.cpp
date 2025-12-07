@@ -25,7 +25,7 @@ EBTNodeResult::Type UEPBTTask_Die::ExecuteTask(UBehaviorTreeComponent& OwnerComp
         {
             // 죽음 함수 호출
             IEPCombatEventInterface::Execute_HandleDeath(OwnerActor);
-            
+
             BlackboardComp->SetValueAsBool(HasProcessedDeathKey.SelectedKeyName, true);
 
             return EBTNodeResult::Succeeded;

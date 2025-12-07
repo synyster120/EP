@@ -21,6 +21,7 @@ class UEPTargetingStrategy;
 /**
  *		IEPCombatInterface 상속받은 전투하는 CharacterBase
  */
+
 UCLASS(Abstract)
 class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface, public IGenericTeamAgentInterface
 {

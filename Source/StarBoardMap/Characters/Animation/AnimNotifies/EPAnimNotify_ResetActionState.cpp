@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Characters/AnimNotifies/EPAnimNotify_ResetActionState.h"
+#include "Characters/Animation/AnimNotifies/EPAnimNotify_ResetActionState.h"
 #include "Characters/EPCharacterBase.h"
 
 void UEPAnimNotify_ResetActionState::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)

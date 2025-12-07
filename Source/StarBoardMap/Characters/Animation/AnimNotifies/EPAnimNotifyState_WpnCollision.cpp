@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Characters/AnimNotifies/EPAnimNotifyState_WpnCollision.h"
+#include "Characters/Animation/AnimNotifies/EPAnimNotifyState_WpnCollision.h"
 #include "Kismet/GameplayStatics.h"  
 #include "GameFramework/Character.h"
 #include "Components/EPSkillComponent.h"
@@ -40,18 +40,29 @@ void UEPAnimNotifyState_WpnCollision::DoAttackTrace(USkeletalMeshComponent* Mesh
 {
     UWorld* World = MeshComp->GetWorld();
 
-    ACharacter* MyCharacter = UGameplayStatics::GetPlayerCharacter(MeshComp->GetWorld(), 0);
+    AEPPlayerCharacter* MyCharacter = Cast<AEPPlayerCharacter>(MeshComp->GetOwner());
     if (!MyCharacter) return;
 
-    TArray<AActor*> AttachedActors;
-    MyCharacter->GetAttachedActors(AttachedActors);
+    /*TArray<AActor*> AttachedActors;
+    MyCharacter->GetAttachedActors(AttachedActors);*/
+    //FVector AttackOrigin = FVector::ZeroVector;
+    //for (AActor* Child : AttachedActors)
+    //{
+    //    if (Child->ActorHasTag("Weapon")) // 태그로 구분
+    //    {
+    //        UStaticMeshComponent* TargetMeshComp = Child->FindComponentByClass<UStaticMeshComponent>();
+    //        AttackOrigin = TargetMeshComp->GetSocketLocation("AttackSocket");
+    //    }
+    //}
+
     FVector AttackOrigin = FVector::ZeroVector;
-    for (AActor* Child : AttachedActors)
+    UStaticMeshComponent* WeaponMeshComp = MyCharacter->GetHandMeshComponent();
+    if (WeaponMeshComp)
     {
-        if (Child->ActorHasTag("Weapon")) // 태그로 구분
+        // HandMeshComponent(현재 부착된 StaticMesh)에 있는 소켓(AttackSocket) 위치 가져오기
+        if (WeaponMeshComp->DoesSocketExist("AttackSocket"))
         {
-            UStaticMeshComponent* TargetMeshComp = Child->FindComponentByClass<UStaticMeshComponent>();
-            AttackOrigin = TargetMeshComp->GetSocketLocation("AttackSocket");
+            AttackOrigin = WeaponMeshComp->GetSocketLocation("AttackSocket");
         }
     }
 

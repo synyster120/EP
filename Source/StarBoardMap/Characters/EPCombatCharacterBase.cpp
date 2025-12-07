@@ -151,7 +151,7 @@ void AEPCombatCharacterBase::HandleDeath_Implementation()
     }
 
     // 추가적인 죽음 처리 로직 (콜리전 끄기 등)
-    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetCapsuleComponent()->SetCollisionProfileName(TEXT("Ragdoll"));
 }
 
 UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
