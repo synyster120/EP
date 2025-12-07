@@ -114,8 +114,14 @@ void AEPPlayerCharacter::BeginPlay()
     // stat
     if (StatComponent)
     {
-        // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'합니다.
+        // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'함
         StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
+
+        // 초기 상태 업데이트
+        FEPHealthInfo CurrentHealthInfo = StatComponent->GetHealthInfo();
+        float CurrentHealth = CurrentHealthInfo.CurrentHealth;
+        float MaxHealth = CurrentHealthInfo.MaxHealth;
+        HandleHealthChanged(CurrentHealth, MaxHealth);
     }
 
     // best item search
@@ -447,6 +453,7 @@ void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCom
 
 void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)
 {
+    UE_LOG(LogTemp, Warning, TEXT("handle health"));
     if (EPHUDWidgetInstance)
     {
         // 여기서 최종적으로 위젯의 함수를 호출
