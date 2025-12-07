@@ -17,7 +17,6 @@ void AChessUnitController::SetDefaultInformation()
 	BB->SetValueAsName(FName("Name"), Data.Name);
 	BB->SetValueAsFloat(FName("JumpHeight"), Data.JumpHeight);
 	BB->SetValueAsInt(FName("AttackProbability"), Data.AttackProbability);
-	if (FName("Bishop") == BB->GetValueAsName(FName("Name"))) UE_LOG(LogTemp, Warning, TEXT("HI BISHOP AP : %d"), BB->GetValueAsInt(FName("AttackProbability")));
 	BB->SetValueAsFloat(FName("StopTime1"), Data.StopTime1);
 	BB->SetValueAsFloat(FName("StopTime2"), Data.StopTime2);
 	BB->SetValueAsFloat(FName("MovingSpeed"), Data.MovingSpeed);

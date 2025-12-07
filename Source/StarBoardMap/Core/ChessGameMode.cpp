@@ -104,6 +104,7 @@ void AChessGameMode::OnTurn()
 		else if (NowTurn % 10 == 9) {
 			if (Unit->GetUnitName() == FName("Pawn")) {
 				Unit->SetMovingTurn(false);
+				Unit->Warning();
 			}
 		}
 
@@ -119,6 +120,20 @@ void AChessGameMode::OnTurn()
 		}
 		ChessGameState->SetGridState(BeforeMovePoint, MovingPlace, Unit->GetUnitType());
 	}
+
+	/*for (int32 Row = 1; Row < 9; Row++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%d %d %d %d %d %d %d %d"),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 1)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 2)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 3)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 4)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 5)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 6)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 7)),
+			ChessGameState->GetGridWarning(FIntPoint(Row, 8))
+			);
+	}*/
 }
 
 FIntPoint AChessGameMode::FindRandomMoveInPlace()

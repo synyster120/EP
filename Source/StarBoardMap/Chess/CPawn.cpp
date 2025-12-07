@@ -15,6 +15,7 @@ void ACPawn::BeginPlay()
 
 void ACPawn::Attack()
 {
+	SkillComponent->ActivateSkill(0);
     SetActorHiddenInGame(true);
     SetActorEnableCollision(false);
 }

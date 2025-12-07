@@ -72,7 +72,9 @@ void UEPSkill_CKingPawn::Activate(ACharacter* Caster, const FEPSkillTargetData& 
 		FIntPoint NewVec = Controller->GetXY();
 		NewVec.X += TempXY[i].X / 150;
 		NewVec.Y += TempXY[i].Y / 150;
-		if (Controller->IsOnBoard(NewVec)) Controller->SetGridWarning(NewVec, -Controller->GetUnitType());
+		if (Controller->IsOnBoard(NewVec)) {
+			Controller->SetGridWarning(NewVec, -Controller->GetUnitType());
+		}
 	}
 
 	// ------------ 팀 식별 로직 시작 ------------

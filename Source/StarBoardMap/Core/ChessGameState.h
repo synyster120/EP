@@ -55,6 +55,7 @@ private: // Unit
 	UPROPERTY(EditAnywhere)
 	int32 PawnNum;
 
+	UPROPERTY()
 	TArray<ACUnit*> Units;
 
 	UPROPERTY()
@@ -87,4 +88,5 @@ public: //function
 	FVector GetGridVector(FIntPoint NewXY);
 
 	void SetGridWarning(FIntPoint NewXY, int32 Val);
+	int32 GetGridWarning(FIntPoint NewXY) const { return GridWarningState[NewXY.X][NewXY.Y]; }
 };

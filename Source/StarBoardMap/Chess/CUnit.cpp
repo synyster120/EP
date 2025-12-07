@@ -24,12 +24,52 @@ void ACUnit::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CapsuleComp = Cast<UCapsuleComponent>(GetCapsuleComponent()->GetChildComponent(2)->GetChildComponent(0));
+	UCapsuleComponent* RootCapsule = GetCapsuleComponent();
+	if (!RootCapsule)
+	{
+		UE_LOG(LogTemp, Error, TEXT("RootCapsule is NULL"));
+		return;
+	}
+	UStaticMeshComponent* MeshComp = nullptr;
+	{
+		TArray<USceneComponent*> RootChildren;
+		RootCapsule->GetChildrenComponents(true, RootChildren);
 
-	UE_LOG(LogTemp, Warning, TEXT("BeginPlay inin"));
+		for (USceneComponent* Child : RootChildren)
+		{
+			MeshComp = Cast<UStaticMeshComponent>(Child);
+			if (MeshComp)
+				break;
+		}
+	}
+	if (!MeshComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("StaticMeshComponent NOT found under RootCapsule"));
+		return;
+	}
+	UCapsuleComponent* InnerCapsule = nullptr;
+	{
+		TArray<USceneComponent*> MeshChildren;
+		MeshComp->GetChildrenComponents(true, MeshChildren);
+
+		for (USceneComponent* Child : MeshChildren)
+		{
+			InnerCapsule = Cast<UCapsuleComponent>(Child);
+			if (InnerCapsule)
+				break;
+		}
+	}
+	if (!InnerCapsule)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CapsuleComponent NOT found under StaticMesh"));
+		return;
+	}
+	CapsuleComp = InnerCapsule;
+	//CapsuleComp = Cast<UCapsuleComponent>(GetCapsuleComponent()->GetChildComponent(2)->GetChildComponent(0));
+
+
 	if (CapsuleComp)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BeginPlay %s"), *CapsuleComp->GetName());
 		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ACKing::OnCapsuleOverlap);
 	}
 }
