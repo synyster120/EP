@@ -16,6 +16,8 @@ FEPHealthInfo UEPHealthBlockStatComponent::GetHealthInfo() const
     Info.HealthType = EEPHealthType::HealthBlock;
     Info.CurrentBlocks = CurrentHealthBlocks;
     Info.MaxBlocks = MaxHealthBlocks;
+    Info.CurrentHealth = (float)CurrentHealthBlocks;
+    Info.MaxHealth = (float)MaxHealthBlocks;
     Info.HealthRatio = (MaxHealthBlocks > 0) ? (float)CurrentHealthBlocks / (float)MaxHealthBlocks : 0.f;
     return Info;
 }
@@ -73,6 +75,7 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
     if (IsDied())
     {
         OnDied.Broadcast();
+        OnHealthChanged_Two.Broadcast((float)CurrentHealthBlocks, (float)MaxHealthBlocks);
         return;
     }
 

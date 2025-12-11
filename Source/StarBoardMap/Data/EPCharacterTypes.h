@@ -19,6 +19,7 @@ enum class EEPCharacterState : uint8
 {
 	Idle UMETA(DisplayName = "기본 상태"),		// 아무것도 안 하는 상태
 	Moving UMETA(DisplayName = "이동 중"),		// 이동 중
+	Interacting UMETA(DisplayName = "상호작용 중"),	// 상호작용 중
 	Attacking UMETA(DisplayName = "공격 중"),	// 공격 중 (이동 불가)
 	Dead UMETA(DisplayName = "죽음")				// 죽음 (행동 불가)
 };

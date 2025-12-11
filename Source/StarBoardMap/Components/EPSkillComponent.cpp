@@ -157,7 +157,7 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
     if (SkillSlot.MaxComboCount > 1)
     {
         int32& ComboCounter = ComboStateMap.FindOrAdd(SkillIndex); // 현재 실행할 콤보 단계 검색 및 가져오기 (없으면 생성됨)
-        if (LastkillSlotIndex == SkillIndex && ComboTimerHandle.IsValid())
+        if (LastkillSlotIndex == SkillIndex && GetWorld()->GetTimerManager().IsTimerActive(ComboTimerHandle)) // 동일한 스킬 슬롯인지 And 타이머가 작동중인지 확인
         {
             LastComboSkillIndex++; // 다음 콤보로
         }
@@ -169,6 +169,7 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
         // 콤보 순환
         if (LastComboSkillIndex >= SkillSlot.MaxComboCount)
         {
+            // 콤보 리셋
             LastComboSkillIndex = 0;
         }
         ComboCounter = LastComboSkillIndex; // 최종 콤보 인덱스 결정
@@ -336,7 +337,7 @@ void UEPSkillComponent::ResetCombo()
 {
     UE_LOG(LogTemp, Log, TEXT("reset combo"));
     // 콤보 유효시간이 지나면, 마지막 콤보 기록 초기화
-    LastComboSkillIndex = -1;
+    LastComboSkillIndex = 0;
 }
 
 // 스킬 단계의 필요한 타겟 타입 맞춰서 타겟 지정

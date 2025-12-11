@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Weapon/EP_WeaponBase.h"
@@ -37,16 +37,16 @@ void AEP_WeaponBase::AttachToCharacter()
     UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
     if (!AnimInst) return;
 
-    FName VarName("IsGotHammer");
-    FProperty* Property = AnimInst->GetClass()->FindPropertyByName(VarName);
-    if (Property)
-    {
-        FBoolProperty* FloatProp = CastField<FBoolProperty>(Property);
-        if (FloatProp)
-        {
-            FloatProp->SetPropertyValue_InContainer(AnimInst, true);
-        }
-    }
+    //FName VarName("IsGotHammer");
+    //FProperty* Property = AnimInst->GetClass()->FindPropertyByName(VarName);
+    //if (Property)
+    //{
+    //    FBoolProperty* FloatProp = CastField<FBoolProperty>(Property);
+    //    if (FloatProp)
+    //    {
+    //        FloatProp->SetPropertyValue_InContainer(AnimInst, true);
+    //    }
+    //}
 
     if (UStaticMeshComponent* ActorMesh = this->FindComponentByClass<UStaticMeshComponent>())
     {
@@ -70,6 +70,7 @@ void AEP_WeaponBase::DetachFromCharacter()
     UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
     if (!AnimInst) return;
 
+    // Player 의 ABP 변수 변경
     FName VarName("IsGotHammer");
     FProperty* Property = AnimInst->GetClass()->FindPropertyByName(VarName);
     if (Property)
@@ -83,6 +84,7 @@ void AEP_WeaponBase::DetachFromCharacter()
 
     this->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
+    // 자신의 StaticMesh에 물리 적용
     if (UStaticMeshComponent* ActorMesh = this->FindComponentByClass<UStaticMeshComponent>())
     {
         ActorMesh->SetSimulatePhysics(true);

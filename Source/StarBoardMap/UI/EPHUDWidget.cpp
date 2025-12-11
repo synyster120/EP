@@ -3,53 +3,60 @@
 
 #include "UI/EPHUDWidget.h"
 #include "Components/Image.h"
+#include "UI/EPHealthUnitWidget.h"
 
 void UEPHUDWidget::UpdateHealthFloat_Implementation(float NewHealth, float MaxHealth)
 {
-    // 이미지 포인터들이 유효한지 먼저 확인합니다.
-    if (!Image1 || !Image2 || !Image3)
+    if (!HealthContainer || !HealthUnitClass) return;
+
+    // 실수형 데이터를 정수형으로 변환  (소수점 내림 사용) CeilToInt(반올림) 
+    const int32 CurrentHealthInt = FMath::FloorToInt(NewHealth);
+    const int32 MaxHealthInt = FMath::FloorToInt(MaxHealth);
+
+    // 현재 컨테이너에 있는 자식 위젯의 개수 확인
+    const int32 CurrentChildCount = HealthContainer->GetChildrenCount();
+
+    // 개수 동기화 (MaxHealth가 변했을 때만 실행됨)
+    if (CurrentChildCount != MaxHealthInt)
     {
-        return;
+        if (CurrentChildCount < MaxHealthInt)
+        {
+            // 부족하면 더 생성
+            const int32 Needed = MaxHealthInt - CurrentChildCount;
+            for (int32 i = 0; i < Needed; ++i)
+            {
+                UUserWidget* NewUnit = CreateWidget<UUserWidget>(this, HealthUnitClass);
+                if (NewUnit)
+                {
+                    HealthContainer->AddChild(NewUnit);
+                }
+            }
+        }
+        else
+        {
+            // 많으면 뒤에서부터 제거 (RemoveChildAt은 5.4 등 최신 버전 패널 지원 여부 확인 필요, 안되면 Loop로 제거)
+            // 안전하게 뒤에서부터 제거하는 방식
+            while (HealthContainer->GetChildrenCount() > MaxHealthInt)
+            {
+                HealthContainer->RemoveChildAt(HealthContainer->GetChildrenCount() - 1);
+            }
+        }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("HUD -- UpdateHealthfloat = %f, %f"), NewHealth, MaxHealth);
-    // 최대 체력이 3일 때만 이 로직을 수행합니다.
-    if (MaxHealth == 3.0f)
+    // 상태 업데이트 (체력 있는 상태/ 체력 없는 상태)
+    for (int32 i = 0; i < HealthContainer->GetChildrenCount(); ++i)
     {
-        // NewHealth를 정수로 변환하여 비교합니다.
-        const int32 CurrentHealth = FMath::FloorToInt(NewHealth);
+        // 자식 위젯 가져오기
+        UWidget* ChildWidget = HealthContainer->GetChildAt(i);
+        UEPHealthUnitWidget* HealthUnit = Cast<UEPHealthUnitWidget>(ChildWidget); // 형변환
+        if (HealthUnit)
+        {
+            // i가 현재 체력보다 작으면 꽉 찬 상태(true), 아니면 빈 상태(false)
+            bool bFull = (i < CurrentHealthInt);
 
-        if (CurrentHealth == 2)
-        {
-            Image1->SetVisibility(ESlateVisibility::HitTestInvisible);
-            Image2->SetVisibility(ESlateVisibility::HitTestInvisible);
-            Image3->SetVisibility(ESlateVisibility::Hidden); // 3번만 숨김
+            // 상태 변경 함수 호출 (BP 내부에서 이미지 변경)
+            HealthUnit->UpdateState(bFull);
+
         }
-        else if (CurrentHealth == 1)
-        {
-            Image1->SetVisibility(ESlateVisibility::HitTestInvisible);
-            Image2->SetVisibility(ESlateVisibility::Hidden); // 2번 숨김
-            Image3->SetVisibility(ESlateVisibility::Hidden); // 3번 숨김
-        }
-        else if (CurrentHealth <= 0)
-        {
-            Image1->SetVisibility(ESlateVisibility::Hidden); // 전부 숨김
-            Image2->SetVisibility(ESlateVisibility::Hidden);
-            Image3->SetVisibility(ESlateVisibility::Hidden);
-        }
-        else // CurrentHealth가 3이거나 다른 값일 경우
-        {
-            // 모든 하트를 보이게 합니다.
-            Image1->SetVisibility(ESlateVisibility::HitTestInvisible);
-            Image2->SetVisibility(ESlateVisibility::HitTestInvisible);
-            Image3->SetVisibility(ESlateVisibility::HitTestInvisible);
-        }
-    }
-    else
-    {
-        // 최대 체력이 3이 아닐 경우, 기본적으로 모든 하트를 보이게 처리합니다.
-        Image1->SetVisibility(ESlateVisibility::HitTestInvisible);
-        Image2->SetVisibility(ESlateVisibility::HitTestInvisible);
-        Image3->SetVisibility(ESlateVisibility::HitTestInvisible);
     }
 }

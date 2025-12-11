@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Characters/AnimNotifies/EPNotifyState_AttackCollision.h"
+#include "Characters/Animation/AnimNotifies/EPNotifyState_AttackCollision.h"
 #include "Characters/EPCombatCharacterBase.h"
 #include "Components/EPSkillComponent.h"
 #include "Kismet/GameplayStatics.h"
