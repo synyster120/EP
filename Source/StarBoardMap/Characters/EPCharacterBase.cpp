@@ -47,11 +47,12 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageE
                         {
                             // const를 non-const로 사용하기 위해 복사
                             FOnMontageEnded NonConstDelegateCopy = OnMontageEndedDelegate;
-
-                            UE_LOG(LogTemp, Warning, TEXT("anim helper in playing animmontage"));
+                            //UE_LOG(LogTemp, Warning, TEXT("anim helper in playing animmontage"));
 
                             // 몽타주 재생
                             AnimInstance->Montage_Play(LoadedMontage);
+                            CombatCharacter->SetCurrentInteractionMontage(LoadedMontage); // 몽타주 저장
+
 
                             // "몽타주를 재생 후" 스킬로부터 넘겨받은 델리게이트 등록
                             AnimInstance->Montage_SetEndDelegate(NonConstDelegateCopy, LoadedMontage);

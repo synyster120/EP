@@ -207,13 +207,10 @@ void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
             {
                 // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
                 OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
-                // 스킬 실행 (스킬 객체에 요청)
-                SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
             }
-            else
-            {
-                UE_LOG(LogTemp, Log, TEXT("Skill [%s] activate is fail."), *SkillToActivate->GetSkillID().ToString());
-            }
+
+            // 스킬 실행 (스킬 객체에 요청)
+            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
         }
         else
         {
@@ -288,7 +285,7 @@ void UEPSkillComponent::StartCooldown(FName SkillID)
             //}
             //else // 기본, 스킬 1번 쿨타임
             {
-                UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is false --> player timer play :: skill index : %d "), *IndexPtr);
+                //UE_LOG(LogTemp, Warning, TEXT("Cast<AEPEnemyCharacter>(GetOwner()) is false --> player timer play :: skill index : %d "), *IndexPtr);
                 FTimerHandle NewTimerHandle;
                 // 델리게이트를 사용하여 쿨타임이 끝나면 OnCooldownFinished 함수가 호출되도록 설정
                 FTimerDelegate CooldownDelegate = FTimerDelegate::CreateUObject(this, &UEPSkillComponent::OnCooldownFinished, SkillID);
@@ -365,7 +362,10 @@ bool UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 Sk
             }
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[%s] character - TargetingStrategyClass setting is null -> FindTarget() is fail"), *GetName());
+    }
     return false; // 실패 반환
-
 }
 

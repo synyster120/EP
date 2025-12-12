@@ -16,7 +16,7 @@ void UEPAnimNotifyState_WpnCollision::NotifyBegin(USkeletalMeshComponent* MeshCo
         AEPPlayerCharacter* Player = Cast<AEPPlayerCharacter>(MyCharacter);
         AttackPhase = Player->SkillComponent->ReturnLastComboSkillIndex(); //플레이어 스택 갖고오기
 
-        UE_LOG(LogTemp, Log, TEXT("Attack %d Begin"), AttackPhase);
+        //UE_LOG(LogTemp, Log, TEXT("Attack %d Begin"), AttackPhase);
         HitEnemies.Empty();
 
         SkillRangeData = Player->SkillComponent->ReturnSkillRangeData();
@@ -64,20 +64,24 @@ void UEPAnimNotifyState_WpnCollision::DoAttackTrace(USkeletalMeshComponent* Mesh
         {
             AttackOrigin = WeaponMeshComp->GetSocketLocation("AttackSocket");
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Error :: player weapon -- AttackSocket is null --> takedamage fail"));
+        }
     }
 
     if (AttackOrigin != FVector::ZeroVector) {
         FQuat CapsuleRot = FRotationMatrix::MakeFromX(MeshComp->GetForwardVector()).ToQuat();
 
-        //DrawDebugBox(
-        //    World,
-        //    AttackOrigin,          // 캡슐 중심 = WeaponSocket 위치
-        //    Dimensions,
-        //    CapsuleRot,     // 회전 (Forward 방향)
-        //    FColor::Green,  // 색상
-        //    false,
-        //    1.f             // 지속 시간
-        //);
+        DrawDebugBox(
+            World,
+            AttackOrigin,          // 캡슐 중심 = WeaponSocket 위치
+            Dimensions,
+            CapsuleRot,     // 회전 (Forward 방향)
+            FColor::Green,  // 색상
+            false,
+            1.f             // 지속 시간
+        );
 
         // 필요하다면 SweepMultiByChannel도 같은 파라미터로 돌릴 수 있음
         TArray<FHitResult> HitResults;

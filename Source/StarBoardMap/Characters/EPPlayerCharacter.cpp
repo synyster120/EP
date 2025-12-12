@@ -115,7 +115,7 @@ void AEPPlayerCharacter::BeginPlay()
     if (StatComponent)
     {
         // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'함
-        StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
+        //StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
 
         // 초기 상태 업데이트
         FEPHealthInfo CurrentHealthInfo = StatComponent->GetHealthInfo();
@@ -324,7 +324,11 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         //UE_LOG(LogTemp, Warning, TEXT("Player --- drop"));
         if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
         {
-            this->PlayAnimationByTag(DefaultItem->GetDropInteractionTag()); // [ Drop ] 몽타주 플레이
+            // 몽타주 종료 델리게이트 바인딩
+            FOnMontageEnded EndDelegate;
+            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded);
+
+            this->PlayAnimationByTag(DefaultItem->GetDropInteractionTag(), EndDelegate); // [ Drop ] 몽타주 플레이
         }
     }
     else {
@@ -341,7 +345,31 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         CurrentItemData = BestDroppedItem->GetOriginalItemClass();
         if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
         {
-            this->PlayAnimationByTag(DefaultItem->GetPickupInteractionTag()); // [ PickUp ] 몽타주 플레이
+            // 몽타주 종료 델리게이트 바인딩
+            FOnMontageEnded EndDelegate;
+            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded);
+
+            this->PlayAnimationByTag(DefaultItem->GetPickupInteractionTag(), EndDelegate); // [ PickUp ] 몽타주 플레이
+        }
+    }
+}
+
+void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    // 줍기 몽타주가 맞는지 확인
+
+    if (CurrentItemData) {
+        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        {
+            if (Montage == CurrentInteractionMontage)
+            {
+                // 상태를 다시 Idle로 복구
+                // 단, 이미 사망했거나 다른 특수 상태가 아니라면
+                if (CurrentState == EEPCharacterState::Interacting)
+                {
+                    CurrentState = EEPCharacterState::Idle;
+                }
+            }
         }
     }
 }
@@ -442,6 +470,34 @@ void AEPPlayerCharacter::OnDied()
 {
     // Die 처리 함수 호출
     HandleDeath_Implementation();
+
+    // 상태 변경
+    CurrentState = EEPCharacterState::Dead;
+}
+
+void AEPPlayerCharacter::HandleDeath_Implementation()
+{
+    Super::HandleDeath_Implementation();
+
+
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController)
+    {
+        // 기존 입력 무시
+        DisableInput(PlayerController);
+
+
+        // 입력 모드를 UI 전용으로 변경 (게임 오버 위젯이 떴다고 가정)
+        // 이렇게 해야 WASD를 눌러도 캐릭터가 안 움직이고 마우스만 나옴
+        FInputModeUIOnly InputMode;
+
+        // (선택) 포커스를 맞출 위젯 설정. 없으면 nullptr
+        // InputMode.SetWidgetToFocus(...); 
+
+        PlayerController->SetInputMode(InputMode);
+        PlayerController->bShowMouseCursor = true; // 마우스 커서 보이기
+    }
+
 }
 
 void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType)
@@ -453,7 +509,6 @@ void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCom
 
 void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)
 {
-    UE_LOG(LogTemp, Warning, TEXT("handle health"));
     if (EPHUDWidgetInstance)
     {
         // 여기서 최종적으로 위젯의 함수를 호출
