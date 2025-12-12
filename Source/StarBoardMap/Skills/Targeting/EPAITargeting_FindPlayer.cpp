@@ -14,10 +14,18 @@ const FName UEPAITargeting_FindPlayer::TargetKey(TEXT("Target"));
 bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
 {
     AAIController* AIController = Cast<AAIController>(Caster->GetController());
-    if (!AIController) return false;
+    if (!AIController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- aicontroller is null"));
+        return false;
+    }
 
     UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
-    if (!Blackboard) return false;
+    if (!Blackboard)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- blackboard is null"));
+        return false;
+    }
 
     const EEPTargetType TargetingType = PhaseData.TargetType;
     OutTargetData.TargetType = TargetingType;
@@ -36,6 +44,7 @@ bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPha
         }
         else
         {
+            UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- target type :: Actor"));
             return false;
         }
         break;
@@ -50,6 +59,7 @@ bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPha
         }
         else
         {
+            UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- target type :: Direction"));
             return false;
         }
         break;
@@ -62,9 +72,15 @@ bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPha
         {
             OutTargetData.TargetLocation = TargetPlayer->GetActorLocation();
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- target type :: Location"));
+            return false;
+        }
         break;
     }
     default:
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- target type :: null"));
         return false;
     }
 

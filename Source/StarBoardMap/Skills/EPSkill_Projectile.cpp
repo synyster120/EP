@@ -36,6 +36,7 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
                 UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillClass for %s"), *PhaseData.AnimationTag.ToString());
                 return;
             }
+            UE_LOG(LogTemp, Warning, TEXT("Success to load SkillClass for %s"), *PhaseData.AnimationTag.ToString());
 
             FTransform SpawnTransform; // 최종 목적 위치
             FVector LaunchVelocity = FVector::ZeroVector; // 최종 발사 속도를 담을 변수
@@ -99,7 +100,7 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
             if (!Character) return;
 
             Character->PlayAnimationByTag(PhaseData.AnimationTag);
-            UE_LOG(LogTemp, Warning, TEXT("Skill_melee combo --> playing animation : %s"), *PhaseData.AnimationTag.ToString());
+            UE_LOG(LogTemp, Warning, TEXT("Skill_projectile --> playing animation : %s"), *PhaseData.AnimationTag.ToString());
 
         });
 

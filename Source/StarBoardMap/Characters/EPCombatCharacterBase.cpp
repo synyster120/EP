@@ -13,6 +13,8 @@
 #include "Engine/DamageEvents.h"
 #include "Characters/EPPlayerCharacter.h"
 
+#include "EnhancedInputSubsystems.h"
+
 AEPCombatCharacterBase::AEPCombatCharacterBase()
 {
     // 메쉬(SkeletalMeshComponent) 설정
@@ -32,6 +34,9 @@ void AEPCombatCharacterBase::BeginPlay()
         // 죽음, 피격(애니메이션) 바인딩
         StatComponent->OnDied.AddDynamic(this, &AEPCombatCharacterBase::OnDied);
         StatComponent->OnHitReact.AddDynamic(this, &AEPCombatCharacterBase::HandleHitReaction);
+
+        // 피격 데미지 바인딩
+        StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPCombatCharacterBase::HandleHealthChanged);
     }
 }
 
@@ -103,7 +108,7 @@ float AEPCombatCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const&
 {
     Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-    UE_LOG(LogTemp, Warning, TEXT("AEPCombatCharacterBase --> TakeDamage is [%s]"), *GetName());
+    //UE_LOG(LogTemp, Warning, TEXT("AEPCombatCharacterBase --> TakeDamage is [%s]"), *GetName());
 
     // FDamageInfo 구조체를 생성하여 모든 데미지 정보 채움
     FEPDamageInfo DamageInfo;

@@ -51,6 +51,7 @@ public:
      * @param SkillIndex 발동할 스킬의 인덱스 (Skills 배열 기준)
      * @param TargetData 스킬 발동에 필요한 타겟 정보
      */
+    UFUNCTION(BlueprintCallable)
     void ActivateSkill(int32 SkillIndex);
     void ActivateSkillFinished(int32 SkillIndex);
 

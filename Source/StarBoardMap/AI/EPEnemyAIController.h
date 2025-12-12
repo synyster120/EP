@@ -39,6 +39,7 @@ private:
     static const FName IsHitKey;
     static const FName MontageToPlayKey;
     static const FName IsWindupKey;
+    static const FName HealthKey;
 
 
 public:
@@ -49,6 +50,9 @@ public:
 
     // Blackboard 에 Hit 상태 업데이트
     void NotifyHitUpdate();
+
+    // Blackboard 에 health 상태 업데이트
+    void NotifyHealthUpdate(float CurrentHealth);
 
     // Blackboard 에 Play 할 Montage 업데이트
     void PlayMontageUpdate(UAnimMontage* CurrentMontage);

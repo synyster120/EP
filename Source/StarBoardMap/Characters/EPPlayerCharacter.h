@@ -49,8 +49,12 @@ public:
 	virtual void OnDied() override;
 	virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) override;
 
+	virtual void HandleDeath_Implementation() override;
+
+	virtual void HandleHealthChanged(float NewHealth, float MaxHealth) override;
+
 	UFUNCTION()
-	void HandleHealthChanged(float NewHealth, float MaxHealth);
+	void OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 	FORCEINLINE TObjectPtr<UStaticMeshComponent> GetHandMeshComponent() { return HandMeshComponent; };
 

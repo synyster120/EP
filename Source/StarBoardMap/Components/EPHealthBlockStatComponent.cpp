@@ -31,8 +31,6 @@ void UEPHealthBlockStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     //UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %d, AttackSpeed: %d, MovementSpeed: %d"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
     UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
 
-    // ���� ���� �ʱ�ȭ
-    //InitializeCommonStats(BaseStatData);
 }
 
 void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)

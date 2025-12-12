@@ -29,8 +29,6 @@ void UEPHealthBarStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     CurrentHealthBar = MaxHealthBar;
     UE_LOG(LogTemp, Warning, TEXT("MaxHealthBar: %f, CurrentHealthBar: %f, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), MaxHealthBar, CurrentHealthBar, AttackRange, AttackSpeed, MovementSpeed);
 
-    // 공통 스탯 초기화
-    //InitializeCommonStats(BaseStatData);
 }
 
 void UEPHealthBarStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)

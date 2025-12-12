@@ -56,21 +56,7 @@ void UEPStatComponent::CommonApplyDamage(const FEPDamageInfo& DamageInfo)
     
 }
 
-//void UEPStatComponent::InitializeCommonStats(const FEPBaseStat& BaseStatData)
-//{
-//    // '설계도'의 값을 내부 변수로 복사
-//    AttackRange = BaseStatData.AttackRange;
-//    AttackSpeed = BaseStatData.AttackSpeed;
-//    MovementSpeed = BaseStatData.MovementSpeed;
-//
-//    // 부가 스탯 맵 초기화
-//    SecondaryStats.Empty();
-//
-//    // 초기 상태를 UI 등에 알리기 위해 델리게이트 한번 호출
-//    OnHealthChanged.Broadcast();
-//}
-
-
+// 스탯 데이터 초기화
 void UEPStatComponent::Initialize(const FEPBaseStat& BaseStatData)
 {
     // '설계도'의 값을 내부 변수로 복사
@@ -88,7 +74,7 @@ void UEPStatComponent::Initialize(const FEPBaseStat& BaseStatData)
 void UEPStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
 {
     float temp = DamageInfo.BaseDamage;
-    UE_LOG(LogTemp, Warning, TEXT("ApplyDamage ---> Damage : %f" ), temp);
+    //UE_LOG(LogTemp, Warning, TEXT("ApplyDamage ---> Damage : %f" ), temp);
     // 자식 클래스에서 재정의될 것이므로, 기본 구현은 비워둡니다.
 }
 

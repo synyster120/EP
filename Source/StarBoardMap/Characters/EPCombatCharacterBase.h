@@ -50,11 +50,15 @@ public:
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
     
-    // Die 바인딩 함수
+    // 피격 데미지 바인딩 (추상화)함수
+    UFUNCTION()
+    virtual void HandleHealthChanged(float NewHealth, float MaxHealth) PURE_VIRTUAL(AEPCombatCharacterBase::HandleHealthChanged, );
+
+    // Die 바인딩 (추상화)함수
     UFUNCTION()
     virtual void OnDied() PURE_VIRTUAL(AEPCombatCharacterBase::OnDied, );
 
-    // 몽타주 플레이 함수
+    // 몽타주 플레이 (추상화)함수
     UFUNCTION()
     virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) PURE_VIRTUAL(AEPCombatCharacterBase::CurrentMontagePlay, );
 
@@ -70,6 +74,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
     FGenericTeamId TeamID;
+
+    FORCEINLINE void SetCurrentInteractionMontage(TObjectPtr<UAnimMontage> CurrentMontage) { CurrentInteractionMontage = CurrentMontage; };
 
 protected:
     virtual void BeginPlay() override;
@@ -89,4 +95,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
     TArray<TSoftObjectPtr<UEPSkillDataAsset>> DefaultSkills;
 
+    // 현재 재생 중인 인터랙션 몽타주를 추적하기 위한 포인터
+    UPROPERTY()
+    TObjectPtr<UAnimMontage> CurrentInteractionMontage;
 };

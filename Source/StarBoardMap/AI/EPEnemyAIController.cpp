@@ -18,8 +18,9 @@ const FName AEPEnemyAIController::SelfActorKey(TEXT("SelfActor"));
 const FName AEPEnemyAIController::CurrentStateKey(TEXT("CurrentState"));
 const FName AEPEnemyAIController::IsDeadKey(TEXT("IsDead"));
 const FName AEPEnemyAIController::IsHitKey(TEXT("IsHit"));
-const FName AEPEnemyAIController::MontageToPlayKey(TEXT("MontageToPlay"));
+const FName AEPEnemyAIController::MontageToPlayKey(TEXT("MontageToPlay")); 
 const FName AEPEnemyAIController::IsWindupKey(TEXT("IsWindup"));
+const FName AEPEnemyAIController::HealthKey(TEXT("Health"));
 
 AEPEnemyAIController::AEPEnemyAIController()
 {
@@ -71,8 +72,6 @@ void AEPEnemyAIController::BeginPlay()
 // Character 관련 데이터로 설정 및 초기화 함수 (바인딩)
 void AEPEnemyAIController::OnCharacterReady()
 {
-    UE_LOG(LogTemp, Warning, TEXT("OnCharacterReady"));
-
     AEPEnemyCharacter* MyCharacter = Cast<AEPEnemyCharacter>(GetPawn());
 
     if (MyCharacter)
@@ -96,8 +95,6 @@ void AEPEnemyAIController::UpdatePerception(AEPEnemyCharacter* MyEnemyCharacter)
             SightConfig->DetectionByAffiliation.bDetectEnemies = true;
             SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
             SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-
-            UE_LOG(LogTemp, Warning, TEXT("aicontroller : %f  // %f"), MyEnemyCharacter->GetPerceptionRadius(), MyEnemyCharacter->GetLosePerceptionRadius());
             
             SightConfig->SightRadius = MyEnemyCharacter->GetPerceptionRadius();
             SightConfig->LoseSightRadius = MyEnemyCharacter->GetLosePerceptionRadius();
@@ -148,7 +145,7 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
             // 대상이 같은 팀이라면, 함수 탈출
             if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() == CasterTeamId)
             {
-                UE_LOG(LogTemp, Warning, TEXT("Target actor is team --> Blackboard not update : %s"), *Actor->GetName());
+                //UE_LOG(LogTemp, Warning, TEXT("Target actor is team --> Blackboard not update : %s"), *Actor->GetName());
                 return;
             }
         }
@@ -174,14 +171,13 @@ void AEPEnemyAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimul
 // Blackboard 에 Die 상태 업데이트
 void AEPEnemyAIController::NotifyDeathUpdate()
 {
-    UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- ok"));
     UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
 
     // 인지 컴포넌트 비활성화, target 리셋
 
     if (BlackboardComp)
     {
-        UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- Success"));
+        //UE_LOG(LogTemp, Warning, TEXT("OnDied - notify death update -- Success"));
         BlackboardComp->SetValueAsBool(IsDeadKey, true);
     }
 }
@@ -194,6 +190,16 @@ void AEPEnemyAIController::NotifyHitUpdate()
     if (BlackboardComp)
     {
         BlackboardComp->SetValueAsBool(IsHitKey, true);
+    }
+}
+
+void AEPEnemyAIController::NotifyHealthUpdate(float CurrentHealth)
+{
+    UBlackboardComponent* BlackboardComp = GetBlackboardComponent();
+
+    if (BlackboardComp)
+    {
+        BlackboardComp->SetValueAsFloat(HealthKey, CurrentHealth);
     }
 }
 
@@ -216,7 +222,7 @@ void AEPEnemyAIController::NotifyIsWindupUpdate()
     
     if (BlackboardComp)
     {
-        UE_LOG(LogTemp, Warning, TEXT("IsWindup is false --> blackboard update true"));
+        //UE_LOG(LogTemp, Warning, TEXT("IsWindup is false --> blackboard update true"));
         BlackboardComp->SetValueAsBool(IsWindupKey, true); // 대기 상태로 전환
     }
 }
