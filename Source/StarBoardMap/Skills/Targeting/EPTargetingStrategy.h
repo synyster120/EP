@@ -18,6 +18,6 @@ class STARBOARDMAP_API UEPTargetingStrategy : public UObject
 
 public:
 	// 추상 함수
-	virtual bool FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) PURE_VIRTUAL(UEPTargetingStrategy::FindTarget, return false;);
+	virtual bool FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) PURE_VIRTUAL(UEPTargetingStrategy::FindTarget, return false;);
 
 };
