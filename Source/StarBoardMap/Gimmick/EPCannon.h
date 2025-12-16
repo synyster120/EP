@@ -8,6 +8,8 @@
 
 class UEPSkillComponent;
 class UEPSkillDataAsset;
+class UStaticMeshComponent;
+class UEPTargetingStrategy;
 
 UCLASS()
 class STARBOARDMAP_API AEPCannon : public AActor
@@ -33,11 +35,33 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	TArray<TSoftObjectPtr<UEPSkillDataAsset>> DefaultSkills;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* FloorComponent;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* BodyComponent;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cannon", meta = (MakeEditWidget = true))
+	FVector TargetWidget;
+
+	FVector NowTargetVector;
+	FVector TargetVector;
+
+	float FloorValue = 0;
+	float BodyValue = 0;
+	
+
 	UPROPERTY()
 	FTimerHandle AttackHandle;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void AimTarget();
 
 };
