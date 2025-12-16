@@ -11,13 +11,13 @@ struct FEPSkillPhaseData;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(Abstract, EditInlineNew, BlueprintType)
 class STARBOARDMAP_API UEPTargetingStrategy : public UObject
 {
 	GENERATED_BODY()
 
 public:
 	// 추상 함수
-	virtual bool FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) PURE_VIRTUAL(UEPTargetingStrategy::FindTarget, return false;);
+	virtual bool FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) PURE_VIRTUAL(UEPTargetingStrategy::FindTarget, return false;);
 
 };

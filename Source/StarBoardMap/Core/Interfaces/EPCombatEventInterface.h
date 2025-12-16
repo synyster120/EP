@@ -7,7 +7,7 @@
 #include "EPCombatEventInterface.generated.h"
 
 /*
-*		플루프린트에서 이벤트 및 구현 가능한 Combat Interface
+*		플루프린트에서 이벤트 및 구현 가능한 Combat Interface (상태를 바꾸는 행동)
 */
 
 struct FEPDamageInfo;

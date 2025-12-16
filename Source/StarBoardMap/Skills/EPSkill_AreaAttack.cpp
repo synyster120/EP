@@ -6,7 +6,7 @@
 #include "Data/EPSkillDataAsset.h"
 #include "Components/EPMovementLockComponent.h"
 
-void UEPSkill_AreaAttack::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_AreaAttack::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 
     // Caster가 유효한지, SkillDataAsset이 할당되었는지 확인

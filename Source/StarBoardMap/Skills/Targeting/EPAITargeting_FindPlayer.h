@@ -17,7 +17,7 @@ class STARBOARDMAP_API UEPAITargeting_FindPlayer : public UEPTargetingStrategy
 	GENERATED_BODY()
 
 public:
-	virtual bool FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) override;
+	virtual bool FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) override;
 
 protected:
 	// 블랙보드 키 

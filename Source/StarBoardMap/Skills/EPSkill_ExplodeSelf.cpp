@@ -16,7 +16,7 @@
 #include "Data/EPCharacterAnimationData.h"
 
 
-void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_ExplodeSelf::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	// 시전자가 유효한지, 스킬 데이터가 할당되었는지 확인
 	AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
@@ -28,7 +28,7 @@ void UEPSkill_ExplodeSelf::Activate(ACharacter* Caster, const FEPSkillTargetData
 	if (!PhaseData) return;
 
 	// Enemy일 경우, Blackboard 의 대기 상태 true 로 업데이트
-	if (AEPEnemyAIController* EnemyAIController = Cast<AEPEnemyAIController>(Caster->GetController()))
+	if (AEPEnemyAIController* EnemyAIController = Cast<AEPEnemyAIController>(Character->GetController()))
 	{
 		//EnemyAIController->NotifyIsWindupUpdate();
 	}

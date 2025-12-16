@@ -15,5 +15,5 @@ class STARBOARDMAP_API UEPSkill_MeleeInstant : public UEPSkillBase
 	GENERATED_BODY()
 
 public:
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 };

@@ -11,9 +11,16 @@
 const FName UEPAITargeting_FindPlayer::TargetKey(TEXT("Target"));
 
 
-bool UEPAITargeting_FindPlayer::FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
+bool UEPAITargeting_FindPlayer::FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
 {
-    AAIController* AIController = Cast<AAIController>(Caster->GetController());
+    ACharacter* CasterCharacter = Cast<ACharacter>(Caster);
+    if (!CasterCharacter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- Character is null"));
+        return false;
+    }
+
+    AAIController* AIController = Cast<AAIController>(CasterCharacter->GetController());
     if (!AIController)
     {
         UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- aicontroller is null"));

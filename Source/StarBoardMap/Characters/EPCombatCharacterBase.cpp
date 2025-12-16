@@ -8,6 +8,7 @@
 #include "Data/EPCharacterTypes.h"
 #include "Core/Helper/EPAsyncLoadHelper.h"
 #include "Data/EPSkillDataAsset.h"
+#include "Data/EPCharacterAnimationData.h"
 // 테스트용
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
@@ -159,7 +160,7 @@ void AEPCombatCharacterBase::HandleDeath_Implementation()
     GetCapsuleComponent()->SetCollisionProfileName(TEXT("Ragdoll"));
 }
 
-UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
-{
-    return nullptr;
-}
+//UAnimMontage* AEPCombatCharacterBase::GetHitReactionMontage(EEPHitReactionType HitReactionType)
+//{
+//    return nullptr;
+//}

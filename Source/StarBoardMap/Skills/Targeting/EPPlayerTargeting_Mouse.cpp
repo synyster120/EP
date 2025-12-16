@@ -5,10 +5,21 @@
 #include "Data/EPSkillTypes.h"
 #include "GameFramework/Character.h"
 
-bool UEPPlayerTargeting_Mouse::FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
+bool UEPPlayerTargeting_Mouse::FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData)
 {
-    APlayerController* PlayerController = Cast<APlayerController>(Caster->GetController());
-    if (!PlayerController) return false;
+    ACharacter* CasterCharacter = Cast<ACharacter>(Caster);
+    if (!CasterCharacter)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- Character is null"));
+        return false;
+    }
+
+    APlayerController* PlayerController = Cast<APlayerController>(CasterCharacter->GetController());
+    if (!PlayerController)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("targeting is fail -- PlayerController is null"));
+        return false;
+    }
 
     // 스킬 단계 데이터에서 타겟 타입을 직접 사용합니다.
     const EEPTargetType TargetingType = PhaseData.TargetType;

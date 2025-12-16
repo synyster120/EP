@@ -68,63 +68,53 @@ void AEPProjectileBase::Initialize(const FEPSkillPhaseData* InPhaseData, AActor*
 // 데이터 초기화 함수
 void AEPProjectileBase::PoolableInitialize_Implementation(const FEPPoolableObjectInitializer& Initializer)
 {
-    if (!&Initializer) return;
+    if (!Initializer.Data || !ProjectileMovementComponent) return;
 
-    // 전달받은 데이터 애셋이 '투사체 데이터 제공자' 인터페이스를 가지고 있는지 확인
-    if (Initializer.Data && Initializer.Data->Implements<UEPProjectileDataProvider>())
+    // 계산된 '완성된 속도 벡터' 적용
+    ProjectileMovementComponent->Velocity = Initializer.LaunchVelocity;
+
+    // 데이터 테이블 정보 적용 (속력, 중력 등)
+    if (Initializer.Data->Implements<UEPProjectileDataProvider>()) // 발사체가 있는 스킬단계인지 확인
     {
-        // 인터페이스를 통해 안전하게 데이터 '요청'
-        if (IEPProjectileDataProvider::Execute_GetPhaseDataFromAsset(Initializer.Data, 0, this->PhaseData)) // 전달받은 데이터를 멤버 변수 PhaseData에 저장
+        IEPProjectileDataProvider::Execute_GetPhaseDataFromAsset(Initializer.Data, 0, this->PhaseData);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ERROR :: AEPProjectileBase --> poolable initialize --> get phase data load fail"));
+    }
+    const FEPProjectileData& Info = this->PhaseData.ProjectileInfo; // 가져온 데이터 저장
+
+    // 적용
+    ProjectileMovementComponent->InitialSpeed = Info.InitialSpeed;
+    ProjectileMovementComponent->MaxSpeed = Info.MaxSpeed;
+    ProjectileMovementComponent->ProjectileGravityScale = Info.GravityScale;
+    ProjectileMovementComponent->bShouldBounce = Info.bCanBounce;
+
+    // 유도탄(Homing) 과 일반탄(Ballistic) 분기 설정
+    const bool bIsHoming = (Initializer.TargetData.TargetType == EEPTargetType::Actor);
+    ProjectileMovementComponent->bIsHomingProjectile = bIsHoming; // 유도 설정
+
+    if (bIsHoming) // [유도탄 설정]
+    {
+        
+        // 타겟 액터가 존재할 때만 유도 컴포넌트 설정
+        if (Initializer.TargetData.TargetActor)
         {
-            if (ProjectileMovementComponent)
-            {
-                const FEPProjectileData& ProjectileInfo = this->PhaseData.ProjectileInfo;
-
-                // TargetType을 보고 유도 여부를 '결정'
-                const bool bShouldHoming = (Initializer.TargetData.TargetType == EEPTargetType::Actor);
-                ProjectileMovementComponent->bIsHomingProjectile = bShouldHoming;
-
-                // === 받아온 데이터로 자신 초기화 ===
-
-                // 만약 유도탄이라면, 목표물과 성능을 '설정'
-                if (bShouldHoming)
-                {
-                    if (Initializer.TargetData.TargetActor)
-                    {
-                        ProjectileMovementComponent->HomingTargetComponent = Initializer.TargetData.TargetActor->GetRootComponent();
-                    }
-                    else
-                    {
-                        UE_LOG(LogTemp, Warning, TEXT("TargetActor is null "));
-                    }
-                    ProjectileMovementComponent->HomingAccelerationMagnitude = ProjectileInfo.HomingMagnitude;
-                    //ProjectileMovementComponent->Velocity = GetActorForwardVector() * this->PhaseData.ProjectileInfo.InitialSpeed;
-                }
-
-                // 속도 지정
-                InitializeLaunchVelocity = Initializer.LaunchVelocity;
-                ProjectileMovementComponent->Velocity = InitializeLaunchVelocity;
-
-                // 그 외 속도, 중력 등 나머지 모든 값을 설정
-                ProjectileMovementComponent->InitialSpeed = ProjectileInfo.InitialSpeed;
-                ProjectileMovementComponent->MaxSpeed = ProjectileInfo.MaxSpeed;
-                ProjectileMovementComponent->ProjectileGravityScale = ProjectileInfo.GravityScale;
-                ProjectileMovementComponent->bShouldBounce = ProjectileInfo.bCanBounce;
-            }
-
-            // ...
-            //Damage = ImpactInfo.Damage; // 데미지 등 충돌 정보도 저장
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("ERROR :: AEPProjectileBase --> poolable initialize --> get phase data load fail"));
+            ProjectileMovementComponent->HomingTargetComponent = Initializer.TargetData.TargetActor->GetRootComponent();
         }
 
+        // 유도 성능 설정
+        ProjectileMovementComponent->HomingAccelerationMagnitude = Info.HomingMagnitude;
+    }
+    else // [일반탄 설정]
+    {
+        // 중력을 꺼주기(직사일 경우)
+        if (Initializer.TargetData.TargetType == EEPTargetType::Direction) ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
     }
 
     // 투사체의 주인을 설정
     SetOwner(Initializer.Owner);
-    bIsValid = true;
+    bIsValid = true; // 초기화 완료 저장
 }
 
 // Interface - Pool에 요청

@@ -17,5 +17,5 @@ class STARBOARDMAP_API UEPPlayerTargeting_Mouse : public UEPTargetingStrategy
 	GENERATED_BODY()
 	
 public:
-	virtual bool FindTarget(ACharacter* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) override;
+	virtual bool FindTarget(AActor* Caster, const FEPSkillPhaseData& PhaseData, FEPSkillTargetData& OutTargetData) override;
 };

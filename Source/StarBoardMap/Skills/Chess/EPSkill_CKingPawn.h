@@ -14,5 +14,5 @@ class STARBOARDMAP_API UEPSkill_CKingPawn : public UEPSkillBase
 {
 	GENERATED_BODY()
 	
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 };

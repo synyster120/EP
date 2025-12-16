@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Core/Interfaces/EPCombatQueryInterface.h"
 #include "EPCannon.generated.h"
 
 class UEPSkillComponent;
@@ -12,7 +13,7 @@ class UStaticMeshComponent;
 class UEPTargetingStrategy;
 
 UCLASS()
-class STARBOARDMAP_API AEPCannon : public AActor
+class STARBOARDMAP_API AEPCannon : public AActor, public IEPCombatQueryInterface
 {
 	GENERATED_BODY()
 	
@@ -22,8 +23,16 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Skill | Rate")
 	float AttackRate = 0.5f;
+
 	UPROPERTY(EditAnywhere, Category = "Skill | Looping")
 	bool AttackLooping = true;
+
+	// 에디터 뷰포트에서 직접 드래그 가능한 3D 위젯 - 발사체 공격의 중심 되는 위치
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (MakeEditWidget = true), Category = "Combat")
+	FVector GuardOffset;
+
+	// interface
+	virtual FVector GetMuzzleLocation() const;
 
 protected:
 	// Called when the game starts or when spawned

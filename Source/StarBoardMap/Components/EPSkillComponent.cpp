@@ -10,6 +10,7 @@
 #include "Skills/Targeting/EPTargetingStrategy.h"
 #include "Components/EPMovementLockComponent.h"
 
+#include "Skills/Targeting/EPTargetingStrategy.h"
 
 UEPSkillComponent::UEPSkillComponent()
 {
@@ -39,6 +40,12 @@ void UEPSkillComponent::BeginPlay()
 
     //// StatComponent는 반드시 존재해야 하므로, 없다면 에러를 발생시켜 문제를 즉시 인지하게 함
     //check(StatComponentRef != nullptr);
+
+    // target 지정 방식 객체 생성
+    /*if (DefaultStrategyClass)
+    {
+        CachedStrategy = NewObject<UEPTargetingStrategy>(this, DefaultStrategyClass);
+    }*/
 }
 
 // 초기화 함수 (외부에서 호출)
@@ -210,7 +217,7 @@ void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
             }
 
             // 스킬 실행 (스킬 객체에 요청)
-            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+            SkillToActivate->Activate(GetOwner(), TargetData, LastComboSkillIndex);
         }
         else
         {
@@ -340,32 +347,29 @@ void UEPSkillComponent::ResetCombo()
 // 스킬 단계의 필요한 타겟 타입 맞춰서 타겟 지정
 bool UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex, FEPSkillTargetData& OutTargetData)
 {
-    AEPCombatCharacterBase* OwnerCharacter = Cast<AEPCombatCharacterBase>(GetOwner());
-
-    if (OwnerCharacter && OwnerCharacter->TargetingStrategyClass)
+    // 실행
+    if (TargetingStrategy)
     {
-        // 캐릭터에 지정된 전략 클래스로 '전략 객체'를 임시 생성
-        UEPTargetingStrategy* Strategy = NewObject<UEPTargetingStrategy>(this, OwnerCharacter->TargetingStrategyClass);
-        if (Strategy)
-        {
-            // 해당 전략에 따라 타겟을 찾도록 '위임'
-            const FEPSkillPhaseData* PhaseData = SkillSlots[SkillIndex].SkillObject->GetPhaseData(LastComboSkillIndex);
-            if (!PhaseData) return false;
+        AActor* Owner = GetOwner();
 
-            if (Strategy->FindTarget(OwnerCharacter, *PhaseData, OutTargetData))
-            {
-                return true;
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("[%s] PerformTargeting() -> FindTarget() is fail"), *GetName());
-            }
+        // 해당 전략에 따라 타겟을 찾도록 '위임'
+        const FEPSkillPhaseData* PhaseData = SkillSlots[SkillIndex].SkillObject->GetPhaseData(LastComboSkillIndex);
+        if (!PhaseData) return false;
+
+        if (TargetingStrategy->FindTarget(Owner, *PhaseData, OutTargetData))
+        {
+            return true;
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("[%s] PerformTargeting() -> FindTarget() is fail"), *GetName());
         }
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("[%s] character - TargetingStrategyClass setting is null -> FindTarget() is fail"), *GetName());
     }
-    return false; // 실패 반환
+
+    return false;
 }
 

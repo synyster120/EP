@@ -24,7 +24,11 @@ class STARBOARDMAP_API IEPCombatQueryInterface
 	GENERATED_BODY()
 
 public:
-	// 피격 반응 애니메이션을 반환한다는 계약
-	UFUNCTION( BlueprintCallable, Category = "Combat|Query")
-	virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) = 0; // 0 : 반드시 재정의
+	//// 피격 반응 애니메이션을 반환한다는 계약
+	//UFUNCTION( BlueprintCallable, Category = "Combat|Query")
+	//virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) = 0; // 0 : 반드시 재정의
+
+	// 발사체 생성 위치 (터렛은 총구 소켓, 몬스터는 손 등)
+	UFUNCTION(BlueprintCallable, Category = "Combat|Query")
+	virtual FVector GetMuzzleLocation() const = 0;
 };

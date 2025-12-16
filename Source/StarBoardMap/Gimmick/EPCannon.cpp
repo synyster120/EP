@@ -19,6 +19,11 @@ AEPCannon::AEPCannon()
 
 }
 
+FVector AEPCannon::GetMuzzleLocation() const
+{
+	return GetActorTransform().TransformPosition(GuardOffset);
+}
+
 // Called when the game starts or when spawned
 void AEPCannon::BeginPlay()
 {
