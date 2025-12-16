@@ -27,9 +27,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Skill | Looping")
 	bool AttackLooping = true;
 
-	// 에디터 뷰포트에서 직접 드래그 가능한 3D 위젯 - 발사체 공격의 중심 되는 위치
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (MakeEditWidget = true), Category = "Combat")
-	FVector GuardOffset;
 
 	// interface
 	virtual FVector GetMuzzleLocation() const;
@@ -44,9 +41,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data")
 	TArray<TSoftObjectPtr<UEPSkillDataAsset>> DefaultSkills;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Data")
-	TSubclassOf<UEPTargetingStrategy> TargetingStrategyClass;
-
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* FloorComponent;
 
@@ -55,7 +49,7 @@ protected:
 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cannon", meta = (MakeEditWidget = true))
-	FVector TargetWidget;
+	FVector TargetOffset;
 
 	FVector NowTargetVector;
 	FVector TargetVector;

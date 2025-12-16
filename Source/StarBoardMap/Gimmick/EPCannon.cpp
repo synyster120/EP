@@ -21,7 +21,7 @@ AEPCannon::AEPCannon()
 
 FVector AEPCannon::GetMuzzleLocation() const
 {
-	return GetActorTransform().TransformPosition(GuardOffset);
+	return GetActorTransform().TransformPosition(TargetOffset);
 }
 
 // Called when the game starts or when spawned
@@ -45,7 +45,7 @@ void AEPCannon::BeginPlay()
 		AttackRate,
 		AttackLooping
 	);
-	TargetVector = GetActorLocation() + TargetWidget/5.f;
+	TargetVector = GetActorLocation() + TargetOffset;
 
 	TArray<UStaticMeshComponent*> Comps;
 	GetComponents<UStaticMeshComponent>(Comps);
