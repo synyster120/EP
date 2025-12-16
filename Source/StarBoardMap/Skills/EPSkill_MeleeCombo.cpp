@@ -6,7 +6,7 @@
 #include "Characters/EPCombatCharacterBase.h"
 #include "Data/EPSkillDataAsset.h"
 
-void UEPSkill_MeleeCombo::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_MeleeCombo::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	Super::Activate(Caster, NewTargetData, CurrentComboIndex);
 

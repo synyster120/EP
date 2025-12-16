@@ -42,10 +42,10 @@ void UEPSkillComponent::BeginPlay()
     //check(StatComponentRef != nullptr);
 
     // target 지정 방식 객체 생성
-    if (DefaultStrategyClass)
+    /*if (DefaultStrategyClass)
     {
         CachedStrategy = NewObject<UEPTargetingStrategy>(this, DefaultStrategyClass);
-    }
+    }*/
 }
 
 // 초기화 함수 (외부에서 호출)
@@ -217,7 +217,7 @@ void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
             }
 
             // 스킬 실행 (스킬 객체에 요청)
-            SkillToActivate->Activate(OwnerCaster, TargetData, LastComboSkillIndex);
+            SkillToActivate->Activate(GetOwner(), TargetData, LastComboSkillIndex);
         }
         else
         {
@@ -347,66 +347,16 @@ void UEPSkillComponent::ResetCombo()
 // 스킬 단계의 필요한 타겟 타입 맞춰서 타겟 지정
 bool UEPSkillComponent::PerformTargeting(UEPSkillBase* SkillToActivate, int32 SkillIndex, FEPSkillTargetData& OutTargetData)
 {
-    //AEPCombatCharacterBase* OwnerCharacter = Cast<AEPCombatCharacterBase>(GetOwner());
-
-    //if (OwnerCharacter && OwnerCharacter->TargetingStrategyClass)
-    //{
-    //    // 캐릭터에 지정된 전략 클래스로 '전략 객체'를 임시 생성
-    //    UEPTargetingStrategy* Strategy = NewObject<UEPTargetingStrategy>(this, OwnerCharacter->TargetingStrategyClass);
-    //    if (Strategy)
-    //    {
-    //        // 해당 전략에 따라 타겟을 찾도록 '위임'
-    //        const FEPSkillPhaseData* PhaseData = SkillSlots[SkillIndex].SkillObject->GetPhaseData(LastComboSkillIndex);
-    //        if (!PhaseData) return false;
-
-    //        if (Strategy->FindTarget(OwnerCharacter, *PhaseData, OutTargetData))
-    //        {
-    //            return true;
-    //        }
-    //        else
-    //        {
-    //            UE_LOG(LogTemp, Warning, TEXT("[%s] PerformTargeting() -> FindTarget() is fail"), *GetName());
-    //        }
-    //    }
-    //}
-    //else
-    //{
-    //    UE_LOG(LogTemp, Warning, TEXT("[%s] character - TargetingStrategyClass setting is null -> FindTarget() is fail"), *GetName());
-    //}
-    //return false; // 실패 반환
-
-
-    //// 1. 주인이 인터페이스를 쓰는지 확인 (동적 변경 가능성 체크)
-    AActor* Owner = GetOwner();
-    //TSubclassOf<UEPTargetingStrategy> RuntimeClass = DefaultStrategyClass;
-
-    //if (Owner && Owner->Implements<UEPCombatInterface>())
-    //{
-    //    // 주인이 원하는 전략이 따로 있는지 물어봄
-    //    TSubclassOf<UEPTargetingStrategy> StrategyFromOwner = IEPCombatInterface::Execute_GetTargetingStrategy(Owner);
-    //    if (StrategyFromOwner)
-    //    {
-    //        RuntimeClass = StrategyFromOwner;
-    //    }
-    //}
-
-    //// 2. 캐싱된 전략과 다른 클래스라면 새로 생성 (교체)
-    //if (CachedStrategy == nullptr || CachedStrategy->GetClass() != RuntimeClass)
-    //{
-    //    if (RuntimeClass)
-    //    {
-    //        CachedStrategy = NewObject<UEPTargetingStrategy>(this, RuntimeClass);
-    //    }
-    //}
-
-    // 3. 실행
-    if (CachedStrategy)
+    // 실행
+    if (TargetingStrategy)
     {
+        AActor* Owner = GetOwner();
+
         // 해당 전략에 따라 타겟을 찾도록 '위임'
         const FEPSkillPhaseData* PhaseData = SkillSlots[SkillIndex].SkillObject->GetPhaseData(LastComboSkillIndex);
         if (!PhaseData) return false;
 
-        if (CachedStrategy->FindTarget(Owner, *PhaseData, OutTargetData))
+        if (TargetingStrategy->FindTarget(Owner, *PhaseData, OutTargetData))
         {
             return true;
         }

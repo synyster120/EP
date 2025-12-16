@@ -18,7 +18,7 @@ class STARBOARDMAP_API UEPSkill_AreaAttack : public UEPSkillBase
 	GENERATED_BODY()
 
 public:
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 	
 	UFUNCTION()
 	void OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted);

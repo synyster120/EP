@@ -47,7 +47,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSkillFinishedDelegate OnSkillFinishedDelegate;
 
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 
 	// 강제 중단 (AI의 BT Task가 'Abort'시 호출. Player도 피격 시 호출 가능)
 	virtual void CancelSkillActivation();

@@ -9,7 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "AI/ChessUnitController.h"
 
-void UEPSkill_CRook::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_CRook::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	ActorsToIgnore.Empty();
 	ActorsToIgnore.Add(Caster);
@@ -17,7 +17,7 @@ void UEPSkill_CRook::Activate(ACharacter* Caster, const FEPSkillTargetData& NewT
 	Explode(Caster, 1);
 }
 
-void UEPSkill_CRook::Explode(ACharacter* Caster, int32 Count)
+void UEPSkill_CRook::Explode(AActor* Caster, int32 Count)
 {
 	AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
 	if (!Character || !SkillDataAsset) return;
@@ -134,7 +134,7 @@ void UEPSkill_CRook::Explode(ACharacter* Caster, int32 Count)
 		UGameplayStatics::ApplyDamage(
 			TargetActor,
 			Damage,
-			Caster->GetController(),
+			Character->GetController(),
 			Caster,
 			UDamageType::StaticClass()
 		);

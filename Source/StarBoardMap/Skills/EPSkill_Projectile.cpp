@@ -14,11 +14,12 @@
 // 테스트용
 #include "GameFramework/ProjectileMovementComponent.h"
 
-void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	Super::Activate(Caster, NewTargetData, CurrentComboIndex);
 
     if (!Caster || !SkillDataAsset ) return;
+    UE_LOG(LogTemp, Warning, TEXT("UEPSkill_Projectile skill is activate - caster : %s"), *Caster->GetName());
 
     const FEPSkillData& Data = SkillDataAsset->SkillData;
     if (!Data.ComboSequence.IsValidIndex(0)) return;
@@ -106,64 +107,87 @@ void UEPSkill_Projectile::Activate(ACharacter* Caster, const FEPSkillTargetData&
 
 }
 
-bool UEPSkill_Projectile::CalculateLaunchVelocity(ACharacter* Caster, const FEPSkillTargetData& TargetData, const FEPSkillPhaseData& PhaseData, FTransform& OutSpawnTransform, FVector& OutLaunchVelocity) const
+// target data 처리
+bool UEPSkill_Projectile::CalculateLaunchVelocity(AActor* Caster, const FEPSkillTargetData& TargetData, const FEPSkillPhaseData& PhaseData, FTransform& OutSpawnTransform, FVector& OutLaunchVelocity) const
 {
-    const FVector CasterLocation = Caster->GetActorLocation();
-    const FRotator CasterRotation = Caster->GetActorRotation();
+    if (!Caster) return false;
 
-    // -------------- 생성 위치 계산 --------------
+    // 발사 시작 위치 (Muzzle) 결정
+    // 인터페이스를 통해 총구/손 위치를 가져오고, 없으면 몸통 앞 50cm
+    FVector StartLocation = Caster->GetActorLocation();
+    /*if (Caster->Implements<UEPCombatQueryInterface>())
+    {
+        StartLocation = IEPCombatQueryInterface::Execute_GetMuzzleLocation(Caster);
+    }
+    else*/
+    {
+        StartLocation += Caster->GetActorForwardVector() * 50.0f;
+    }
+
+    // 데이터 테이블에서 설정한 투사체 속력
+    const float LaunchSpeed = PhaseData.ProjectileInfo.InitialSpeed;
+    bool bCalculationSuccess = false; // 계산 성공 여부
+
+    // -------------- 생성위치/발사체속도 계산 --------------
     switch (TargetData.TargetType)
     {
     case EEPTargetType::Direction:
     {
-        UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- direction"), *Caster->GetName());
-        const FVector ForwardVector = Caster->GetActorForwardVector();
-        const float Distance = 50.0f;
-        const FVector SpawnLocation = CasterLocation + (ForwardVector * Distance);
-        OutSpawnTransform = FTransform(CasterRotation, SpawnLocation);
-        OutLaunchVelocity = Caster->GetActorForwardVector() * PhaseData.ProjectileInfo.InitialSpeed;
+        // [방향 발사] 타겟 데이터의 방향 or 캐스터 정면
+        FVector FireDir = TargetData.TargetDirection.IsZero() ? Caster->GetActorForwardVector() : TargetData.TargetDirection;
+
+        // 방향 * 속력 = 속도 벡터
+        OutLaunchVelocity = FireDir * LaunchSpeed;
+        OutSpawnTransform = FTransform(FireDir.Rotation(), StartLocation);
+        bCalculationSuccess = true;
         break;
     }
     case EEPTargetType::Actor:
+    case EEPTargetType::Location:
     {
-        if (TargetData.TargetActor)
+        // [지점 발사] Actor와 Location 모두 '목표 지점'이 존재함
+        FVector EndLocation;
+        if (TargetData.TargetType == EEPTargetType::Actor && TargetData.TargetActor)
         {
-            FVector SuggestedVelocity;
-            // 최적의 포물선 속도를 계산
-            bool bSuccess = UGameplayStatics::SuggestProjectileVelocity(
-                this,
-                SuggestedVelocity,
-                CasterLocation + 5.0f, // 시작 위치
-                TargetData.TargetActor->GetActorLocation(), // 목표 위치
-                1500.0f, // 속력
-                false, 0.0f, 1.0f // 기타 옵션
-            );
-
-            if (bSuccess) // 커스텀 속도 계산에 성공했는지 여부
-            {
-                OutLaunchVelocity = SuggestedVelocity;
-                // 발사 방향을 속도 방향과 일치
-                OutSpawnTransform = FTransform(SuggestedVelocity.Rotation(), CasterLocation);
-            }
+            EndLocation = TargetData.TargetActor->GetActorLocation();
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("[%s] Projectile target type -- actor is not set"), *Caster->GetName());
+            EndLocation = TargetData.TargetLocation;
         }
+
+        // 곡사포(Arc) 궤적 계산 시도
+        // 물리 엔진이 목표 지점에 도달하기 위한 속도 벡터(OutLaunchVelocity)를 계산해줌
+        bCalculationSuccess = UGameplayStatics::SuggestProjectileVelocity(
+            this,
+            OutLaunchVelocity,
+            StartLocation,
+            EndLocation,
+            LaunchSpeed,
+            false, 0.0f, 0.0f,
+            ESuggestProjVelocityTraceOption::DoNotTrace
+        );
+
+        // 곡사 계산 실패 시 (사거리 부족, 각도 안 나옴 등) -> 직사(Linear)로 전환
+        if (!bCalculationSuccess)
+        {
+            // 목표 지점을 향한 직선 방향 벡터 추출 (SafeNormal로 안전하게)
+            FVector DirectDir = (EndLocation - StartLocation).GetSafeNormal();
+            OutLaunchVelocity = DirectDir * LaunchSpeed;
+            bCalculationSuccess = true; // 직사로라도 쏘니까 성공 처리
+        }
+
+        // 발사체가 날아가는 방향을 바라보게 회전 설정
+        OutSpawnTransform = FTransform(OutLaunchVelocity.Rotation(), StartLocation);
         break;
     }
-    case EEPTargetType::Location:
-    {
-        // 타겟 위치를 향하는 방향으로 SpawnTransform 설정
-        FVector DirectionToLocation = (TargetData.TargetLocation - CasterLocation).GetSafeNormal();
-        OutSpawnTransform = FTransform(DirectionToLocation.Rotation(), CasterLocation);
+    default:
+        // 예외 상황: 그냥 정면 발사
+        OutLaunchVelocity = Caster->GetActorForwardVector() * LaunchSpeed;
+        OutSpawnTransform = FTransform(OutLaunchVelocity.Rotation(), StartLocation);
+        bCalculationSuccess = true;
         break;
-    }
-    default :
-        // 어떤 경우에도 성공하지 못했다면 기본값(정면 발사)을 사용
-        OutSpawnTransform = FTransform(CasterRotation, CasterLocation);
-        OutLaunchVelocity = CasterRotation.Vector() * PhaseData.ProjectileInfo.InitialSpeed;
     }
 
-    return true;
+    return bCalculationSuccess;
 }

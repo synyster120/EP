@@ -11,7 +11,7 @@ struct FEPSkillPhaseData;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(Abstract, EditInlineNew, BlueprintType)
 class STARBOARDMAP_API UEPTargetingStrategy : public UObject
 {
 	GENERATED_BODY()

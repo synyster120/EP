@@ -5,7 +5,7 @@
 #include "Data/EPSkillDataAsset.h"
 #include "Data/EPSkillTypes.h"
 
-void UEPSkillBase::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	// 스킬 시전 - 자식에서 구현
     

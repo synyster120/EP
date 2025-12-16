@@ -14,9 +14,9 @@ class STARBOARDMAP_API UEPSkill_CBishop : public UEPSkillBase
 {
 	GENERATED_BODY()
 	
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 
-	void Explode(ACharacter* Caster, int32 Count);
+	void Explode(AActor* Caster, int32 Count);
 
 	const FIntPoint TempXY[4] = { FIntPoint(1,1), FIntPoint(-1,1), FIntPoint(-1,-1), FIntPoint(1,-1) };
 	bool IsValidXY[4];

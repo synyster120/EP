@@ -15,8 +15,8 @@ class STARBOARDMAP_API UEPSkill_Projectile : public UEPSkillBase
 	GENERATED_BODY()
 
 public:
-	virtual void Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
+	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 
-	bool CalculateLaunchVelocity(ACharacter* Caster, const FEPSkillTargetData& TargetData, const FEPSkillPhaseData& PhaseData, FTransform& OutSpawnTransform, FVector& OutLaunchVelocity) const;
+	bool CalculateLaunchVelocity(AActor* Caster, const FEPSkillTargetData& TargetData, const FEPSkillPhaseData& PhaseData, FTransform& OutSpawnTransform, FVector& OutLaunchVelocity) const;
 
 };

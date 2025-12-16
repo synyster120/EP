@@ -93,13 +93,13 @@ public:
     FOnMovementLockEnded OnMovementLockEnded;
 
     // 타겟팅 방식 지정
-    UPROPERTY(EditAnywhere, Category = "Combat")
-    TSubclassOf<UEPTargetingStrategy> DefaultStrategyClass;
+    UPROPERTY(EditAnywhere, Instanced, Category = "Combat")
+    TObjectPtr<UEPTargetingStrategy> TargetingStrategy;
 
 protected:
     // 타겟팅 방식 객체
-    UPROPERTY()
-    UEPTargetingStrategy* CachedStrategy;
+    /*UPROPERTY()
+    UEPTargetingStrategy* CachedStrategy;*/
 
 private:
     // 소유 스킬 객체 / 스킬 쿨 타이머 배열 (데이터의 원본)

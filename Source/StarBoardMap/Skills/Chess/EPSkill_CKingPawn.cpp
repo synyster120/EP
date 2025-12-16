@@ -9,7 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"  
 #include "AI/ChessUnitController.h"
 
-void UEPSkill_CKingPawn::Activate(ACharacter* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
+void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
 	// 시전자가 유효한지, 스킬 데이터가 할당되었는지 확인
 	AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
@@ -135,7 +135,7 @@ void UEPSkill_CKingPawn::Activate(ACharacter* Caster, const FEPSkillTargetData& 
 		UGameplayStatics::ApplyDamage(
 			TargetActor,
 			Damage,
-			Caster->GetController(),
+			Character->GetController(),
 			Caster,
 			UDamageType::StaticClass()
 		);

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Characters/EPCharacterBase.h"
-#include "Core/Interfaces/EPCombatQueryInterface.h"
+//#include "Core/Interfaces/EPCombatQueryInterface.h"
 #include "Core/Interfaces/EPCombatEventInterface.h"
 #include "Data/EPCombatTypes.h"
 #include "GenericTeamAgentInterface.h" // team interface
@@ -23,7 +23,7 @@ class UEPTargetingStrategy;
  */
 
 UCLASS(Abstract)
-class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IEPCombatQueryInterface, public IGenericTeamAgentInterface
+class STARBOARDMAP_API AEPCombatCharacterBase : public AEPCharacterBase, public IEPCombatEventInterface, public IGenericTeamAgentInterface//, public IEPCombatQueryInterface
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,7 @@ public:
     UFUNCTION()
     virtual void HandleDeath_Implementation() override;
     // ====== ICombat Query Interface Implementation ======
-    virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
+    //virtual UAnimMontage* GetHitReactionMontage(EEPHitReactionType HitReactionType) override;
 
     // interface
     virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
