@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/Interfaces/EPCombatQueryInterface.h"
+#include "GenericTeamAgentInterface.h"
 #include "EPCannon.generated.h"
 
 class UEPSkillComponent;
@@ -13,7 +14,7 @@ class UStaticMeshComponent;
 class UEPTargetingStrategy;
 
 UCLASS()
-class STARBOARDMAP_API AEPCannon : public AActor, public IEPCombatQueryInterface
+class STARBOARDMAP_API AEPCannon : public AActor, public IEPCombatQueryInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 	
@@ -47,15 +48,22 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* BodyComponent;
 
+	UPROPERTY(EditAnywhere)
+	USceneComponent* BodySceneComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
+	FGenericTeamId TeamID;
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cannon", meta = (MakeEditWidget = true))
 	FVector TargetOffset;
 
-	FVector NowTargetVector;
-	FVector TargetVector;
-
 	float FloorValue = 0;
 	float BodyValue = 0;
+	bool IsTurnFloor = true;
+	bool IsTurnBody = true;
+	float YawSpeedDegPerSec = 200.f;
 	
 
 	UPROPERTY()
@@ -65,6 +73,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void AimTarget();
+	void AimTarget(float NewFloorValue, float NewBodyValue);
 
+	UStaticMeshComponent* GetBodyComponent() { return BodyComponent; }
 };

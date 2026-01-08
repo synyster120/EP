@@ -121,7 +121,7 @@ void AChessGameMode::OnTurn()
 		ChessGameState->SetGridState(BeforeMovePoint, MovingPlace, Unit->GetUnitType());
 	}
 
-	/*for (int32 Row = 1; Row < 9; Row++)
+	/*for (int32 Row = 9; Row >= 1; Row--)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%d %d %d %d %d %d %d %d"),
 			ChessGameState->GetGridWarning(FIntPoint(Row, 1)),
@@ -133,7 +133,8 @@ void AChessGameMode::OnTurn()
 			ChessGameState->GetGridWarning(FIntPoint(Row, 7)),
 			ChessGameState->GetGridWarning(FIntPoint(Row, 8))
 			);
-	}*/
+	}
+	UE_LOG(LogTemp, Warning, TEXT("HIHI Now Turn is %d"), ChessGameState->GetTurn());*/
 }
 
 FIntPoint AChessGameMode::FindRandomMoveInPlace()

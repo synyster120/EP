@@ -106,18 +106,12 @@ void AChessUnitController::MoveEnd()
 	ChessGameMode->SetGridWarning(Unit->GetXY(), -Unit->GetUnitType());
 }
 
-void AChessUnitController::QueenArrivePoint(FIntPoint Point)
-{
-	ChessGameMode->SetGridWarning(Point, -2);
-}
-
 void AChessUnitController::SpawnPawn(FIntPoint SpawnPoint)
 {
+	Unit->SetXY(SpawnPoint);
 	ChessGameMode->SetGridWarning(SpawnPoint, Unit->GetUnitType());
-	Unit->Warning();
 	FVector SpawnVector = ChessGameMode->GetGridVector(SpawnPoint);
 	SpawnVector.Z += 500.f;
-	Unit->SetXY(SpawnPoint);
 	Unit->SetActorLocation(SpawnVector);
 	Unit->SetActorHiddenInGame(false);
 	Unit->SetActorEnableCollision(true);

@@ -41,7 +41,6 @@ public:
 	FIntPoint MoveOut();
 	void MoveEnd();
 
-	void QueenArrivePoint(FIntPoint Point);
 	void SpawnPawn(FIntPoint SpawnPoint);
 	FIntPoint Attack();
 	FIntPoint GetXY() const { return Unit->GetXY(); }

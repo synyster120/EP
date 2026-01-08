@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"  
 #include "Kismet/KismetSystemLibrary.h"  
 #include "AI/ChessUnitController.h"
+#include "NiagaraFunctionLibrary.h"
 
 void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
@@ -20,6 +21,8 @@ void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewT
 	const FEPSkillPhaseData* PhaseData = GetPhaseData(0);
 	if (!PhaseData) return;
 
+	UNiagaraSystem* Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
+	USoundBase* Sound = PhaseData->SFX.Get();
 
 	// 폭발 위치 지정 (사용자 위치)
 	const FVector ExplosionLocation = Caster->GetActorLocation();
@@ -45,9 +48,6 @@ void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewT
 	}
 	const float DamageRadius = TempRadius;
 
-	UNiagaraSystem* Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
-	USoundBase* Sound = PhaseData->SFX.Get();
-
 	FIntPoint TempXY[8] = {
 		FIntPoint(0,150),
 		FIntPoint(0, -150),
@@ -57,23 +57,25 @@ void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewT
 		FIntPoint(-150, -150),
 		FIntPoint(-150,0),
 		FIntPoint(-150,150) };
-#if !(UE_BUILD_SHIPPING)
-	// 디버그용
+
+	AChessUnitController* Controller = Cast<AChessUnitController>(Character->GetController());
 	for (int32 i = 0;i < 8;i++) {
 		FVector NewVec = ExplosionLocation;
 		NewVec.X += TempXY[i].X;
 		NewVec.Y += TempXY[i].Y;
-		DrawDebugSphere(Caster->GetWorld(), NewVec, DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
-	}
-#endif
 
-	AChessUnitController* Controller = Cast<AChessUnitController>(Character->GetController());
-	for (int32 i = 0;i < 8;i++) {
-		FIntPoint NewVec = Controller->GetXY();
-		NewVec.X += TempXY[i].X / 150;
-		NewVec.Y += TempXY[i].Y / 150;
-		if (Controller->IsOnBoard(NewVec)) {
-			Controller->SetGridWarning(NewVec, -Controller->GetUnitType());
+		FIntPoint NewXY = Controller->GetXY();
+		NewXY.X += TempXY[i].X / 150;
+		NewXY.Y += TempXY[i].Y / 150;
+		if (Controller->IsOnBoard(NewXY)) {
+			Controller->SetGridWarning(NewXY, -Controller->GetUnitType());
+
+			// 디버그용
+			//DrawDebugSphere(Caster->GetWorld(), NewVec, DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
+			
+			//나이아가라
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(Caster->GetWorld(), Effect, NewVec);
+			UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, NewVec);
 		}
 	}
 
@@ -96,41 +98,46 @@ void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewT
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn)); // Pawn 타입만 검색
 
-		FVector NewVec = ExplosionLocation;
-		NewVec.X += TempXY[i].X;
-		NewVec.Y += TempXY[i].Y;
-		UKismetSystemLibrary::SphereOverlapActors(
-			Caster->GetWorld(),
-			NewVec,
-			DamageRadius,
-			ObjectTypes,
-			ACharacter::StaticClass(),
-			TArray<AActor*>(),
-			OverlappedActors
-		);
+		FIntPoint NewXY = Controller->GetXY();
+		NewXY.X += TempXY[i].X / 150;
+		NewXY.Y += TempXY[i].Y / 150;
+		if (Controller->IsOnBoard(NewXY)) {
 
-		// 찾은 액터들을 순회하며 같은 팀인지 확인
-		if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
-		{
-			for (AActor* OverlappedActor : OverlappedActors)
+			FVector NewVec = ExplosionLocation;
+			NewVec.X += TempXY[i].X;
+			NewVec.Y += TempXY[i].Y;
+			UKismetSystemLibrary::SphereOverlapActors(
+				Caster->GetWorld(),
+				NewVec,
+				DamageRadius,
+				ObjectTypes,
+				ACharacter::StaticClass(),
+				TArray<AActor*>(),
+				OverlappedActors
+			);
+
+			// 찾은 액터들을 순회하며 같은 팀인지 확인
+			if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
 			{
-				IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(OverlappedActor);
-				// 대상이 같은 팀이라면, 무시 목록에 추가합니다.
-				if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() == CasterTeamId)
+				for (AActor* OverlappedActor : OverlappedActors)
 				{
-					ActorsToIgnore.Add(OverlappedActor);
-				}
-				else if (!ActorsToIgnore.Contains(OverlappedActor))
-				{
-					ActorsToIgnore.Add(OverlappedActor);
-					TargetActors.Add(OverlappedActor);
+					IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(OverlappedActor);
+					// 대상이 같은 팀이라면, 무시 목록에 추가합니다.
+					if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() == CasterTeamId)
+					{
+						ActorsToIgnore.Add(OverlappedActor);
+					}
+					else if (!ActorsToIgnore.Contains(OverlappedActor))
+					{
+						ActorsToIgnore.Add(OverlappedActor);
+						TargetActors.Add(OverlappedActor);
+					}
 				}
 			}
 		}
 	}
-	// -----------------------------------------------
 
-	// 해당 위치에 광역 피해(Radial Damage)를 입힘
+	//데미지
 	for (AActor* TargetActor : TargetActors) {
 		UGameplayStatics::ApplyDamage(
 			TargetActor,
@@ -139,16 +146,6 @@ void UEPSkill_CKingPawn::Activate(AActor* Caster, const FEPSkillTargetData& NewT
 			Caster,
 			UDamageType::StaticClass()
 		);
-	}
-
-	// 폭발 이펙트 및 사운드 재생
-	if (Effect)
-	{
-		//UGameplayStatics::SpawnEmitterAtLocation(Caster->GetWorld(), Effect, ExplosionLocation);
-	}
-	if (Sound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, ExplosionLocation);
 	}
 }
 

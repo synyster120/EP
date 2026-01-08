@@ -37,6 +37,7 @@ AEPProjectileBase::AEPProjectileBase()
     MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
     // Overlap 이벤트 활성화
     CollisionSphere->SetGenerateOverlapEvents(true);
+    CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
 }
 
 // 스킬 단계 데이터로 초기화 함수 ================================= 사용 안함 =================================
@@ -98,13 +99,13 @@ void AEPProjectileBase::PoolableInitialize_Implementation(const FEPPoolableObjec
     {
         
         // 타겟 액터가 존재할 때만 유도 컴포넌트 설정
-        if (Initializer.TargetData.TargetActor)
+        /*if (Initializer.TargetData.TargetActor)
         {
             ProjectileMovementComponent->HomingTargetComponent = Initializer.TargetData.TargetActor->GetRootComponent();
         }
 
         // 유도 성능 설정
-        ProjectileMovementComponent->HomingAccelerationMagnitude = Info.HomingMagnitude;
+        ProjectileMovementComponent->HomingAccelerationMagnitude = Info.HomingMagnitude;*/
     }
     else // [일반탄 설정]
     {
@@ -129,9 +130,9 @@ void AEPProjectileBase::Activate()
     SetActorHiddenInGame(false);
     SetActorTickEnabled(true);
 
-    //ollisionSphere->SetCollisionProfileName(TEXT("Projectile"));
+    CollisionSphere->SetCollisionProfileName(TEXT("OverlapAll"));
     SetActorEnableCollision(true);
-    CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
+    CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
     // ProjectileMovementComponent를 활성화하고, 저장된 속성으로 '움직임'을 시작
     if (ProjectileMovementComponent && bIsValid)
@@ -181,7 +182,7 @@ void AEPProjectileBase::Deactivate()
     SetActorTickEnabled(false);
     CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     // 바인딩 제거
-    CollisionSphere->OnComponentBeginOverlap.Clear();
+    //CollisionSphere->OnComponentBeginOverlap.Clear();
     //CollisionSphere->OnComponentBeginOverlap.RemoveDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
     if (ProjectileMovementComponent)
     {
@@ -240,7 +241,7 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
     }
 
 
-    UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> takedamage pless"), *SweepResult.GetActor()->GetName());
+    //UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> takedamage pless"), *SweepResult.GetActor()->GetName());
 
     // OnExpire가 호출되기 전에 타이머를 명시적으로 취소
     GetWorld()->GetTimerManager().ClearTimer(LifespanTimer);
@@ -249,8 +250,10 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
     // PhaseData를 참조하여 데미지와 충돌 이펙트를 가져와 사용합니다.
     if (bIsValid && OtherActor != GetOwner())
     {
+        /* 주석 원래 코드
         // 팀 구별
         FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
+
         if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(GetOwner()))
         {
             CasterTeamId = TeamAgent->GetGenericTeamId();
@@ -270,8 +273,55 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
             {
                 UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> team is true, applydamage fail "), *SweepResult.GetActor()->GetName());
             }
+        }*/
+
+        //캐논폭발
+        SetActorHiddenInGame(true);
+        CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+        const FVector ExplosionLocation = this->GetActorLocation();
+#if !(UE_BUILD_SHIPPING)
+        //DrawDebugSphere(this->GetWorld(), ExplosionLocation, 100.f, 24, FColor::Red, false, 2.f, 0, 2.f);
+#endif
+        FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
+        if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(GetOwner()))
+        {
+            CasterTeamId = TeamAgent->GetGenericTeamId();
         }
-        // 충돌 이펙트 재생 로직
+
+        TArray<AActor*> OverlappedActors;
+        TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+        ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+        UKismetSystemLibrary::SphereOverlapActors(
+            this->GetWorld(),
+            ExplosionLocation,
+            100.f,
+            ObjectTypes,
+            AActor::StaticClass(),
+            TArray<AActor*>(),
+            OverlappedActors
+        );
+
+        if (CasterTeamId != FGenericTeamId::NoTeam) // 시전자가 팀이 있을 경우에만 검사
+        {
+            for (AActor* OverlappedActor : OverlappedActors)
+            {
+                IGenericTeamAgentInterface* TargetTeamAgent = Cast<IGenericTeamAgentInterface>(OverlappedActor);
+                // 대상이 같은 팀이라면, 무시 목록에 추가합니다.
+                if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() != CasterTeamId)
+                {
+                    UGameplayStatics::ApplyDamage(
+                        OverlappedActor,
+                        20.f,
+                        nullptr,
+                        GetOwner(),
+                        UDamageType::StaticClass()
+                    );
+                }
+            }
+        }
+
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.SFX.Get(), GetActorLocation());
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PhaseData.VFX.Get(), GetActorLocation());
     }
 

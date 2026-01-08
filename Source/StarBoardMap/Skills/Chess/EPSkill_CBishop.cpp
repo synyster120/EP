@@ -8,6 +8,7 @@
 #include "GenericTeamAgentInterface.h"  
 #include "Kismet/KismetSystemLibrary.h"
 #include "AI/ChessUnitController.h"
+#include "NiagaraFunctionLibrary.h"
 
 void UEPSkill_CBishop::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
@@ -56,26 +57,23 @@ void UEPSkill_CBishop::Explode(AActor* Caster, int32 Count)
 	UNiagaraSystem* Effect = PhaseData->VFX.Get(); // 소프트 포인터에서 실제 애셋 가져오기
 	USoundBase* Sound = PhaseData->SFX.Get();
 
-#if !(UE_BUILD_SHIPPING)
-	// 디버그용
-	AChessUnitController* DebugController = Cast<AChessUnitController>(Character->GetController());
-	FIntPoint DebugXY = DebugController->GetXY();
-	for (int32 i = 0;i < 4;i++) {
-		FIntPoint DebugTempXY = DebugXY;
-		DebugTempXY.X += TempXY[i].X * Count;
-		DebugTempXY.Y += TempXY[i].Y * Count;
-		if (DebugController->IsOnBoard(DebugTempXY)) {
-			FVector NewVec = DebugController->GetGridVector(DebugTempXY);
-			DrawDebugSphere(Caster->GetWorld(), NewVec, DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
-		}
-	}
-#endif
 	AChessUnitController* Controller = Cast<AChessUnitController>(Character->GetController());
 	for (int32 i = 0;i < 4;i++) {
 		FIntPoint NewXY = Controller->GetXY();
 		NewXY.X += TempXY[i].X * Count;
 		NewXY.Y += TempXY[i].Y * Count;
-		if (Controller->IsOnBoard(NewXY)) Controller->SetGridWarning(NewXY, -3);
+
+		if (Controller->IsOnBoard(NewXY)) {
+			FVector NewVec = Controller->GetGridVector(NewXY);
+			Controller->SetGridWarning(NewXY, -3);
+
+			// 디버그용
+			//DrawDebugSphere(Caster->GetWorld(), NewVec, DamageRadius, 24, FColor::Red, false, 2.f, 0, 2.f);
+
+			//나이아가라
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(Caster->GetWorld(), Effect, NewVec);
+			UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, NewVec);
+		}
 		else IsValidXY[i] = false;
 	}
 
@@ -138,16 +136,6 @@ void UEPSkill_CBishop::Explode(AActor* Caster, int32 Count)
 			Caster,
 			UDamageType::StaticClass()
 		);
-	}
-
-	// 폭발 이펙트 및 사운드 재생
-	if (Effect)
-	{
-		//UGameplayStatics::SpawnEmitterAtLocation(Caster->GetWorld(), Effect, ExplosionLocation);
-	}
-	if (Sound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(Caster->GetWorld(), Sound, ExplosionLocation);
 	}
 
 	bool NextOK = false;

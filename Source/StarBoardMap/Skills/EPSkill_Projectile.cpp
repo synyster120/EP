@@ -10,6 +10,8 @@
 #include "Core/Helper/EPAsyncLoadHelper.h"
 #include "Characters/EPCombatCharacterBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Gimmick/EPCannon.h"
 
 // 테스트용
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -66,7 +68,28 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
                     InitializerData.LaunchVelocity = LaunchVelocity;
 
                     // 풀 매니저에게 투사체 스폰을 요청
-                    AActor* SpawnedActor = PoolManager->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
+                    //AActor* SpawnedActor = PoolManager2->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
+
+                    //추가된거
+                    FTimerHandle SpawnTimerHandle;
+                    UEPObjectPoolManager* PoolManager2 = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>();
+                    if (PoolManager)
+                    {
+                        GetWorld()->GetTimerManager().SetTimer(
+                            SpawnTimerHandle,
+                            FTimerDelegate::CreateLambda([this, PoolManager2, ActorClassToSpawn, SpawnTransform, InitializerData, PhaseData, Caster]()
+                                {
+                                    if (!IsValid(this)) return;
+                                    if (!IsValid(PoolManager2)) return; // 중요!
+
+                                    UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.ProjectileInfo.ImpactSound.Get(), Caster->GetActorLocation());
+                                    AActor* SpawnedActor = PoolManager2->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
+                                }),
+                            1.0f,
+                            false
+                        );
+                    }
+
                     //AEPProjectileBase* Projectile = Cast<AEPProjectileBase>(SpawnedActor);
 
                     //if (Projectile && Projectile->GetProjectileMovementComponent())
@@ -80,7 +103,7 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
 
             // -------------- 투사체 요청 --------------
                 // 풀 매니저를 가져옴
-            if (UEPObjectPoolManager* PoolManager = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>())
+            /*if (UEPObjectPoolManager* PoolManager = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>())
             {
                 // TSubclassOf<AEPProjectileBase>를 범용 TSoftClassPtr<AActor>로 변환 후 actor 반환 받음
                 TSoftClassPtr<AActor> ActorClassToSpawn = PhaseData.ProjectileClass;
@@ -94,7 +117,7 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
 
                 // 풀 매니저에게 투사체 스폰을 요청
                 PoolManager->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
-            }
+            }*/
 
             // -------------- 애니메이션 재생 요청 --------------
             AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
@@ -154,6 +177,30 @@ bool UEPSkill_Projectile::CalculateLaunchVelocity(AActor* Caster, const FEPSkill
         else
         {
             EndLocation = TargetData.TargetLocation;
+        }
+        //UE_LOG(LogTemp, Warning, TEXT("StartZ=%.1f EndZ(Origin)=%.1f"), StartLocation.Z, EndLocation.Z);
+
+        // 만약 대포면 방향 먼저 알려주기
+        if (AEPCannon* CastingCannon = Cast<AEPCannon>(Caster)) {
+            UStaticMeshComponent* BodyComp = CastingCannon->GetBodyComponent();
+            FVector SocketStart = BodyComp->GetSocketLocation(FName("AttackStartSocket"));
+            FVector SocketEnd = BodyComp->GetSocketLocation(FName("AttackEndSocket"));
+
+            FRotator LookAtRotHor = UKismetMathLibrary::FindLookAtRotation(SocketStart, EndLocation);
+
+            UGameplayStatics::SuggestProjectileVelocity(
+                this,
+                OutLaunchVelocity,
+                SocketStart,
+                EndLocation,
+                LaunchSpeed,
+                false, 0.0f, 0.0f,
+                ESuggestProjVelocityTraceOption::DoNotTrace
+            );
+            CastingCannon->AimTarget(OutLaunchVelocity.Rotation().Yaw, OutLaunchVelocity.Rotation().Pitch);
+            FVector Direction = OutLaunchVelocity.GetSafeNormal();
+            FVector NewStart = SocketStart + Direction * 114.f;
+            StartLocation = NewStart;
         }
 
         // 곡사포(Arc) 궤적 계산 시도

@@ -4,6 +4,7 @@
 #include "Gimmick/EPCannon.h"
 #include "Components/EPSkillComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SceneComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -45,29 +46,30 @@ void AEPCannon::BeginPlay()
 		AttackRate,
 		AttackLooping
 	);
-	TargetVector = GetActorLocation() + TargetOffset;
 
 	TArray<UStaticMeshComponent*> Comps;
 	GetComponents<UStaticMeshComponent>(Comps);
 
 	for (UStaticMeshComponent* C : Comps)
 	{
-		if (!C) continue;
-		const FName N = C->GetFName();
-		UE_LOG(LogTemp, Warning, TEXT("Name is %s"), *N.ToString());
-		if (N == TEXT("CannonFloor")) FloorComponent = C;
-		else if (N == TEXT("CannonBody")) BodyComponent = C;
+		if (!IsValid(C)) continue;
+		const FString NameStr = C->GetName();
+		if (NameStr.StartsWith(TEXT("CannonFloor"))) 
+			FloorComponent = C;
+		else if (NameStr.StartsWith(TEXT("CannonBody")))
+			BodyComponent = C;
 	}
 
-	FTimerHandle FireTimerHandle;
-	GetWorldTimerManager().ClearTimer(FireTimerHandle);
-	GetWorldTimerManager().SetTimer(
-		FireTimerHandle,
-		this,
-		&AEPCannon::AimTarget,
-		5.f,
-		true
-	);
+	TArray<USceneComponent*> Comps2;
+	GetComponents<USceneComponent>(Comps2);
+
+	for (USceneComponent* C : Comps2)
+	{
+		if (!IsValid(C)) continue;
+		const FString NameStr = C->GetName();
+		if (NameStr.StartsWith(TEXT("CannonBodyScene")))
+			BodySceneComponent = C;
+	}
 }
 
 // Called every frame
@@ -75,52 +77,61 @@ void AEPCannon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	FRotator LookAtRot =
-		UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), NowTargetVector);
 
-	FRotator TargetRot(0.f, LookAtRot.Yaw, 0.f);
-	FRotator CurrentRot = FloorComponent->GetComponentRotation();
+	//Floor
+	if (IsTurnFloor) {
+		FRotator TargetRot(0.f, FloorValue, 0.f);
+		FRotator CurrentRot = FloorComponent->GetComponentRotation();
 
-	float YawSpeedDegPerSec = 180.f; // 튜닝 포인트
 
-	FRotator NewRot = FMath::RInterpConstantTo(
-		CurrentRot,
-		TargetRot,
-		DeltaTime,
-		YawSpeedDegPerSec
-	);
+		FRotator NewRot = FMath::RInterpConstantTo(
+			CurrentRot,
+			TargetRot,
+			DeltaTime,
+			YawSpeedDegPerSec
+		);
 
-	FloorComponent->SetWorldRotation(NewRot);
+
+		if (NewRot.Equals(TargetRot, 1.f))
+		{
+			FloorComponent->SetWorldRotation(TargetRot);
+			IsTurnFloor = false;
+		}
+		else {
+			FloorComponent->SetWorldRotation(NewRot);
+		}
+	}
+
+	//Body
+	if(IsTurnBody){
+		FRotator TargetRot(BodyValue-90.f, 0.f, 0.f);
+		FRotator CurrentRot = BodySceneComponent->GetRelativeRotation();
+
+		FRotator NewRot = FMath::RInterpConstantTo(
+			CurrentRot,
+			TargetRot,
+			DeltaTime,
+			YawSpeedDegPerSec
+		);
+
+		if (NewRot.Equals(TargetRot, 1.f))
+		{
+			BodySceneComponent->SetRelativeRotation(TargetRot);
+			IsTurnBody = false;
+		}
+		else {
+			BodySceneComponent->SetRelativeRotation(NewRot);
+		}
+
+		
+
+	}
 }
 
-void AEPCannon::AimTarget()
+void AEPCannon::AimTarget(float NewFloorValue, float NewBodyValue)
 {
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	if (!Player) return;
-
-	if (FVector::DistSquared(Player->GetActorLocation(), TargetVector) <= FMath::Square(500.f)) {
-		NowTargetVector = Player->GetActorLocation();
-		UE_LOG(LogTemp, Warning, TEXT("HIHI ININ"));
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("HIHI Not ININ"));
-		NowTargetVector = TargetVector;
-	}
-
-	FTimerHandle TempHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		TempHandle,
-		[this]()
-		{
-			SkillComponent->ActivateSkill(0);
-		},
-		1.0f,
-		false
-	);
-
-	/*UE_LOG(LogTemp, Warning, TEXT("HIHI Player %f %f %f"), Player->GetActorLocation().X, Player->GetActorLocation().Y, Player->GetActorLocation().Z);
-	UE_LOG(LogTemp, Warning, TEXT("HIHI NowTarget %f %f %f"), NowTargetVector.X, NowTargetVector.Y, NowTargetVector.Z);
-	UE_LOG(LogTemp, Warning, TEXT("HIHI TargetWidget %f %f %f"), TargetWidget.X, TargetWidget.Y, TargetWidget.Z);
-	UE_LOG(LogTemp, Warning, TEXT("HIHI TargetVector %f %f %f"), TargetVector.X, TargetVector.Y, TargetVector.Z);*/
+	FloorValue = NewFloorValue;
+	BodyValue = NewBodyValue;
+	IsTurnFloor = IsTurnBody = true;
 }
 

@@ -4,6 +4,12 @@
 #include "Chess/CQueen.h"
 #include "AI/ChessUnitController.h"
 
+ACQueen::ACQueen()
+{
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
+}
+
 void ACQueen::BeginPlay()
 {
     Name = FName("Queen");
@@ -14,16 +20,39 @@ void ACQueen::BeginPlay()
     FUnitData Data = UnitData->FindUnitDataByName(FName(Name));
 
     QueenSpeed = Data.MovingSpeed;
+
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.TickInterval = 0.1f;
+}
+
+void ACQueen::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    AChessUnitController* MyController = Cast<AChessUnitController>(GetController());
+
+    if (FVector::Dist(MyController->GetGridVector(NowXY+Direction), GetActorLocation()) < 100.f) {
+        QueenMoveCounter += 1;
+        if (QueenMoveMax == QueenMoveCounter) {
+            QueenWarningGridSet();
+            return;
+        }
+        MyController->SetGridWarning(NowXY, -UnitType);
+        NowXY += Direction;
+    }
 }
 
 void ACQueen::QueenWarningGridFunction(int32 Value, FIntPoint AddDirection)
 {
-    QueenMoveMax = Value - 1;
+    QueenMoveMax = Value;
     QueenMoveCounter = 0;
-    float GridSize;
     Direction = AddDirection;
 
-    GridSize = (FMath::Abs(Direction.X) + FMath::Abs(Direction.Y) == 1) ? 150.0f : 212.12f;
+    //New
+    NowXY += AddDirection;
+    SetActorTickEnabled(true);
+
+    /*GridSize = (FMath::Abs(Direction.X) + FMath::Abs(Direction.Y) == 1) ? 150.0f : 212.12f;
 
     float MoveInterval = GridSize / QueenSpeed;
 
@@ -35,7 +64,7 @@ void ACQueen::QueenWarningGridFunction(int32 Value, FIntPoint AddDirection)
         MoveInterval,
         true,
         MoveInterval
-    );
+    );*/
 }
 
 FIntPoint ACQueen::FindMove()
@@ -52,7 +81,7 @@ FIntPoint ACQueen::FindMove()
     {
         FIntPoint NewXY = TargetXY + Direction;
 
-        if (MyController->GetGridState(NewXY) == 0) {
+        if (MyController->GetGridState(NewXY) == 0 && MyController->IsOnBoard(NewXY)) {
             TargetXY = NewXY;
             MyController->SetGridWarning(NewXY, 2);
             QueenMoveCounter += 1;
@@ -65,19 +94,20 @@ FIntPoint ACQueen::FindMove()
     else {
         SetXY(TargetXY);
     }
-
+    UE_LOG(LogTemp, Warning, TEXT("HIHI Queen is Moving to TargetXY %d %d and QueenMoveMax %d"), TargetXY.X, TargetXY.Y, QueenMoveMax);
     return TargetXY;
 }
 
 void ACQueen::QueenWarningGridSet()
 {
-    AChessUnitController* QueenController = Cast<AChessUnitController>(GetController());
+    AChessUnitController* MyController = Cast<AChessUnitController>(GetController());
     NowXY += Direction;
-    QueenController->QueenArrivePoint(NowXY);
-    QueenMoveCounter += 1;
+    MyController->SetGridWarning(NowXY, -2);
+    //QueenMoveCounter += 1;
+    SetActorTickEnabled(false);
 
     if (QueenMoveCounter == QueenMoveMax) {
-        GetWorldTimerManager().ClearTimer(QueenWarningGridTimer);
-        SetXY(NowXY += Direction);
+        //GetWorldTimerManager().ClearTimer(QueenWarningGridTimer);
+        //SetXY(NowXY += Direction);
     }
 }

@@ -41,7 +41,7 @@ bool UEPTargeting_Proximity::FindTarget(AActor* Caster, const FEPSkillPhaseData&
 
     // 오버랩 범위 디버그 (빨간색 구체 그리기)
     // PersistSeconds: 2.0f (2초 동안 화면에 남음), Thickness: 2.0f (선 두께)
-    DrawDebugSphere(GetWorld(), Origin, SearchRadius, 12, FColor::Red, false, 2.0f, 0, 2.0f);
+    //DrawDebugSphere(GetWorld(), Origin, SearchRadius, 12, FColor::Red, false, 2.0f, 0, 2.0f);
 
     // ---------------------------------------------------------------------
 
@@ -77,6 +77,8 @@ bool UEPTargeting_Proximity::FindTarget(AActor* Caster, const FEPSkillPhaseData&
         OutTargetData.TargetActor = ClosestTarget;
         // 적이 있어도 발사 시작 위치나 방향 계산을 위해 Location도 채워주는 게 좋음
         OutTargetData.TargetLocation = ClosestTarget->GetActorLocation();
+
+        UE_LOG(LogTemp, Warning, TEXT("PlayerOffSet %f %f %f"), ClosestTarget->GetActorLocation().X, ClosestTarget->GetActorLocation().Y, ClosestTarget->GetActorLocation().Z);
     }
     else
     {
@@ -88,8 +90,9 @@ bool UEPTargeting_Proximity::FindTarget(AActor* Caster, const FEPSkillPhaseData&
         // (ReachablePoint를 쓰면 네비게이션 위만 찍고, 그냥 RandomPoint는 공중도 찍힘)
         FVector RandomOffset = FMath::VRand() * FMath::FRandRange(0.0f, SearchRadius);
         RandomOffset.Z = Origin.Z; // 높이는 "공격지점"의 z로 지정
-
-        OutTargetData.TargetLocation = Origin + RandomOffset;
+        UE_LOG(LogTemp, Warning, TEXT("OriginOffSet %f %f %f"), Origin.X, Origin.Y, Origin.Z);
+        UE_LOG(LogTemp, Warning, TEXT("RandomOffSet %f %f %f"), RandomOffset.X, RandomOffset.Y, RandomOffset.Z);
+        OutTargetData.TargetLocation = Origin;// + RandomOffset;
     }
 
     // 방향(Direction)은 공통적으로 계산
