@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/WidgetComponent.h"
+#include "UI/EPInteractionPromptWidget.h"
 #include "EPDroppedItem.generated.h"
 
 class USphereComponent;
@@ -54,6 +55,9 @@ protected:
 	// 머리 위에 띄울 UI 컴포넌트 ("E 줍기" 위젯)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UWidgetComponent* PickupWidgetComp;
+
+	UPROPERTY()
+	TObjectPtr<UEPInteractionPromptWidget> PromptWidget;
 
 	bool bStart = false;
 

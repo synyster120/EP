@@ -35,8 +35,9 @@ AEPProjectileBase::AEPProjectileBase()
     // 콜리전 프로파일 설정
     CollisionSphere->SetCollisionProfileName(TEXT("Projectile"));
     MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
-    // Overlap 이벤트 활성화
-    CollisionSphere->SetGenerateOverlapEvents(true);
+    // Overlap 이벤트 비활성화
+    CollisionSphere->SetGenerateOverlapEvents(false); 
+
 }
 
 // 스킬 단계 데이터로 초기화 함수 ================================= 사용 안함 =================================
@@ -129,9 +130,15 @@ void AEPProjectileBase::Activate()
     SetActorHiddenInGame(false);
     SetActorTickEnabled(true);
 
-    //ollisionSphere->SetCollisionProfileName(TEXT("Projectile"));
-    SetActorEnableCollision(true);
-    CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
+    SetActorEnableCollision(true); 
+    if (CollisionSphere)
+    {
+        // 물리 엔진에 오버랩 이벤트를 발생시키겠다고 명시
+        CollisionSphere->SetGenerateOverlapEvents(true);
+        // 필요하다면 위치 이동 후 강제 업데이트
+        CollisionSphere->UpdateOverlaps();
+    }
+    //CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
 
     // ProjectileMovementComponent를 활성화하고, 저장된 속성으로 '움직임'을 시작
     if (ProjectileMovementComponent && bIsValid)
@@ -154,8 +161,6 @@ void AEPProjectileBase::Activate()
 float AEPProjectileBase::BeginDeactivate()
 {
     UE_LOG(LogTemp, Error, TEXT("BeginDeactivate!"));
-    // 더 이상 움직이거나 부딪히지 않도록 비활성화
-    SetActorEnableCollision(ECollisionEnabled::NoCollision);
 
     // 소멸 이펙트를 재생
     //PlayFizzleEffect();
@@ -179,10 +184,14 @@ void AEPProjectileBase::Deactivate()
     // 비활성화에 필요한 모든 '구현'
     SetActorHiddenInGame(true);
     SetActorTickEnabled(false);
-    CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     // 바인딩 제거
-    CollisionSphere->OnComponentBeginOverlap.Clear();
-    //CollisionSphere->OnComponentBeginOverlap.RemoveDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
+    if (CollisionSphere)
+    {
+        CollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        // 물리 엔진에 오버랩 이벤트를 발생시키겠다고 명시
+        CollisionSphere->SetGenerateOverlapEvents(false);
+    }
+
     if (ProjectileMovementComponent)
     {
         ProjectileMovementComponent->StopMovementImmediately();
@@ -200,7 +209,11 @@ UProjectileMovementComponent* AEPProjectileBase::GetProjectileMovementComponent(
 void AEPProjectileBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+    if (CollisionSphere)
+    {
+        CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AEPProjectileBase::OnProjectileOverlap);
+    }
 }
 //
 //void AEPProjectileBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -239,9 +252,6 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
         return;
     }
 
-
-    UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> takedamage pless"), *SweepResult.GetActor()->GetName());
-
     // OnExpire가 호출되기 전에 타이머를 명시적으로 취소
     GetWorld()->GetTimerManager().ClearTimer(LifespanTimer);
 
@@ -263,8 +273,9 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
             // 대상이 다른 팀이라면
             if (TargetTeamAgent && TargetTeamAgent->GetGenericTeamId() != CasterTeamId)
             {
+                UE_LOG(LogTemp, Warning, TEXT("[ %s ] ok OnOverlap --> team is false, applydamage [ %s ]"), *SweepResult.GetActor()->GetName(), *OtherActor->GetName());
                 // 데미지 전달 로직
-                UGameplayStatics::ApplyDamage(OtherActor, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, nullptr);
+                UGameplayStatics::ApplyDamage(OtherActor, PhaseData.Damage, GetOwner()->GetInstigatorController(), this, UDamageType::StaticClass());
             }
             else
             {

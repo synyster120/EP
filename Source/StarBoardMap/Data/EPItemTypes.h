@@ -86,6 +86,22 @@ struct FEPItemData : public FTableRowBase
     TSubclassOf<UItemEffectBase> ItemEffectClass;*/
 };
 
+// 개수 범위를 정의하는 구조체
+USTRUCT(BlueprintType)
+struct FEPItemQuantityRange
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere)
+    int32 MinQuantity; // 예: 1
+
+    UPROPERTY(EditAnywhere)
+    int32 MaxQuantity; // 예: 3
+
+    UPROPERTY(EditAnywhere)
+    float Weight; // 가중치 (당첨 확률)
+};
+
 // 아이템 드랍 시 아이템마다 필요한 설정(개수 등)
 USTRUCT(BlueprintType)
 struct FEPDropItemInfo
@@ -97,17 +113,24 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
     FDataTableRowHandle DropItemRow;
 
+    // "드랍 안함(0개)" 확률을 포함한 가중치 리스트
+    // ex) 
+    // Element 0: Min 0, Max 1, Weight 50 (0~1개 50% 확률로 꽝)
+    // Element 1: Min 2, Max 5, Weight 20 (2~5개 800% 확률로 꽝)
+    UPROPERTY(EditAnywhere)
+    TArray<FEPItemQuantityRange> DropRanges;
+
     // 드랍 확률
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-    float DropChance; 
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    //float DropChance; 
 
-    // 최소 드랍 개수
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-    int32 MinQuantity; 
+    //// 최소 드랍 개수
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    //int32 MinQuantity; 
 
-    // 최대 드랍 개수
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
-    int32 MaxQuantity;
+    //// 최대 드랍 개수
+    //UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item")
+    //int32 MaxQuantity;
 };
 
 // 드랍 아이템 테이블

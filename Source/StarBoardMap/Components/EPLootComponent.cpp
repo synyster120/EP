@@ -32,7 +32,43 @@ void UEPLootComponent::BeginPlay()
     }
 }
 
-// Item Drop 함수(확률 계산)
+// 스폰 개수 계산 및 반환
+int32 UEPLootComponent::GetQuantityToSpawn(const TArray<FEPItemQuantityRange>& Ranges)
+{
+    // 데이터가 비어있으면 0개 리턴
+    if (Ranges.Num() == 0) return 0;
+
+    // 가중치 총합 구하기 (Total Weight Calculation)
+    float TotalWeight = 0.0f;
+    for (const auto& Entry : Ranges)
+    {
+        TotalWeight += Entry.Weight;
+    }
+
+    // 가중치 합이 0이면 0개 리턴
+    if (TotalWeight <= 0.0f) return 0;
+
+    // 랜덤 포인트 선정 (0 ~ 총합 사이)
+    float RandomPoint = FMath::FRandRange(0.0f, TotalWeight);
+
+    // 어떤 구간에 걸렸는지 확인 (Weighted Selection Algorithm)
+    for (const auto& Entry : Ranges)
+    {
+        // 랜덤 포인트가 현재 가중치보다 작으면 스폰 결정
+        if (RandomPoint <= Entry.Weight)
+        {
+            // 이 구간의 최소~최대 사이에서 랜덤 개수 결정 후 반환
+            return FMath::RandRange(Entry.MinQuantity, Entry.MaxQuantity);
+        }
+
+        // 당첨 안 됐으면, 랜덤 포인트에서 현재 가중치만큼 뺌 (다음 구간 확인을 위해)
+        RandomPoint -= Entry.Weight;
+    }
+
+    return 0; // 로직상 여기까지 올 일은 없지만 안전장치
+}
+
+// Item Drop 함수(Drop 시작)
 void UEPLootComponent::SpawnLoot()
 {
     // Drop 데이터 테이블 핸들 유효성 검사
@@ -50,20 +86,20 @@ void UEPLootComponent::SpawnLoot()
     // 드랍 아이템 목록 순회
     for (const FEPDropItemInfo& ItemInfo : DropTable->DropItems)
     {
-        // 확률 계산 (0~100)
-        float Roll = FMath::FRandRange(0.0f, 100.0f);
+        // 확률 계산 후 드랍할 개수 반환
+        int32 SpawnQuantity = GetQuantityToSpawn(ItemInfo.DropRanges);
 
-        if (Roll <= ItemInfo.DropChance)
+        if (SpawnQuantity > 0)
         {
-            // 당첨! 드랍 처리
-            ProcessDropItem(ItemInfo);
+            // 드랍 처리
+            ProcessDropItem(ItemInfo, SpawnQuantity);
         }
     }
 
 }
 
 // 아이템 드랍
-void UEPLootComponent::ProcessDropItem(const FEPDropItemInfo& DropItemInfo)
+void UEPLootComponent::ProcessDropItem(const FEPDropItemInfo& DropItemInfo, const int32 CurrentQuantity)
 {
     //  중첩된 테이블 핸들(DropItemRow)에서 실제 아이템 클래스 찾기
     if (DropItemInfo.DropItemRow.IsNull()) return;
@@ -73,19 +109,8 @@ void UEPLootComponent::ProcessDropItem(const FEPDropItemInfo& DropItemInfo)
 
     if (!ItemData || ItemData->SoftItemClass.IsNull()) return;
 
-
-    // 개수 결정
-    int32 Quantity = 0;
-    if (DropItemInfo.MaxQuantity > 1)
-    {
-        Quantity = FMath::RandRange(DropItemInfo.MinQuantity, DropItemInfo.MaxQuantity);
-    }
-    else
-    {
-        Quantity = 1;
-    }
-
-    for (int32 i = 0; i < Quantity; ++i)
+    // 개수만큼 드랍
+    for (int32 i = 0; i < CurrentQuantity; ++i)
     {
         // 스폰 위치 계산 (바닥에 묻히지 않게, 약간 랜덤하게)
         FVector SpawnLoc = GetOwner()->GetActorLocation();
@@ -149,13 +174,6 @@ void UEPLootComponent::SpawnItem(TSubclassOf<AActor> ItemClassToSpawn)
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     SpawnParams.Owner = Owner; // (선택) 누가 떨궜는지 기록
 
-    // 드랍된 아이템 생성 (단순 mesh)
-    /*AEPDroppedItem* DroppedActor = GetWorld()->SpawnActor<AEPDroppedItem>(
-        DroppedItemClass,
-        SpawnLocation,
-        SpawnRotation,
-        SpawnParams
-    );*/
     // ==============================================================================================================
     
     // item drop 하는 공용 라이브러리(내부 헬퍼 함수) 호출

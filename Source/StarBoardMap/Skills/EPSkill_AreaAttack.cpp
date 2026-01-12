@@ -5,6 +5,7 @@
 #include "Characters/EPCombatCharacterBase.h"
 #include "Data/EPSkillDataAsset.h"
 #include "Components/EPMovementLockComponent.h"
+#include "Core/EPGameplayTags.h" // Tag
 
 void UEPSkill_AreaAttack::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
@@ -24,7 +25,7 @@ void UEPSkill_AreaAttack::Activate(AActor* Caster, const FEPSkillTargetData& New
         {
             // 몽타주 종료 바인딩
             FOnMontageEnded OnMontageEndedDelegate;
-            OnMontageEndedDelegate.BindUObject(this, &UEPSkill_AreaAttack::OnSkillMontageEnded);
+            OnMontageEndedDelegate.BindUObject(this, &UEPSkill_AreaAttack::OnSkillMontageEnded, SkillPhaseData->AnimationTag);
 
             // [로그 추가] 어떤 인스턴스(this)가 바인딩을 시도하는지 기록
             UE_LOG(LogTemp, Warning, TEXT("Skill [0x%p] BINDING delegate to MontageEnd"), this);
@@ -46,11 +47,11 @@ void UEPSkill_AreaAttack::Activate(AActor* Caster, const FEPSkillTargetData& New
     }
 }
 
-void UEPSkill_AreaAttack::OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void UEPSkill_AreaAttack::OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag)
 {
     UE_LOG(LogTemp, Warning, TEXT("start lock relesase"));
     // 이동 잠금 해제
-    if (MovementLock)
+    if (MovementLock && ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_Skill_Attack))
     {
         MovementLock->Release(Locktext);
     }

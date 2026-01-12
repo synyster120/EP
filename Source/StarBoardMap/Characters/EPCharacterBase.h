@@ -14,6 +14,7 @@ class UEPMovementLockComponent;
 
 // 델리게이트 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDataInitializedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActionEnded, FGameplayTag, ActionTag);
 
 UCLASS()
 class STARBOARDMAP_API AEPCharacterBase : public ACharacter
@@ -22,21 +23,39 @@ class STARBOARDMAP_API AEPCharacterBase : public ACharacter
 
 public:
 	FORCEINLINE UEPMovementLockComponent* GetMovementLockComponent() const { return MovementLockComponent; }
-
+	//UPROPERTY(BlueprintAssignable, Category = "Events")
+	//FOnMontageEnded tempdelegate;
 	AEPCharacterBase();
 	//* @param OnMontageEndedDelegate 몽타주 종료/중단 시 호출될 델리게이트
-	void PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageEnded& OnMontageEndedDelegate = FOnMontageEnded());
+	void PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageEnded& OnMontageEndedDelegate);
 
 	// 현재 상태 Getter/Setter
 	inline EEPCharacterState GetCurrentState() const { return CurrentState; }
 	inline void SetCurrentState(EEPCharacterState NewState) { CurrentState = NewState; };
 	FORCEINLINE TObjectPtr<UEPCharacterAnimationData> GetAnimDataAsset() { return AnimDataAsset; };
 
+// ---- 몽타주 재생 방법 변경 ------
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnActionEnded OnActionEnded;
+
+	void PlayAnimationByTag(FGameplayTag NewTag);
+
+// ----------------------------------<
+
 protected:
 	virtual void BeginPlay() override;
 
 	// 이름, 외형 등의 초기화
 	virtual void InitializeCharacterData();
+
+// ---- 몽타주 재생 방법 변경 ------
+private:
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	FGameplayTag CurrentActionTag; // 현재 재생 중인 태그 저장
+
+// ----------------------------------<
 
 public:
 	FOnCharacterDataInitializedDelegate OnDataInitialized;

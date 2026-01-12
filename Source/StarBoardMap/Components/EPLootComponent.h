@@ -6,6 +6,7 @@
 #include "EPLootComponent.generated.h"
 
 struct FEPDropItemInfo;
+struct FEPItemQuantityRange;
 
 /*
 	** Loot(전리품) Drop 관리 Component	
@@ -34,10 +35,12 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void ProcessDropItem(const FEPDropItemInfo& DropItemInfo);
+	void ProcessDropItem(const FEPDropItemInfo& DropItemInfo, const int32 CurrentQuantity);
 
 	// 실제 스폰을 담당하는 내부 함수
 	void SpawnItem(TSubclassOf<AActor> ItemClassToSpawn);
+
+	int32 GetQuantityToSpawn(const TArray<FEPItemQuantityRange>& Ranges);
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

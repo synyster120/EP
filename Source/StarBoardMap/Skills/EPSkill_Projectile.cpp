@@ -80,21 +80,21 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
 
             // -------------- 투사체 요청 --------------
                 // 풀 매니저를 가져옴
-            if (UEPObjectPoolManager* PoolManager = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>())
-            {
-                // TSubclassOf<AEPProjectileBase>를 범용 TSoftClassPtr<AActor>로 변환 후 actor 반환 받음
-                TSoftClassPtr<AActor> ActorClassToSpawn = PhaseData.ProjectileClass;
-                //AActor* SpawnedActor = PoolManager->GetObjectFromPool(ActorClassToSpawn);
+            //if (UEPObjectPoolManager* PoolManager = Caster->GetGameInstance()->GetSubsystem<UEPObjectPoolManager>())
+            //{
+            //    // TSubclassOf<AEPProjectileBase>를 범용 TSoftClassPtr<AActor>로 변환 후 actor 반환 받음
+            //    TSoftClassPtr<AActor> ActorClassToSpawn = PhaseData.ProjectileClass;
+            //    //AActor* SpawnedActor = PoolManager->GetObjectFromPool(ActorClassToSpawn);
 
-                // 스폰 요청 위한 데이터 세팅
-                FEPPoolableObjectInitializer InitializerData;
-                InitializerData.Owner = Caster;
-                InitializerData.Data = SkillDataAsset;
-                InitializerData.TargetData = NewTargetData;
+            //    // 스폰 요청 위한 데이터 세팅
+            //    FEPPoolableObjectInitializer InitializerData;
+            //    InitializerData.Owner = Caster;
+            //    InitializerData.Data = SkillDataAsset;
+            //    InitializerData.TargetData = NewTargetData;
 
-                // 풀 매니저에게 투사체 스폰을 요청
-                PoolManager->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
-            }
+            //    // 풀 매니저에게 투사체 스폰을 요청
+            //    PoolManager->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
+            //}
 
             // -------------- 애니메이션 재생 요청 --------------
             AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);

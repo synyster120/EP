@@ -63,7 +63,7 @@ public:
     virtual void CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCombatMontageType CurrentMontageType) PURE_VIRTUAL(AEPCombatCharacterBase::CurrentMontagePlay, );
 
     UFUNCTION(BlueprintCallable, Category = "Mongtage")
-    void HandleHitReaction(EEPHitReactionType HitReactionType);
+    void HandleHitReaction(float CurrentHitDamage);
 
     FORCEINLINE TObjectPtr<UEPSkillComponent> GetSkillComponent() { return SkillComponent; };
     FORCEINLINE UEPStatComponent* GetStatComponent() const { return StatComponent; }
@@ -76,6 +76,11 @@ public:
     FGenericTeamId TeamID;
 
     FORCEINLINE void SetCurrentInteractionMontage(TObjectPtr<UAnimMontage> CurrentMontage) { CurrentInteractionMontage = CurrentMontage; };
+
+    // --------- 피격 강도(데미지) 맞춰 hit tag 반환 함수 ---------
+    FGameplayTag GetHitTagByDamage(float DamageAmount);
+    // ---------------------------------------------------------------
+
 
 protected:
     virtual void BeginPlay() override;

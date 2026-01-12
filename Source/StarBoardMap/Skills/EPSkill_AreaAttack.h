@@ -21,7 +21,7 @@ public:
 	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex) override;
 	
 	UFUNCTION()
-	void OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag);
 
 	// 테스트용
 	virtual void BeginDestroy() override;

@@ -66,6 +66,13 @@ public:
     // 기존 킬 객체들이나 실행 중이던 쿨타임 타이머 정리 함수
     void ClearSkills();
 
+    // 노티파이에 의해 bCanCombo가 true가 될 때 호출되는 함수 (Setter)
+    void SetbIsCancelWindowActive(bool bInIsCancelWindowActive);
+    void ClearBuffer(); //{ bInputBuffer = false; }; // bInputBuffer 초기화
+
+    // 플레이어가 버튼을 눌렀을 때 호출되는 함수
+    void ProcessSkillInput(int32 SkillIndex);
+
 protected:
     virtual void BeginPlay() override;
 
@@ -117,7 +124,7 @@ private:
 
     // 콤보 유효시간 타이머. 마지막으로 사용된 콤보 스킬슬롯의 Index 저장
     FTimerHandle ComboTimerHandle;
-    int32 LastkillSlotIndex = 0;
+    int32 LastkillSlotIndex = -1;
     int32 LastComboSkillIndex = 0;
 
     FTimerHandle WindupHandle;
@@ -125,4 +132,9 @@ private:
     // 소유자(캐릭터)의 StatComponent에 대한 참조 (BeginPlay 시점에 찾아옴)
     /*UPROPERTY()
     TObjectPtr<UEPStatComponent> StatComponentRef;*/
+
+    // 콤보 관련 bool 변수
+    bool bIsCancelWindowActive = false;
+    bool bInputBuffer = false;
+    int32 BufferSkillIndex; // 버퍼에 저장해둔 시전할 skill index
 };

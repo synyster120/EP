@@ -9,7 +9,8 @@ FEPGameplayTags FEPGameplayTags::GameplayTags;
 void FEPGameplayTags::Initialize()
 {
     // 게임 시작 시 한번만 호출하여, 문자열로 실제 태그를 찾아와 변수에 저장
-    GameplayTags.AI_State_Patrol = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("AI.State.Patrol"));
-    GameplayTags.AI_State_Combat_Chase = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("AI.State.Combat.Chase"));
-    GameplayTags.AI_State_Combat_Attack = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("AI.State.Combat.Attack"));
+    GameplayTags.Tag_State_Dead = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("State.Dead"));
+    GameplayTags.Action_Hit_Default = UGameplayTagsManager::Get().AddNativeGameplayTag(TEXT("Action.Hit.Default")); 
+    GameplayTags.Tag_InputUserSettings = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("InputUserSettings"));
+    GameplayTags.Tag_Skill_Attack = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("Skill.Attack"));
 }
