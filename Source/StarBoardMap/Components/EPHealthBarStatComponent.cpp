@@ -73,7 +73,12 @@ void UEPHealthBarStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
         return;
     }
 
-    OnHitReact.Broadcast(ReactionType);
+    //OnHitReact.Broadcast(ReactionType); // 이전 코드
+    OnHitReact.Broadcast(FinalDamage); // 변경 코드 (파라미터를 float 타입으로)
+    if (MaxHealthBar != CurrentHealthBar)
+    {
+        OnHealthChanged_Two.Broadcast(CurrentHealthBar, MaxHealthBar);
+    }
     OnHealthChanged.Broadcast();
 }
 

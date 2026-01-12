@@ -70,10 +70,16 @@ void AEPDroppedItem::InitializeDrop(TSubclassOf<AActor> ItemClass, int32 Quantit
             if (PickupWidgetComp)
             {
                 PickupWidgetComp->SetRelativeLocation(DefaultItem->WidgetOffset); // ItemBase의 위젯오프셋 값으로 설정
+                
+                // 이름 세팅
+                if (PromptWidget)
+                {
+                    PromptWidget->SetItemName(DefaultItem->DisplayName);
+                }
             }
         }
     }
-    
+
     bStart = true; // 준비 완료
 }
 
@@ -107,6 +113,19 @@ void AEPDroppedItem::BeginPlay()
         3.5f,
         false
     );
+
+    // 컴포넌트 안에 있는 위젯 객체를 가져와서, 내 전용 클래스로 형변환(Cast)
+    if (PickupWidgetComp)
+    {
+        // 위젯 검사 및 저장
+        PromptWidget = Cast<UEPInteractionPromptWidget>(PickupWidgetComp->GetUserWidgetObject());
+
+        // 이름 세팅
+        if (PromptWidget)
+        {
+            PromptWidget->SetItemName(FText::FromString(TEXT("Default Item")));
+        }
+    }
 }
 
 // overlap Actors 에게 죽음 알림(유언)

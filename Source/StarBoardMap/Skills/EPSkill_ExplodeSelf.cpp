@@ -69,41 +69,16 @@ void UEPSkill_ExplodeSelf::Activate(AActor* Caster, const FEPSkillTargetData& Ne
 		Lock->Acquire(Locktext);
 	}
 
-	// 몽타주 태그로 TSoftObjectPtr 검색
-	TSoftObjectPtr<UAnimMontage>* FoundMontagePtr = OwnerCaster->GetAnimDataAsset()->SkillAnimationMontage.Find(PhaseData->AnimationTag);
-	if (!FoundMontagePtr) 
-	{
-		//FoundMontagePtr = OwnerCaster->GetAnimDataAsset()->InteractionMontages.Find(PhaseData->AnimationTag); // 이건 왜 하는 거야
-		CancelSkillActivation();
-		return;
-	}
-
 	// 몽타주 비동기 로드 및 재생 요청
-	UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(*FoundMontagePtr,
-		[this, CurrentComboIndex](UAnimMontage* LoadedMontage) // 'this'는 SkillBase
-		{
-			if (!LoadedMontage || !OwnerCaster)
-			{
-				CancelSkillActivation(); // 로드 실패 시 중단
-				return;
-			}
+	OwnerCaster->PlayAnimationByTag(PhaseData->AnimationTag);
 
-			// [핵심] 몽타주 재생 로직 (Player/AI 공용)
-			UAnimInstance* AnimInstance = OwnerCaster->GetMesh()->GetAnimInstance();
-			if (AnimInstance)
-			{
-				AnimInstance->Montage_Play(LoadedMontage);
-			}
-
-			// 4. 스킬 타이머 시작 (자폭 등)
-			GetWorld()->GetTimerManager().SetTimer(
-				SkillTimerHandle,
-				this,
-				&UEPSkill_ExplodeSelf::OnSkillEffectFinished,
-				GetWindupSeconds(CurrentComboIndex),
-				false
-			);
-		}
+	// 원래라면 몽타주 "시작"타이밍에 맞춰서 타이머 시작해야함
+	GetWorld()->GetTimerManager().SetTimer(
+		SkillTimerHandle,
+		this,
+		&UEPSkill_ExplodeSelf::OnSkillEffectFinished,
+		GetWindupSeconds(CurrentComboIndex),
+		false
 	);
 
 	// 폭발 이펙트 및 사운드 재생

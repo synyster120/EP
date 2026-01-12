@@ -16,6 +16,11 @@
 
 #include "EnhancedInputSubsystems.h"
 
+// tag
+#include "GameplayTagsManager.h"
+#include "Core/EPGameplayTags.h"
+
+
 AEPCombatCharacterBase::AEPCombatCharacterBase()
 {
     // 메쉬(SkeletalMeshComponent) 설정
@@ -24,6 +29,23 @@ AEPCombatCharacterBase::AEPCombatCharacterBase()
     GetMesh()->SetRelativeRotation(FRotator(0.0, -90.0, 0.0));
 
     SkillComponent = CreateDefaultSubobject<UEPSkillComponent>(TEXT("SkillComponent"));
+}
+
+// 데미지 따른 몽타주 tag 반환 함수
+FGameplayTag AEPCombatCharacterBase::GetHitTagByDamage(float DamageAmount)
+{
+    if (!AnimDataAsset || !AnimDataAsset->HitType.IsValidIndex(0)) return FEPGameplayTags::Get().Action_Hit_Default;
+
+    // Thresholds는 DamageThreshold 기준 내림차순 정렬되어 있다고 가정
+    for (const auto& Threshold : AnimDataAsset->HitType)
+    {
+        if (DamageAmount >= Threshold.DamageThreshold)
+        {
+            return Threshold.HitTag;
+        }
+    }
+
+    return FEPGameplayTags::Get().Action_Hit_Default; // 기본값
 }
 
 void AEPCombatCharacterBase::BeginPlay()
@@ -77,32 +99,69 @@ void AEPCombatCharacterBase::InitializeCharacterData()
     }
 }
 
-// 피격 몽타주 검색 및 재생
-void AEPCombatCharacterBase::HandleHitReaction(EEPHitReactionType HitReactionType)
+// 피격 몽타주 검색 및 재생 // 기존 내용
+//void AEPCombatCharacterBase::HandleHitReaction(EEPHitReactionType HitReactionType)
+//{
+//    // 몽타주 검색
+//    if (!AnimDataAsset || !AnimDataAsset->HitReactionMontages.Contains(HitReactionType))
+//    {
+//        return; // 재생할 몽타주가 없으므로 종료
+//    }
+//
+//    TSoftObjectPtr<UAnimMontage> MontagePtr = AnimDataAsset->HitReactionMontages[HitReactionType];
+//
+//    // 몽타주 플레이
+//    UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(MontagePtr,
+//        [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+//        {
+//            if (LoadedMontage)
+//            {
+//                CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Hit);
+//            }
+//            else
+//            {
+//                UE_LOG(LogTemp, Warning, TEXT("HitReactionMontages is not set in % s!"), *AnimDataAsset->GetName());
+//            }
+//        }
+//    );
+//}
+
+// 수정본
+void AEPCombatCharacterBase::HandleHitReaction(float CurrentHitDamage)
 {
+
+    FGameplayTag HitTag = GetHitTagByDamage(CurrentHitDamage);
+
     // 몽타주 검색
-    if (!AnimDataAsset || !AnimDataAsset->HitReactionMontages.Contains(HitReactionType))
+    if (!AnimDataAsset || !AnimDataAsset->ActionMap.Contains(HitTag))
     {
+        UE_LOG(LogTemp, Warning, TEXT("hit reaction tag is null :: tag name : %s, damage : %f"), *HitTag.ToString(), CurrentHitDamage);
         return; // 재생할 몽타주가 없으므로 종료
     }
 
-    TSoftObjectPtr<UAnimMontage> MontagePtr = AnimDataAsset->HitReactionMontages[HitReactionType];
-
     // 몽타주 플레이
-    UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(MontagePtr,
-        [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
-        {
-            if (LoadedMontage)
-            {
-                CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Hit);
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("HitReactionMontages is not set in % s!"), *AnimDataAsset->GetName());
-            }
-        }
-    );
+    PlayAnimationByTag(HitTag);
+
+
+    //---
+    //TSoftObjectPtr<UAnimMontage> MontagePtr = AnimDataAsset->HitReactionMontages[HitReactionType];
+
+    //// 몽타주 플레이
+    //UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(MontagePtr,
+    //    [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+    //    {
+    //        if (LoadedMontage)
+    //        {
+    //            CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Hit);
+    //        }
+    //        else
+    //        {
+    //            UE_LOG(LogTemp, Warning, TEXT("HitReactionMontages is not set in % s!"), *AnimDataAsset->GetName());
+    //        }
+    //    }
+    //);
 }
+
 
 // 피격 관련 데이터(FEPDamageInfo) 전달 함수
 float AEPCombatCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -139,21 +198,29 @@ void AEPCombatCharacterBase::HandleDeath_Implementation()
 {
     if (AnimDataAsset)
     {
+        PlayAnimationByTag(FEPGameplayTags::Get().Tag_State_Dead);
+
+
         // "무엇을 로드할지" (DeathAnimationMontage)를 지정
         // "로드가 끝나면 무엇을 할지" (람다 함수)를 직접 전달
-        UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(AnimDataAsset->DeathAnimationMontage,
-            [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
-            {
-                if (LoadedMontage)
-                {
-                    CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Death);
-                }
-                else
-                {
-                    UE_LOG(LogTemp, Warning, TEXT("DeathAnimationMontage is not set in % s!"), *AnimDataAsset->GetName());
-                }
-            }
-        );
+        //UEPAsyncLoadHelper::RequestAsyncLoad<UAnimMontage>(AnimDataAsset->DeathAnimationMontage,
+        //    [this](UAnimMontage* LoadedMontage) // 람다의 파라미터로 로드된 몽타주가 들어옴
+        //    {
+        //        if (LoadedMontage)
+        //        {
+        //            UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        //            if (AnimInstance)
+        //            {
+        //                AnimInstance->Montage_Play(LoadedMontage);
+        //                CurrentMontagePlay(LoadedMontage, EEPCombatMontageType::Death);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            UE_LOG(LogTemp, Warning, TEXT("DeathAnimationMontage is not set in % s!"), *AnimDataAsset->GetName());
+        //        }
+        //    }
+        //);
     }
 
     // 추가적인 죽음 처리 로직 (콜리전 끄기 등)

@@ -85,6 +85,72 @@ void UEPSkillComponent::ClearSkills()
     SkillIDToIndexMap.Empty();
 }
 
+// 노티파이에 의해 bCanCombo가 true가 될 때 호출되는 함수 (Setter)
+void UEPSkillComponent::SetbIsCancelWindowActive(bool bInIsCancelWindowActive)
+{
+    bIsCancelWindowActive = bInIsCancelWindowActive;
+
+    // 구간이 열리는 순간(true), 예약된 입력(Buffer)이 있다면 실행
+    if (bIsCancelWindowActive && bInputBuffer)
+    {
+        if (BufferSkillIndex >= 0)
+        {
+            ActivateSkill(BufferSkillIndex);
+            ClearBuffer(); // 실행 후 버퍼 비우기
+        }
+    }
+}
+
+// Buffer 관련 변수 초기화
+void UEPSkillComponent::ClearBuffer()
+{
+    bInputBuffer = false;
+    BufferSkillIndex = -1;
+}
+
+// 스킬 시전하기 전 input 상태 확인 후 시전 시작 (외부에서 호출)
+void UEPSkillComponent::ProcessSkillInput(int32 SkillIndex)
+{
+    // 상태가 있는 character인지 확인
+    AEPCharacterBase* OwnerCaster = Cast<AEPCharacterBase>(GetOwner());
+    if (OwnerCaster)
+    {
+        EEPCharacterState OwnerCurrentState = OwnerCaster->GetCurrentState();
+        // 현재 스킬이 실행 중이 아니라면 (Idle) 바로 실행
+        if (OwnerCurrentState == EEPCharacterState::Idle)
+        {
+            // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
+            OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+
+            UE_LOG(LogTemp, Warning, TEXT("player is attacking and idle state --> activate() play"));
+            ActivateSkill(SkillIndex);
+
+            return;
+        }
+
+        // 이미 스킬 실행 중일 때 (공격 중일 때)
+        if (OwnerCurrentState == EEPCharacterState::Attacking)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("player is attacking and Attacking state --> bIsCancelWindowActive check"));
+            if (bIsCancelWindowActive) // 다음 스킬로 넘어갈 수 있는 구간인지 확인
+            {
+                ActivateSkill(SkillIndex);
+            }
+            else // 넘어갈 수 있는 구간은 아니지만 공격 중이므로 "예약(Buffer)" 함
+            {
+                bInputBuffer = true;
+                BufferSkillIndex = SkillIndex; // 어떤 스킬을 예약했는지 저장
+                UE_LOG(LogTemp, Log, TEXT("Skill Buffered!"));
+            }
+        }
+    }
+    else // character가 아닐 경우, 그냥 skill 시전
+    {
+        ActivateSkill(SkillIndex);
+    }
+
+}
+
 // 스킬 슬롯 생성 함수 (내부에서 호출)
 void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAsset>>& SkillAssets)
 {
@@ -148,7 +214,7 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
     }
 }
 
-// 시킬 시전 함수 (외부에서 호출)
+// 시킬 시전 함수 (내부에서 호출)
 void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
 {
     // 유효성 검사 (인덱스, 쿨타임 등)
@@ -164,7 +230,7 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
     if (SkillSlot.MaxComboCount > 1)
     {
         int32& ComboCounter = ComboStateMap.FindOrAdd(SkillIndex); // 현재 실행할 콤보 단계 검색 및 가져오기 (없으면 생성됨)
-        if (LastkillSlotIndex == SkillIndex && GetWorld()->GetTimerManager().IsTimerActive(ComboTimerHandle)) // 동일한 스킬 슬롯인지 And 타이머가 작동중인지 확인
+        if (LastkillSlotIndex == SkillIndex && bIsCancelWindowActive) // && GetWorld()->GetTimerManager().IsTimerActive(ComboTimerHandle)) // 동일한 스킬 슬롯인지 And 타이머가 작동중인지 확인
         {
             LastComboSkillIndex++; // 다음 콤보로
         }
@@ -183,9 +249,11 @@ void UEPSkillComponent::ActivateSkill(int32 SkillIndex)
 
         UE_LOG(LogTemp, Warning, TEXT("cobo state | combo num : %d"), LastComboSkillIndex);
     }
-
     // 스킬 실행   
     ActivateSkillFinished(SkillIndex);
+
+    // 실행했으므로 다시 구간이 열리기 전까지는 false
+    bIsCancelWindowActive = false;
 }
 
 // 실제 스킬 실행 처리

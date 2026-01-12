@@ -77,7 +77,7 @@ void UEPHealthBlockStatComponent::ApplyDamage(const FEPDamageInfo& DamageInfo)
         return;
     }
 
-    OnHitReact.Broadcast(ReactionType);
+    OnHitReact.Broadcast(FinalDamage);
     if (MaxHealthBlocks != CurrentHealthBlocks)
     {
         OnHealthChanged_Two.Broadcast((float)CurrentHealthBlocks, (float)MaxHealthBlocks);

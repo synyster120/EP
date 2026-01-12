@@ -28,6 +28,9 @@
 // Instance
 #include "Characters/Animation/EPAnimInstance.h"
 
+// Tag
+#include "Core/EPGameplayTags.h"
+
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -216,7 +219,7 @@ void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
         {
             if (ItemData->ItemType == EEPItemType::Equipment) // 소유중인 Item 이 "장비"라면
             {
-                SkillComponent->ActivateSkill(0); // 공격
+                SkillComponent->ProcessSkillInput(0); // 공격
             }
         }
     }
@@ -326,7 +329,7 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
-            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded);
+            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded, DefaultItem->GetDropInteractionTag());
 
             this->PlayAnimationByTag(DefaultItem->GetDropInteractionTag(), EndDelegate); // [ Drop ] 몽타주 플레이
         }
@@ -347,21 +350,23 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
-            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded);
+            EndDelegate.BindUObject(this, &AEPPlayerCharacter::OnInteractionMontageEnded, DefaultItem->GetPickupInteractionTag());
 
             this->PlayAnimationByTag(DefaultItem->GetPickupInteractionTag(), EndDelegate); // [ PickUp ] 몽타주 플레이
         }
     }
 }
 
-void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+// 상호작용 Montage 종료 시점 바인딩 함수
+void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag)
 {
     // 줍기 몽타주가 맞는지 확인
 
     if (CurrentItemData) {
         if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
         {
-            if (Montage == CurrentInteractionMontage)
+            //if (Montage == CurrentInteractionMontage)
+            if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
             {
                 // 상태를 다시 Idle로 복구
                 // 단, 이미 사망했거나 다른 특수 상태가 아니라면
@@ -369,6 +374,10 @@ void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool b
                 {
                     CurrentState = EEPCharacterState::Idle;
                 }
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("pickup&drop montage end binding function :: montage param : %s, current montage : %s"), *Montage->GetName(), *CurrentInteractionMontage.GetName());
             }
         }
     }
@@ -504,7 +513,7 @@ void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCom
 {
     if (!CurrentMontage) return;
 
-    this->PlayAnimMontage(CurrentMontage);
+    //this->PlayAnimMontage(CurrentMontage);
 }
 
 void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)

@@ -54,7 +54,7 @@ public:
 	virtual void HandleHealthChanged(float NewHealth, float MaxHealth) override;
 
 	UFUNCTION()
-	void OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag);
 
 	FORCEINLINE TObjectPtr<UStaticMeshComponent> GetHandMeshComponent() { return HandMeshComponent; };
 

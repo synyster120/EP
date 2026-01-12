@@ -15,10 +15,11 @@ public:
     static const FEPGameplayTags& Get() { return GameplayTags; }
     static void Initialize();
 
-    // -- AI 상태 태그들 --
-    FGameplayTag AI_State_Patrol;
-    FGameplayTag AI_State_Combat_Chase;
-    FGameplayTag AI_State_Combat_Attack;
+    // -- Character 관련 태그들 --
+    FGameplayTag Tag_State_Dead;
+    FGameplayTag Action_Hit_Default; 
+    FGameplayTag Tag_InputUserSettings;
+    FGameplayTag Tag_Skill_Attack;
 
 private:
     static FEPGameplayTags GameplayTags;
