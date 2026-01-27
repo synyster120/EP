@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 
+#include "Data/EPFXPreloadLibrary.h"
+
 //#include "Data/EPWeaponTypes.h"
 
 AChessGameMode::AChessGameMode()
@@ -15,6 +17,8 @@ AChessGameMode::AChessGameMode()
 
 void AChessGameMode::BeginPlay()
 {
+	Super::BeginPlay();
+
 	ChessGameState = Cast<AChessGameState>(GetWorld()->GetGameState());
 
 	for (int i = 1;i <= 9;i++)
@@ -25,7 +29,10 @@ void AChessGameMode::BeginPlay()
 		}
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
+	auto* FXLib = GetGameInstance()->GetSubsystem<UEPFXPreloadLibrary>();
+	FXLib->OnPreloadCompleted.AddDynamic(this, &AChessGameMode::StartGame);
+
+	//GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &AChessGameMode::StartGame, 1.0f, false);
 
 
 	////weapon temp

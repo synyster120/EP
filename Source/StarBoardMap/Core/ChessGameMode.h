@@ -34,6 +34,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION()
 	void StartGame();
 	void ClearGame();
 

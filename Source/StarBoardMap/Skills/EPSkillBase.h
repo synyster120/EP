@@ -10,6 +10,7 @@
 class UEPSkillDataAsset;
 struct FEPSkillTargetData;
 struct FEPSkillPhaseData;
+class UEPFXPreloadLibrary;
 
 /**
  *		Skill 클래스의 베이스가 되는 클래스
@@ -25,7 +26,9 @@ public:
 	virtual float GetWindupSeconds(int32 CurrentPhaseDataIndex) const override;
 
 
-	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
+	void Initialize(UEPSkillDataAsset* NewSkillDataAsset, UObject* WorldContext);
+	UFUNCTION()
+	void SetSkillFX();
 
 	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex);
 	void CancelSkillActivation();
@@ -37,4 +40,6 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Skill")
 	TObjectPtr<UEPSkillDataAsset> SkillDataAsset;
+
+	TWeakObjectPtr<UEPFXPreloadLibrary> FXLib;
 };

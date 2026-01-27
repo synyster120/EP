@@ -195,7 +195,7 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
                         if (NewSkill)
                         {
                             // 스킬 객체 초기화
-                            NewSkill->Initialize(LoadedSkillDataAsset);
+                            NewSkill->Initialize(LoadedSkillDataAsset, GetOwner());
                             // 스킬슬롯에 객체 저장
                             SkillSlots[Index].SkillObject = NewSkill;
                             // 스킬슬롯에 최대 콤보 저장

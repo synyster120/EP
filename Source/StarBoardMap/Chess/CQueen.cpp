@@ -94,7 +94,7 @@ FIntPoint ACQueen::FindMove()
     else {
         SetXY(TargetXY);
     }
-    UE_LOG(LogTemp, Warning, TEXT("HIHI Queen is Moving to TargetXY %d %d and QueenMoveMax %d"), TargetXY.X, TargetXY.Y, QueenMoveMax);
+
     return TargetXY;
 }
 
