@@ -13,6 +13,7 @@ struct FEPBaseStat;
 /**
  * 
  */
+
 UCLASS()
 class STARBOARDMAP_API UEPHealthBlockStatComponent : public UEPStatComponent
 {

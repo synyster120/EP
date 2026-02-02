@@ -140,7 +140,15 @@ protected:
 
 	// 실제 소유중인 Item Data
 	UPROPERTY()
-	TSubclassOf<AEPItemBase> CurrentItemData;
+	TSubclassOf<AEPItemBase> OwnedItemData;
+
+	// 주울 시도중인 Item Data
+	UPROPERTY()
+	TSubclassOf<AEPItemBase> TargetItemData;
+
+	// 주울 시도중인 Dropped Item
+	UPROPERTY()
+	AEPDroppedItem* TargetDroppedItem = nullptr;
 
 	UPROPERTY()
 	UCapsuleComponent* ItemCollision;

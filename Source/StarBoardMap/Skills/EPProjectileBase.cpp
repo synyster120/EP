@@ -10,6 +10,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Data/EPObjectPoolTypes.h"
 #include "GenericTeamAgentInterface.h" 
+#include "Sound/SoundBase.h" // sound
+#include "Core/Helper/EPAsyncLoadHelper.h" // helper
 
 AEPProjectileBase::AEPProjectileBase()
 {
@@ -321,8 +323,40 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
             }
         }
 
+        //USoundBase* SFXAsset = PhaseData.SFX.LoadSynchronous(); // 강제 동기 로드
+        //if (SFXAsset) {
+        //    UGameplayStatics::PlaySoundAtLocation(GetWorld(), SFXAsset, GetActorLocation());
+        //}
+        
         UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.SFX.Get(), GetActorLocation());
+
+        //UNiagaraSystem* Asset = PhaseData.VFX.LoadSynchronous(); // 강제 동기 로드
+        //if (Asset) {
+        //    UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Asset, GetActorLocation());
+        //}
+        
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PhaseData.VFX.Get(), GetActorLocation());
+
+
+        // 비동기 로드 로드 (헬퍼 사용)
+        //UEPAsyncLoadHelper::RequestAsyncLoad<USoundBase>(PhaseData.SFX,
+        //    [this](USoundBase* LoadedSoundBase) // 람다의 파라미터로 로드된 몽타주가 들어옴
+        //    {
+        //        if (!LoadedSoundBase) return;
+
+        //        UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.SFX.Get(), GetActorLocation());
+        //    }
+        //);
+
+        //// 비동기 로드 로드 (헬퍼 사용)
+        //UEPAsyncLoadHelper::RequestAsyncLoad<UNiagaraSystem>(PhaseData.VFX,
+        //    [this](UNiagaraSystem* LoadedNiagaraSystem) // 람다의 파라미터로 로드된 몽타주가 들어옴
+        //    {
+        //        if (!LoadedNiagaraSystem) return;
+
+        //        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PhaseData.VFX.Get(), GetActorLocation());
+        //    }
+        //);
     }
 
     // 모든 처리가 끝나면 풀에 반납 요청

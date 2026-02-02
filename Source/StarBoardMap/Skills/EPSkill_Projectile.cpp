@@ -122,7 +122,8 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
             // -------------- 애니메이션 재생 요청 --------------
             AEPCombatCharacterBase* Character = Cast<AEPCombatCharacterBase>(Caster);
             if (!Character) return;
-
+            
+            SkillPhaseDataMontageTag = PhaseData.AnimationTag;
             Character->PlayAnimationByTag(PhaseData.AnimationTag);
             UE_LOG(LogTemp, Warning, TEXT("Skill_projectile --> playing animation : %s"), *PhaseData.AnimationTag.ToString());
 

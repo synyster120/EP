@@ -213,9 +213,9 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 // 기본 공격
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
-    if (SkillComponent && CurrentItemData) // Item 소유중일 때
+    if (SkillComponent && OwnedItemData) // Item 소유중일 때
     {
-        if (AEPItemBase* ItemData = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        if (AEPItemBase* ItemData = Cast<AEPItemBase>(OwnedItemData.GetDefaultObject()))
         {
             if (ItemData->ItemType == EEPItemType::Equipment) // 소유중인 Item 이 "장비"라면
             {
@@ -235,7 +235,7 @@ void AEPPlayerCharacter::RemoveFromCharacter()
     }
 
     // 현재 들고 있는 아이템 데이터 제거
-    CurrentItemData = nullptr;
+    OwnedItemData = nullptr;
 
 }
 
@@ -322,10 +322,10 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         return;
     }
 
-    if (CurrentItemData) {
+    if (OwnedItemData) {
         CurrentState = EEPCharacterState::Interacting;
-        //UE_LOG(LogTemp, Warning, TEXT("Player --- drop"));
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        UE_LOG(LogTemp, Warning, TEXT("Player --- drop"));
+        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(OwnedItemData.GetDefaultObject()))
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
@@ -335,7 +335,7 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         }
     }
     else {
-        //UE_LOG(LogTemp, Warning, TEXT("Player --- pickup"));
+        UE_LOG(LogTemp, Warning, TEXT("Player --- pickup"));
         BestDroppedItem = FindBestInteractable();
 
         if (BestDroppedItem == nullptr) {
@@ -345,8 +345,9 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
 
         CurrentState = EEPCharacterState::Interacting;
 
-        CurrentItemData = BestDroppedItem->GetOriginalItemClass();
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        TargetDroppedItem = BestDroppedItem;
+        TargetItemData = BestDroppedItem->GetOriginalItemClass();
+        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(TargetItemData.GetDefaultObject()))
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
@@ -354,41 +355,83 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
 
             this->PlayAnimationByTag(DefaultItem->GetPickupInteractionTag(), EndDelegate); // [ PickUp ] 몽타주 플레이
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("pickup - get tager item data is not epitembase --> pickup fail"));
+        }
     }
 }
 
 // 상호작용 Montage 종료 시점 바인딩 함수
 void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag)
 {
-    // 줍기 몽타주가 맞는지 확인
-
-    if (CurrentItemData) {
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+    // 비정상 종료 확인
+    if (bInterrupted && ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+    {
+        // 상태를 다시 Idle로 복구
+        // 단, 이미 사망했거나 다른 특수 상태가 아니라면
+        if (CurrentState == EEPCharacterState::Interacting)
         {
-            //if (Montage == CurrentInteractionMontage)
-            if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+            CurrentState = EEPCharacterState::Idle;
+
+            // Pickup
+            if (TargetItemData != nullptr && ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_PickUp))
             {
-                // 상태를 다시 Idle로 복구
-                // 단, 이미 사망했거나 다른 특수 상태가 아니라면
-                if (CurrentState == EEPCharacterState::Interacting)
-                {
-                    CurrentState = EEPCharacterState::Idle;
-                }
+                UE_LOG(LogTemp, Warning, TEXT("[TEST2] interaction montage end delegate function - interaction is pickup and target item reset"));
+                TargetItemData = nullptr;
+                return;
             }
-            else
+
+            // Drop
+            if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_Drop))
             {
-                UE_LOG(LogTemp, Warning, TEXT("pickup&drop montage end binding function :: montage param : %s, current montage : %s"), *Montage->GetName(), *CurrentInteractionMontage.GetName());
+                UE_LOG(LogTemp, Warning, TEXT("[TEST2] interaction montage end delegate function - interaction is drop"));
+                return;
             }
         }
     }
+
+    // ----------------- 정상 종료 -----------------
+    // Pickup
+    if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_PickUp))
+    {
+
+    }
+
+    // Drop
+    if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_Drop))
+    {
+
+    }
+
+
+    //if (CurrentItemData) {
+    //    if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+    //    {
+    //        //if (Montage == CurrentInteractionMontage)
+    //        if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+    //        {
+    //            // 상태를 다시 Idle로 복구
+    //            // 단, 이미 사망했거나 다른 특수 상태가 아니라면
+    //            if (CurrentState == EEPCharacterState::Interacting)
+    //            {
+    //                CurrentState = EEPCharacterState::Idle;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            UE_LOG(LogTemp, Warning, TEXT("pickup&drop montage end binding function :: montage param : %s, current montage : %s"), *Montage->GetName(), *CurrentInteractionMontage.GetName());
+    //        }
+    //    }
+    //}
 }
 
 // Item 해제 함수 (AnimNotify 에서 호출)
 void AEPPlayerCharacter::Drop()
 {
-    if (CurrentItemData)
+    if (OwnedItemData)
     {
-        AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData->GetDefaultObject());
+        AEPItemBase* DefaultItem = Cast<AEPItemBase>(OwnedItemData->GetDefaultObject());
         if (!DefaultItem) return;
 
         // ABP 상태 변경
@@ -409,36 +452,40 @@ void AEPPlayerCharacter::Drop()
         UEPItemLibrary::SpawnDroppedItem(
             this,
             DroppedItemClass,  // 플레이어가 알고 있는 껍데기 클래스
-            CurrentItemData,   // 지금 들고 있던 아이템 데이터
+            OwnedItemData,   // 지금 들고 있던 아이템 데이터
             DropLocation,
             1
         );
 
         // 데이터 비우기
-        CurrentItemData = nullptr;
+        OwnedItemData = nullptr;
     }
 }
 
 // Item 부착 함수 (AnimNotify 에서 호출)
 void AEPPlayerCharacter::PickUp()
 {
-    if (CurrentItemData)
+    if (TargetItemData)
     {
-        // Item 부착
-        EquipItem(CurrentItemData);
-
-        AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData->GetDefaultObject());
+        AEPItemBase* DefaultItem = Cast<AEPItemBase>(TargetItemData->GetDefaultObject());
         if (!DefaultItem) return;
+
+        // Item 부착
+        EquipItem(TargetItemData);
+
+        // Item 데이터 이전
+        OwnedItemData = TargetItemData; // 소유 데이터로 저장
+        TargetItemData = nullptr; // 타겟 데이터 제거
 
         // ABP 상태 변경
         UpdateAnimationState(DefaultItem->ItemAnimtionType, true);
 
         // 월드에 Drop 되어있던 Item 삭제
-        if (IsValid(BestDroppedItem))
+        if (IsValid(TargetDroppedItem)) // BestDroppedItem 을 따로 저장해두는 게 나을 듯 (언제든 바뀔 수 있는 변수이기 때문)
         {
             // 액터 파괴 명령
-            BestDroppedItem->DestroyItem(); // 유언 전달 및 파괴
-            BestDroppedItem = nullptr; // 초기화
+            TargetDroppedItem->DestroyItem(); // 유언 전달 및 파괴
+            TargetDroppedItem = nullptr; // 초기화
         }
     }
 }

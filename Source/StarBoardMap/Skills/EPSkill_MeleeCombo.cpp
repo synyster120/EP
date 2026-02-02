@@ -45,6 +45,8 @@ void UEPSkill_MeleeCombo::Activate(AActor* Caster, const FEPSkillTargetData& New
             }
         }
 
+        SkillPhaseDataMontageTag = SkillPhaseData.AnimationTag;
+
         // 캐릭터에게 해당 태그의 애니메이션을 재생하라고 요청
         Character->PlayAnimationByTag(SkillPhaseData.AnimationTag);
 

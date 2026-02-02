@@ -34,7 +34,7 @@ public:
 	inline void SetCurrentState(EEPCharacterState NewState) { CurrentState = NewState; };
 	FORCEINLINE TObjectPtr<UEPCharacterAnimationData> GetAnimDataAsset() { return AnimDataAsset; };
 
-// ---- 몽타주 재생 방법 변경 ------
+// ------ 몽타주 재생 방법 변경 ------
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnActionEnded OnActionEnded;
 
@@ -51,7 +51,7 @@ protected:
 // ---- 몽타주 재생 방법 변경 ------
 private:
 	UFUNCTION()
-	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag AssociatedTag);
 
 	FGameplayTag CurrentActionTag; // 현재 재생 중인 태그 저장
 

@@ -15,11 +15,16 @@ public:
     static const FEPGameplayTags& Get() { return GameplayTags; }
     static void Initialize();
 
-    // -- Character 관련 태그들 --
+    // -- 전투 관련 Tags --
     FGameplayTag Tag_State_Dead;
+    FGameplayTag Tag_Action_Hit;
     FGameplayTag Action_Hit_Default; 
+    FGameplayTag Tag_Skill_Attack; 
+
+    // -- 상호작용 관련 Tags --
     FGameplayTag Tag_InputUserSettings;
-    FGameplayTag Tag_Skill_Attack;
+    FGameplayTag Tag_InputUserSettings_PickUp;
+    FGameplayTag Tag_InputUserSettings_Drop;
 
 private:
     static FEPGameplayTags GameplayTags;

@@ -188,7 +188,7 @@ void UEPLootComponent::SpawnItem(TSubclassOf<AActor> ItemClassToSpawn)
     if (DroppedActor)
     {
         // Spawn Item 데이터 초기화
-        DroppedActor->InitializeDrop(ItemClassToSpawn, 1);
+        //DroppedActor->InitializeDrop(ItemClassToSpawn, 1);
 
         // ============== 물리 힘 가하기 ==============
         // 아이템의 RootComponent(보통 StaticMesh)를 가져옴
