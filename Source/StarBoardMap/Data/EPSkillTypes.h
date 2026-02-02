@@ -121,21 +121,30 @@ struct FEPProjectileData
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
     float LifeSpan = 5.0f;
 
+
+    //FX Tag
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    FGameplayTag FXImpactTag;
+
     // 충돌했을 때 재생할 이펙트
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
-    TSoftObjectPtr<UNiagaraSystem> ImpactEffect; 
+    UPROPERTY(Transient)
+    TSoftObjectPtr<UNiagaraSystem> ImpactEffect = nullptr;
 
     // 충돌했을 때 재생할 사운드
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
-    TSoftObjectPtr<USoundBase> ImpactSound;
+    UPROPERTY(Transient)
+    TSoftObjectPtr<USoundBase> ImpactSound = nullptr;
+
+    //FX Tag
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
+    FGameplayTag FXExpireTag;
 
     // 수명이 다해 사라질 때 재생할 이펙트
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
-    TSoftObjectPtr<UNiagaraSystem> ExpireEffect; 
+    UPROPERTY(Transient)
+    TSoftObjectPtr<UNiagaraSystem> ExpireEffect = nullptr; 
 
     // 수명이 다해 사라질 때 재생할 사운드
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effects")
-    TSoftObjectPtr<USoundBase> ExpireSound; 
+    UPROPERTY(Transient)
+    TSoftObjectPtr<USoundBase> ExpireSound = nullptr;
 };
 
 // 콤보의 한 단계를 정의하는 구조체
@@ -188,13 +197,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
     FGameplayTag AnimationTag;
 
-    // 이펙트
+    //FX Tag
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-    TSoftObjectPtr<UNiagaraSystem> VFX;
+    FGameplayTag FXTag;
+
+    // 이펙트
+    UPROPERTY(Transient)
+    TSoftObjectPtr<UNiagaraSystem> VFX = nullptr;
 
     // 사운드
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
-    TSoftObjectPtr<USoundBase> SFX;
+    UPROPERTY(Transient)
+    TSoftObjectPtr<USoundBase> SFX = nullptr;
 
     // 스킬 범위
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")

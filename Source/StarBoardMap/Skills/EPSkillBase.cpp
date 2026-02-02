@@ -6,8 +6,11 @@
 #include "Data/EPSkillTypes.h"
 #include "Characters/EPCharacterBase.h"
 
-// 초기화
-void UEPSkillBase::Initialize(UEPSkillDataAsset* NewSkillDataAsset)
+#include "Data/EPFXPreloadLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/GameInstance.h"
+
+void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
     SkillDataAsset = NewSkillDataAsset;
 
@@ -102,7 +105,86 @@ FEPSkillPhaseData* UEPSkillBase::GetPhaseData(int32 CurrentPhaseDataIndex) const
                 CurrentPhaseDataIndex);
         }
     }
-    return nullptr;
+
+	return nullptr;
+}
+
+void UEPSkillBase::Initialize(UEPSkillDataAsset* NewSkillDataAsset, UObject* WorldContext)
+{
+    SkillDataAsset = NewSkillDataAsset;
+
+    if (!WorldContext)
+    {
+        FXLib = nullptr;
+        return;
+    }
+
+    UWorld* World = WorldContext->GetWorld();
+    if (!World)
+    {
+        FXLib = nullptr;
+        return;
+    }
+
+    UGameInstance* GI = World->GetGameInstance();
+    if (!GI)
+    {
+        FXLib = nullptr;
+        return;
+    }
+
+    FXLib = GI->GetSubsystem<UEPFXPreloadLibrary>();
+    bool IsLoaded = true;
+    if (GetPhaseData(0)->FXTag.IsValid() && !FXLib->IsLoaded(GetPhaseData(0)->FXTag)) IsLoaded = false;
+    if (GetPhaseData(0)->ProjectileInfo.FXImpactTag.IsValid() && !FXLib->IsLoaded(GetPhaseData(0)->ProjectileInfo.FXImpactTag)) IsLoaded = false;
+    if (GetPhaseData(0)->ProjectileInfo.FXExpireTag.IsValid() && !FXLib->IsLoaded(GetPhaseData(0)->ProjectileInfo.FXExpireTag)) IsLoaded = false;
+    
+    if (IsLoaded) {
+        SetSkillFX();
+        return;
+    }
+
+    FXLib->OnPreloadCompleted.AddDynamic(this, &UEPSkillBase::SetSkillFX);
+}
+
+void UEPSkillBase::SetSkillFX()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Set Skill FX Name %s is Loaded"), SkillDataAsset ? *SkillDataAsset->SkillData.SkillName : TEXT("NONE"));
+    const TArray<FEPComboStep>& ComboSeq = SkillDataAsset->SkillData.ComboSequence;
+
+    for (int32 StepIdx = 0; StepIdx < ComboSeq.Num(); ++StepIdx)
+    {
+        FEPSkillPhaseData* Phase = GetPhaseData(StepIdx);
+        if (!Phase)
+        {
+            continue;
+        }
+
+        const FGameplayTag& FXTag = Phase->FXTag;
+        if (FXTag.IsValid()) {
+            Phase->VFX = FXLib->GetVFX(FXTag);
+            Phase->SFX = FXLib->GetSFX(FXTag);
+        }
+        const FGameplayTag& FXImTag = Phase->ProjectileInfo.FXImpactTag;
+        if (FXImTag.IsValid()) {
+            Phase->ProjectileInfo.ImpactEffect = FXLib->GetVFX(FXImTag);
+            Phase->ProjectileInfo.ImpactSound = FXLib->GetSFX(FXImTag);
+        }
+        const FGameplayTag& FXExTag = Phase->ProjectileInfo.FXExpireTag;
+        if (FXExTag.IsValid()) {
+            Phase->ProjectileInfo.ExpireEffect = FXLib->GetVFX(FXExTag);
+            Phase->ProjectileInfo.ExpireSound = FXLib->GetSFX(FXExTag);
+        }
+    }
+}
+
+bool UEPSkillBase::RequiresMovementLock(int32 CurrentPhaseDataIndex) const
+{
+    if (FEPSkillPhaseData* data = GetPhaseData(CurrentPhaseDataIndex))
+    {
+        return data->bRequiresMovementLock;
+    }
+    return false;
 }
 
 float UEPSkillBase::GetWindupSeconds(int32 CurrentPhaseDataIndex) const

@@ -70,7 +70,7 @@ void ACUnit::BeginPlay()
 
 	if (CapsuleComp)
 	{
-		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ACKing::OnCapsuleOverlap);
+		CapsuleComp->OnComponentBeginOverlap.AddDynamic(this, &ACUnit::OnCapsuleOverlap);
 	}
 }
 void ACUnit::PossessedBy(AController* NewController)

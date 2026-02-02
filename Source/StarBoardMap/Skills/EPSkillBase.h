@@ -11,6 +11,7 @@
 class UEPSkillDataAsset;
 struct FEPSkillTargetData;
 struct FEPSkillPhaseData;
+class UEPFXPreloadLibrary;
 
 // 스킬이 끝났음을 알리는 내부 델리게이트 (외부 노출 X, Component 전달용)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillFinishedNative, UEPSkillBase* /*SkillInstance*/);
@@ -28,8 +29,11 @@ public:
 	virtual float GetWindupSeconds(int32 CurrentPhaseDataIndex) const override;
 
 
-	void Initialize(UEPSkillDataAsset* NewSkillDataAsset);
 	void BeginDestroy() override;
+
+	void Initialize(UEPSkillDataAsset* NewSkillDataAsset, UObject* WorldContext);
+	UFUNCTION()
+	void SetSkillFX();
 
 	virtual void Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex);
 	void CancelSkillActivation();
@@ -49,4 +53,7 @@ protected:
 	TObjectPtr<UEPSkillDataAsset> SkillDataAsset;
 
 	FGameplayTag SkillPhaseDataMontageTag;
+
+	TWeakObjectPtr<UEPFXPreloadLibrary> FXLib;
+
 };
