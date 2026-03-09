@@ -281,7 +281,7 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
 
         const FVector ExplosionLocation = this->GetActorLocation();
 #if !(UE_BUILD_SHIPPING)
-        //DrawDebugSphere(this->GetWorld(), ExplosionLocation, 100.f, 24, FColor::Red, false, 2.f, 0, 2.f);
+        //DrawDebugSphere(this->GetWorld(), ExplosionLocation, 200.f, 24, FColor::Red, false, 2.f, 0, 2.f);
 #endif
         FGenericTeamId CasterTeamId = FGenericTeamId::NoTeam; // 기본값 = '팀 없음'
         if (IGenericTeamAgentInterface* TeamAgent = Cast<IGenericTeamAgentInterface>(GetOwner()))
@@ -295,7 +295,7 @@ void AEPProjectileBase::OnProjectileOverlap(UPrimitiveComponent* OverlappedCompo
         UKismetSystemLibrary::SphereOverlapActors(
             this->GetWorld(),
             ExplosionLocation,
-            100.f,
+            200.f,
             ObjectTypes,
             AActor::StaticClass(),
             TArray<AActor*>(),

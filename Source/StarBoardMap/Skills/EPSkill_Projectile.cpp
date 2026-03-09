@@ -11,10 +11,12 @@
 #include "Characters/EPCombatCharacterBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Gimmick/EPCannon.h"
 
 // 테스트용
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "NiagaraComponent.h"
 
 void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
@@ -82,7 +84,21 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
                                     if (!IsValid(this)) return;
                                     if (!IsValid(PoolManager2)) return; // 중요!
 
-                                    UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.ProjectileInfo.ImpactSound.Get(), Caster->GetActorLocation());
+                                    FVector ImpactFXVector = Caster->GetActorLocation();
+                                    if (AEPCannon* CastingCannon = Cast<AEPCannon>(Caster)) {
+                                        UStaticMeshComponent* BodyComp = CastingCannon->GetBodyComponent();
+                                        ImpactFXVector = BodyComp->GetSocketLocation(FName("AttackEndSocket"));
+                                    }
+                                    FRotator FXRotator = FRotator(InitializerData.LaunchVelocity.Rotation().Pitch, InitializerData.LaunchVelocity.Rotation().Yaw, InitializerData.LaunchVelocity.Rotation().Roll);
+                                    UE_LOG(LogTemp, Warning, TEXT("HIHI %f %f %f"), FXRotator.Pitch, FXRotator.Yaw, FXRotator.Yaw);
+                                    FXRotator = FRotator(-90.f + FXRotator.Pitch, FXRotator.Yaw, 0.f);
+
+                                    UGameplayStatics::PlaySoundAtLocation(GetWorld(), PhaseData.ProjectileInfo.ImpactSound.Get(), ImpactFXVector);
+                                    UNiagaraComponent* Comp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PhaseData.ProjectileInfo.ImpactEffect.Get(), ImpactFXVector, FXRotator);
+                                    if (Comp)
+                                    {
+                                        Comp->SetWorldRotation(FXRotator);
+                                    }
                                     AActor* SpawnedActor = PoolManager2->SpawnObjectFromPool(ActorClassToSpawn, SpawnTransform, InitializerData);
                                 }),
                             1.0f,
