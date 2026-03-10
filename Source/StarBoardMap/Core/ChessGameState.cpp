@@ -29,17 +29,25 @@ void AChessGameState::BeginPlay()
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     FRotator SpawnRotation = FRotator::ZeroRotator;
 
-    FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z + 1.f);
-    for (int i = 0;i < 10;i++) {
-        for (int j = 0;j < 10;j++) {
-            GridVector[i][j] = FVector(TempVector.X + (GridSize * i), TempVector.Y + (GridSize * j), TempVector.Z);
-            GridWarningTiles.Add(GetWorld()->SpawnActor<AActor>(WarningTileBP, GridVector[i][j], SpawnRotation, SpawnParams));
-            GridWarningTiles[i * 10 + j]->SetActorHiddenInGame(true);
-            GridWarningState[i][j] = 0;
-            if (i == 0 || i == 9 || j == 0 || j == 9) GridState[i][j] = -1;
-            else GridState[i][j] = 0;
+    if (ChessBoardActor) 
+    {
+        FVector TempVector = FVector(ChessBoardActor->GetActorLocation().X - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Y - (GridSize * 4.5f), ChessBoardActor->GetActorLocation().Z + 1.f);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                GridVector[i][j] = FVector(TempVector.X + (GridSize * i), TempVector.Y + (GridSize * j), TempVector.Z);
+                GridWarningTiles.Add(GetWorld()->SpawnActor<AActor>(WarningTileBP, GridVector[i][j], SpawnRotation, SpawnParams));
+                GridWarningTiles[i * 10 + j]->SetActorHiddenInGame(true);
+                GridWarningState[i][j] = 0;
+                if (i == 0 || i == 9 || j == 0 || j == 9) GridState[i][j] = -1;
+                else GridState[i][j] = 0;
+            }
         }
     }
+    else
+    {
+        return;
+    }
+
 
     /////Spawn
 

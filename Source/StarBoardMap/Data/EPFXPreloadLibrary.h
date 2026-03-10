@@ -29,9 +29,10 @@ class STARBOARDMAP_API UEPFXPreloadLibrary : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
-	void Initialize(FSubsystemCollectionBase& Collection);
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	void OnLoadLevel(FGameplayTag& Tag);
 	void HandlePostLoadMap(UWorld* LoadedWorld);
+	void PreloadFXForLevel(FName LevelName); // HandlePostLoadMap 대신
 	void LoadFXByTag(const FGameplayTag& Tag);
 	void LoadFXByTagExec();
 	void ClearCacheExceptTag(const FGameplayTag& Tag);
@@ -59,6 +60,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FX|State")
 	bool IsPreloading() const { return bIsPreloading; }
 
+	/** Load 진행 상태 반환 **/
+	UFUNCTION()
+	float GetFXLoadProgress() const;
+
 private:
 	/** 하드 캐시 */
 	UPROPERTY(Transient)
@@ -70,4 +75,7 @@ private:
 
 	/** 현재 로딩 핸들(취소/중복 방지용) */
 	TSharedPtr<struct FStreamableHandle> ActiveHandle;
+
+	UPROPERTY()
+	UEPFXData* FXData;
 };

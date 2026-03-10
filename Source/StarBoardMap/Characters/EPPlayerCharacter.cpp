@@ -31,6 +31,9 @@
 // Tag
 #include "Core/EPGameplayTags.h"
 
+// respawn
+#include "Core/Subsystems/EPRespawnSubsystem.h"
+
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -117,14 +120,20 @@ void AEPPlayerCharacter::BeginPlay()
     // stat
     if (StatComponent)
     {
-        // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'함
-        //StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
-
         // 초기 상태 업데이트
         FEPHealthInfo CurrentHealthInfo = StatComponent->GetHealthInfo();
         float CurrentHealth = CurrentHealthInfo.CurrentHealth;
         float MaxHealth = CurrentHealthInfo.MaxHealth;
         HandleHealthChanged(CurrentHealth, MaxHealth);
+    }
+
+    // 스켈레탈 메시의 0번 슬롯 머티리얼을 다이내믹으로 변환하여 생성 및 적용
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        // CreateAndSetMaterialInstanceDynamic는 머티리얼을 복사하고 자동으로 메시에 다시 입혀줍니다.
+        //DissolveMID = MeshComp->CreateAndSetMaterialInstanceDynamic(0);
+
+        // (참고) 만약 캐릭터의 머티리얼 슬롯이 여러 개라면 for문으로 모두 변환해야함
     }
 
     // best item search
@@ -213,9 +222,9 @@ void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 // 기본 공격
 void AEPPlayerCharacter::BaseAttack(const FInputActionValue& Value)
 {
-    if (SkillComponent && CurrentItemData) // Item 소유중일 때
+    if (SkillComponent && OwnedItemData) // Item 소유중일 때
     {
-        if (AEPItemBase* ItemData = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        if (AEPItemBase* ItemData = Cast<AEPItemBase>(OwnedItemData.GetDefaultObject()))
         {
             if (ItemData->ItemType == EEPItemType::Equipment) // 소유중인 Item 이 "장비"라면
             {
@@ -235,7 +244,7 @@ void AEPPlayerCharacter::RemoveFromCharacter()
     }
 
     // 현재 들고 있는 아이템 데이터 제거
-    CurrentItemData = nullptr;
+    OwnedItemData = nullptr;
 
 }
 
@@ -250,6 +259,7 @@ AEPDroppedItem* AEPPlayerCharacter::FindBestInteractable()
     // 카메라 위치/방향 가져오기
     FVector CamLoc;
     FRotator CamRot;
+    if (!GetController()) return nullptr;
     GetController()->GetPlayerViewPoint(CamLoc, CamRot);
     FVector CamDir = CamRot.Vector();
 
@@ -322,10 +332,10 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         return;
     }
 
-    if (CurrentItemData) {
+    if (OwnedItemData) {
         CurrentState = EEPCharacterState::Interacting;
-        //UE_LOG(LogTemp, Warning, TEXT("Player --- drop"));
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        UE_LOG(LogTemp, Warning, TEXT("Player --- drop"));
+        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(OwnedItemData.GetDefaultObject()))
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
@@ -335,7 +345,7 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         }
     }
     else {
-        //UE_LOG(LogTemp, Warning, TEXT("Player --- pickup"));
+        UE_LOG(LogTemp, Warning, TEXT("Player --- pickup"));
         BestDroppedItem = FindBestInteractable();
 
         if (BestDroppedItem == nullptr) {
@@ -345,8 +355,9 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
 
         CurrentState = EEPCharacterState::Interacting;
 
-        CurrentItemData = BestDroppedItem->GetOriginalItemClass();
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+        TargetDroppedItem = BestDroppedItem;
+        TargetItemData = BestDroppedItem->GetOriginalItemClass();
+        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(TargetItemData.GetDefaultObject()))
         {
             // 몽타주 종료 델리게이트 바인딩
             FOnMontageEnded EndDelegate;
@@ -354,41 +365,83 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
 
             this->PlayAnimationByTag(DefaultItem->GetPickupInteractionTag(), EndDelegate); // [ PickUp ] 몽타주 플레이
         }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("pickup - get tager item data is not epitembase --> pickup fail"));
+        }
     }
 }
 
 // 상호작용 Montage 종료 시점 바인딩 함수
 void AEPPlayerCharacter::OnInteractionMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag ActionTag)
 {
-    // 줍기 몽타주가 맞는지 확인
-
-    if (CurrentItemData) {
-        if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+    // 비정상 종료 확인
+    if (bInterrupted && ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+    {
+        // 상태를 다시 Idle로 복구
+        // 단, 이미 사망했거나 다른 특수 상태가 아니라면
+        if (CurrentState == EEPCharacterState::Interacting)
         {
-            //if (Montage == CurrentInteractionMontage)
-            if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+            CurrentState = EEPCharacterState::Idle;
+
+            // Pickup
+            if (TargetItemData != nullptr && ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_PickUp))
             {
-                // 상태를 다시 Idle로 복구
-                // 단, 이미 사망했거나 다른 특수 상태가 아니라면
-                if (CurrentState == EEPCharacterState::Interacting)
-                {
-                    CurrentState = EEPCharacterState::Idle;
-                }
+                UE_LOG(LogTemp, Warning, TEXT("[TEST2] interaction montage end delegate function - interaction is pickup and target item reset"));
+                TargetItemData = nullptr;
+                return;
             }
-            else
+
+            // Drop
+            if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_Drop))
             {
-                UE_LOG(LogTemp, Warning, TEXT("pickup&drop montage end binding function :: montage param : %s, current montage : %s"), *Montage->GetName(), *CurrentInteractionMontage.GetName());
+                UE_LOG(LogTemp, Warning, TEXT("[TEST2] interaction montage end delegate function - interaction is drop"));
+                return;
             }
         }
     }
+
+    // ----------------- 정상 종료 -----------------
+    // Pickup
+    if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_PickUp))
+    {
+
+    }
+
+    // Drop
+    if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings_Drop))
+    {
+
+    }
+
+
+    //if (CurrentItemData) {
+    //    if (AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData.GetDefaultObject()))
+    //    {
+    //        //if (Montage == CurrentInteractionMontage)
+    //        if (ActionTag.MatchesTag(FEPGameplayTags::Get().Tag_InputUserSettings))
+    //        {
+    //            // 상태를 다시 Idle로 복구
+    //            // 단, 이미 사망했거나 다른 특수 상태가 아니라면
+    //            if (CurrentState == EEPCharacterState::Interacting)
+    //            {
+    //                CurrentState = EEPCharacterState::Idle;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            UE_LOG(LogTemp, Warning, TEXT("pickup&drop montage end binding function :: montage param : %s, current montage : %s"), *Montage->GetName(), *CurrentInteractionMontage.GetName());
+    //        }
+    //    }
+    //}
 }
 
 // Item 해제 함수 (AnimNotify 에서 호출)
 void AEPPlayerCharacter::Drop()
 {
-    if (CurrentItemData)
+    if (OwnedItemData)
     {
-        AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData->GetDefaultObject());
+        AEPItemBase* DefaultItem = Cast<AEPItemBase>(OwnedItemData->GetDefaultObject());
         if (!DefaultItem) return;
 
         // ABP 상태 변경
@@ -409,36 +462,40 @@ void AEPPlayerCharacter::Drop()
         UEPItemLibrary::SpawnDroppedItem(
             this,
             DroppedItemClass,  // 플레이어가 알고 있는 껍데기 클래스
-            CurrentItemData,   // 지금 들고 있던 아이템 데이터
+            OwnedItemData,   // 지금 들고 있던 아이템 데이터
             DropLocation,
             1
         );
 
         // 데이터 비우기
-        CurrentItemData = nullptr;
+        OwnedItemData = nullptr;
     }
 }
 
 // Item 부착 함수 (AnimNotify 에서 호출)
 void AEPPlayerCharacter::PickUp()
 {
-    if (CurrentItemData)
+    if (TargetItemData)
     {
-        // Item 부착
-        EquipItem(CurrentItemData);
-
-        AEPItemBase* DefaultItem = Cast<AEPItemBase>(CurrentItemData->GetDefaultObject());
+        AEPItemBase* DefaultItem = Cast<AEPItemBase>(TargetItemData->GetDefaultObject());
         if (!DefaultItem) return;
+
+        // Item 부착
+        EquipItem(TargetItemData);
+
+        // Item 데이터 이전
+        OwnedItemData = TargetItemData; // 소유 데이터로 저장
+        TargetItemData = nullptr; // 타겟 데이터 제거
 
         // ABP 상태 변경
         UpdateAnimationState(DefaultItem->ItemAnimtionType, true);
 
         // 월드에 Drop 되어있던 Item 삭제
-        if (IsValid(BestDroppedItem))
+        if (IsValid(TargetDroppedItem)) // BestDroppedItem 을 따로 저장해두는 게 나을 듯 (언제든 바뀔 수 있는 변수이기 때문)
         {
             // 액터 파괴 명령
-            BestDroppedItem->DestroyItem(); // 유언 전달 및 파괴
-            BestDroppedItem = nullptr; // 초기화
+            TargetDroppedItem->DestroyItem(); // 유언 전달 및 파괴
+            TargetDroppedItem = nullptr; // 초기화
         }
     }
 }
@@ -594,4 +651,118 @@ void AEPPlayerCharacter::CheckNearbyItems()
             BestDroppedItem->ShowInteractionUI();
         }
     }
+}
+
+
+// --- RESPAWN ---
+void AEPPlayerCharacter::StartRespawnSequence()
+{
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController && PlayerController->PlayerCameraManager)
+    {
+        // 입력 차단
+        DisableInput(PlayerController);
+
+        // 물리적 움직임 및 중력 제거 (허공에 둥둥 띄우기)
+        UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+        if (MovementComp)
+        {
+            // 떨어지던 가속도 즉시 0으로 초기화
+            MovementComp->StopMovementImmediately();
+
+            // 물리 연산 정지
+            MovementComp->SetMovementMode(MOVE_None); // 이동 모드 'None'
+
+            // 캡슐이 바닥을 뚫거나 다른 것과 부딪히지 않도록 충돌체 무시 처리 (선택 사항)
+            GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+
+        // 애니메이션 시간 정지 (현재 포즈 그대로 굳히기)
+        USkeletalMeshComponent* MeshComp = GetMesh();
+        if (MeshComp)
+        {
+            MeshComp->bPauseAnims = true; // 애니메이션 업데이트 정지
+        }
+
+        // 머티리얼 디졸브 연출 시작 (블루프린트가 수행)
+        PlayDissolveEffect(); // --> OnDissolveFinished()
+    }
+}
+
+//  fade out & respawn (블루프린트에서 호출)
+void AEPPlayerCharacter::OnDissolveFinished()
+{
+    // 이제 캐릭터가 완전히 투명해졌으므로, 카메라 페이드 아웃 시작
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController && PlayerController->PlayerCameraManager)
+    {
+        // 카메라 Fade Out 실행 - StartCameraFade(FromAlpha, ToAlpha, Duration, Color, bFadeAudio, bHoldWhenFinished)
+        PlayerController->PlayerCameraManager->StartCameraFade(0.f, 1.f, 1.0f, FLinearColor::Black, false, true);
+
+        // 페이드 아웃이 끝나는 1초 뒤에 텔레포트 진행
+        FTimerHandle TeleportTimer;
+        GetWorld()->GetTimerManager().SetTimer(TeleportTimer, this, &AEPPlayerCharacter::RequestTeleportToSubsystem, 1.0f, false);
+    }
+}
+
+// SpawnSubsystem에 텔레포트 요청
+void AEPPlayerCharacter::RequestTeleportToSubsystem()
+{
+    // 통해 텔레포트 실행
+    if (UGameInstance* UGameInstance = GetGameInstance())
+    {
+        if (UEPRespawnSubsystem* RespawnSub = UGameInstance->GetSubsystem<UEPRespawnSubsystem>())
+        {
+            // 텔레포트 완료타이밍 바인딩
+            RespawnSub->OnPlayerRespawned.AddDynamic(this, &AEPPlayerCharacter::ExecuteFadeIn);
+
+            RespawnSub->RespawnPlayer(this);
+        }
+    }
+}
+
+// 카메라 fade in
+void AEPPlayerCharacter::ExecuteFadeIn()
+{
+    // 물리 연산 및 충돌 복구
+    UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+    if (MovementComp)
+    {
+        // 다시 걸어다닐 수 있게 걷기 모드로 변경
+        MovementComp->SetMovementMode(MOVE_Walking);
+        // 바닥 찾음
+        MovementComp->Velocity = FVector::ZeroVector;
+        MovementComp->bForceNextFloorCheck = true;
+
+
+        // 충돌체 다시 활성화 (QueryAndPhysics가 캐릭터 기본값)
+        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
+
+    // 애니메이션 굳은 것 풀어주기
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (MeshComp)
+    {
+        MeshComp->bPauseAnims = false; // 애니메이션 다시 재생 시작
+
+        // 애니메이션 상태머신 새로고침 지시
+        MeshComp->TickAnimation(0.f, false);
+        MeshComp->RefreshBoneTransforms();
+    }
+
+    // fade in 
+    FTimerHandle FadeInTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(FadeInTimerHandle, [this]()
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (PlayerController && PlayerController->PlayerCameraManager)
+            {
+                // Fade In 실행: 불투명 검은색(1)에서 투명(0)으로 1초 동안 페이드
+                PlayerController->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.0f, FLinearColor::Black, false, false);
+
+                // 입력 권한 돌려주기
+                EnableInput(PlayerController);
+            }
+        }, 0.15f, false); // 0.15초의 안정화 시간 확보
+
 }

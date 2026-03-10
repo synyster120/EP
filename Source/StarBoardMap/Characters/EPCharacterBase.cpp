@@ -73,7 +73,7 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag, const FOnMontageE
                     CombatCharacter->CurrentMontagePlay(LoadedMontage, FoundMontageType);
                 }
 
-                CurrentActionTag = NewTag;
+                //CurrentActionTag = NewTag;
             }
         );
     }
@@ -95,10 +95,10 @@ void AEPCharacterBase::InitializeCharacterData()
 }
 
 // 몽타주 종료 타이밍 바인딩 함수
-void AEPCharacterBase::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void AEPCharacterBase::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayTag AssociatedTag)
 {
     // 애니메이션이 끝나면 방송, 플레이한 몽타주를 인수로 전달
-    OnActionEnded.Broadcast(CurrentActionTag);
+    OnActionEnded.Broadcast(AssociatedTag);
 }
 
 // 몽타주 비동기 재생
@@ -151,7 +151,7 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
 
                 // 델리게이트 바인딩 (HandleMontageEnded가 UFUNCTION이어야 함)
                 FOnMontageEnded EndDelegate;
-                EndDelegate.BindUObject(this, &AEPCharacterBase::HandleMontageEnded);
+                EndDelegate.BindUObject(this, &AEPCharacterBase::HandleMontageEnded, NewTag);
 
                 // 몽타주 재생 및 상태 업데이트
                 AnimInstance->Montage_Play(LoadedMontage);
@@ -164,7 +164,7 @@ void AEPCharacterBase::PlayAnimationByTag(FGameplayTag NewTag)
                     CombatCharacter->CurrentMontagePlay(LoadedMontage, FoundMontageType);
                 }
 
-                CurrentActionTag = NewTag;
+                //CurrentActionTag = NewTag;
             }
         );
     }

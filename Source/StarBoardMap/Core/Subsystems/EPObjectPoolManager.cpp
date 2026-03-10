@@ -3,6 +3,7 @@
 
 #include "Core/Subsystems/EPObjectPoolManager.h"
 #include "Core/Interfaces/EPPoolable.h"
+#include "EPLoadingSubsystem.h"
 
 // 게임 시작 시 필요한 초기화 로직 (틀만 존재-필요하면 추가)
 void UEPObjectPoolManager::Initialize(FSubsystemCollectionBase& Collection)

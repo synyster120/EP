@@ -30,6 +30,7 @@ void UEPSkill_AreaAttack::Activate(AActor* Caster, const FEPSkillTargetData& New
             // [로그 추가] 어떤 인스턴스(this)가 바인딩을 시도하는지 기록
             UE_LOG(LogTemp, Warning, TEXT("Skill [0x%p] BINDING delegate to MontageEnd"), this);
 
+            SkillPhaseDataMontageTag = SkillPhaseData->AnimationTag;
             // 캐릭터에게 해당 태그의 애니메이션을 재생하라고 요청
             Character->PlayAnimationByTag(SkillPhaseData->AnimationTag, OnMontageEndedDelegate);
 

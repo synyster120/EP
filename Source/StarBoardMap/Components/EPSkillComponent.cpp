@@ -95,6 +95,7 @@ void UEPSkillComponent::SetbIsCancelWindowActive(bool bInIsCancelWindowActive)
     {
         if (BufferSkillIndex >= 0)
         {
+            UE_LOG(LogTemp, Warning, TEXT("[TEST1] buffer combo skill activate play :: index : %d"), BufferSkillIndex);
             ActivateSkill(BufferSkillIndex);
             ClearBuffer(); // 실행 후 버퍼 비우기
         }
@@ -120,7 +121,7 @@ void UEPSkillComponent::ProcessSkillInput(int32 SkillIndex)
         if (OwnerCurrentState == EEPCharacterState::Idle)
         {
             // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
-            OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+            //OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
 
             UE_LOG(LogTemp, Warning, TEXT("player is attacking and idle state --> activate() play"));
             ActivateSkill(SkillIndex);
@@ -180,8 +181,14 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
 
                 // 스킬 클래스 비동기 로드 요청
                 UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillBase>(SkillData.SkillClass,
-                    [this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
+                    [weakThis = TWeakObjectPtr<UEPSkillComponent>(this), this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
                     {
+                        // 컴포넌트가 아직 살아있는지 확인
+                        if (!weakThis.IsValid())
+                        {
+                            return;
+                        }
+
                         // 스킬 클래스 로드 정상 완료 확인
                         if (!LoadedSkillClass)
                         {
@@ -282,7 +289,23 @@ void UEPSkillComponent::ActivateSkillFinished(int32 SkillIndex)
             {
                 // 스킬을 사용하기 직전에, 캐릭터의 상태를 'Attacking'으로 변경
                 OwnerCaster->SetCurrentState(EEPCharacterState::Attacking);
+                UE_LOG(LogTemp, Warning, TEXT("[TEST1] [ %s ] character is attacking"), *GetOwner()->GetName());
             }
+
+            // 몽타주가 비정상 정지 되었을 때 상태 리셋 로직 (람다를 사용해 일회성 콜백 생성)
+            FDelegateHandle Handle = SkillToActivate->OnSkillFinishedNative.AddLambda([this, OwnerCaster, HandlePtr = MakeShared<FDelegateHandle>()](UEPSkillBase* FinishedSkill) {
+                if (OwnerCaster->GetCurrentState() == EEPCharacterState::Idle)
+                {
+                    return;
+                }
+
+                // 상태 리셋
+                OwnerCaster->SetCurrentState(EEPCharacterState::Idle);
+                UE_LOG(LogTemp, Warning, TEXT("[TEST1] [ %s ] character is Idle"), *GetOwner()->GetName());
+
+                // 바인딩 해제
+                FinishedSkill->OnSkillFinishedNative.Remove(*HandlePtr);
+                });
 
             // 스킬 실행 (스킬 객체에 요청)
             SkillToActivate->Activate(GetOwner(), TargetData, LastComboSkillIndex);

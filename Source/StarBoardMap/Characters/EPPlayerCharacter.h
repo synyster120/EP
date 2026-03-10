@@ -140,7 +140,15 @@ protected:
 
 	// 실제 소유중인 Item Data
 	UPROPERTY()
-	TSubclassOf<AEPItemBase> CurrentItemData;
+	TSubclassOf<AEPItemBase> OwnedItemData;
+
+	// 주울 시도중인 Item Data
+	UPROPERTY()
+	TSubclassOf<AEPItemBase> TargetItemData;
+
+	// 주울 시도중인 Dropped Item
+	UPROPERTY()
+	AEPDroppedItem* TargetDroppedItem = nullptr;
 
 	UPROPERTY()
 	UCapsuleComponent* ItemCollision;
@@ -166,8 +174,33 @@ protected:
 		int32 OtherBodyIndex
 	);
 
-	public:
-		void Drop();
-		void PickUp();
+public:
+	void Drop();
+	void PickUp();
+
+
+// --------------- 리스폰 ---------------
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartRespawnSequence();
+
+	UFUNCTION()
+	void RequestTeleportToSubsystem();
+
+	// 블루프린트에서 연출이 다 끝난 후 C++로 '방송'을 대신해줄 함수
+	UFUNCTION(BlueprintCallable, Category = "VFX")
+	void OnDissolveFinished();
+
+protected:
+	UFUNCTION()
+	void ExecuteFadeIn();
+
+	// C++에서 호출하면 블루프린트에서 실행될 이벤트 (디졸브 연출 시작용)
+	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
+	void PlayDissolveEffect();
+
+	// MID 객체를 담아둘 변수 (가비지 컬렉션 방지를 위해 UPROPERTY 필수)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
+	UMaterialInstanceDynamic* DissolveMID;
 
 };

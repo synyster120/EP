@@ -4,28 +4,60 @@
 #include "Skills/EPSkillBase.h"
 #include "Data/EPSkillDataAsset.h"
 #include "Data/EPSkillTypes.h"
+#include "Characters/EPCharacterBase.h"
 
 #include "Data/EPFXPreloadLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
 
+
+// 실행
 void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
-	// 스킬 시전 - 자식에서 구현
-    
+	// 스킬 시전 - 자식에서 구현 
+    AEPCharacterBase* OwnerCharacter = GetTypedOuter<AEPCharacterBase>();
+    if (OwnerCharacter)
+    {
+        // 캐릭터의 몽타주 종료 델리게이트를 직접 구독
+        OwnerCharacter->OnActionEnded.AddDynamic(this, &UEPSkillBase::HandleSkillEnded);
+    }
 }
 
+// 몽타주 end 바인딩 함수
+void UEPSkillBase::HandleSkillEnded(FGameplayTag EndedTag)
+{
+    //if (EndedTag.MatchesTag(FEPGameplayTags::Get().Tag_Action_Hit)) return;
+
+
+    if (!EndedTag.MatchesTag(SkillPhaseDataMontageTag)) return;
+    UE_LOG(LogTemp, Warning, TEXT("[TEST1] play montage : %s, skill phase data montage : %s"), *EndedTag.ToString(), *SkillPhaseDataMontageTag.ToString());
+    // 몽타주 종료 감지 후 보고
+    OnSkillFinishedNative.Broadcast(this);
+}
+
+void UEPSkillBase::BeginDestroy()
+{
+    Super::BeginDestroy();
+
+    // 바인딩 제거
+    /*AEPCharacterBase* OwnerCharacter = GetTypedOuter<AEPCharacterBase>();
+    {
+        OwnerCharacter->OnActionEnded.RemoveDynamic(this, &UEPSkillBase::HandleSkillEnded);
+    }*/
+}
+
+// ------------------------------------------ Data Getter ------------------------------------------
 inline FName UEPSkillBase::GetSkillID() const
 {
-	return SkillDataAsset ? FName(SkillDataAsset->SkillData.SkillName) : NAME_None;
+    return SkillDataAsset ? FName(SkillDataAsset->SkillData.SkillName) : NAME_None;
 }
 
 FEPSkillPhaseData* UEPSkillBase::GetPhaseData(int32 CurrentPhaseDataIndex) const
 {
-	if (!SkillDataAsset)
-	{
+    if (!SkillDataAsset)
+    {
         return nullptr;
-	}
+    }
 
     FEPComboStep StepData = SkillDataAsset->SkillData.ComboSequence[CurrentPhaseDataIndex];
     EEPSkillPhaseSource SkillSourceType = StepData.SourceType;
@@ -52,6 +84,7 @@ FEPSkillPhaseData* UEPSkillBase::GetPhaseData(int32 CurrentPhaseDataIndex) const
                 CurrentPhaseDataIndex);
         }
     }
+
 	return nullptr;
 }
 

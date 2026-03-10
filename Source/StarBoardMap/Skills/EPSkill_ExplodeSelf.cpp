@@ -69,6 +69,7 @@ void UEPSkill_ExplodeSelf::Activate(AActor* Caster, const FEPSkillTargetData& Ne
 		Lock->Acquire(Locktext);
 	}
 
+	SkillPhaseDataMontageTag = PhaseData->AnimationTag;
 	// 몽타주 비동기 로드 및 재생 요청
 	OwnerCaster->PlayAnimationByTag(PhaseData->AnimationTag);
 
