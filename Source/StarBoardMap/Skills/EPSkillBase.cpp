@@ -10,10 +10,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameInstance.h"
 
+
+// 실행
 void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
 {
-    SkillDataAsset = NewSkillDataAsset;
-
+	// 스킬 시전 - 자식에서 구현 
     AEPCharacterBase* OwnerCharacter = GetTypedOuter<AEPCharacterBase>();
     if (OwnerCharacter)
     {
@@ -22,31 +23,9 @@ void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetD
     }
 }
 
-// 실행
-void UEPSkillBase::Activate(AActor* Caster, const FEPSkillTargetData& NewTargetData, int32 CurrentComboIndex)
-{
-	// 스킬 시전 - 자식에서 구현   
-}
-
-bool UEPSkillBase::RequiresMovementLock(int32 CurrentPhaseDataIndex) const
-{
-    if (FEPSkillPhaseData* data = GetPhaseData(CurrentPhaseDataIndex))
-    {
-        return data->bRequiresMovementLock;
-    }
-    return false;
-}
-
 // 몽타주 end 바인딩 함수
 void UEPSkillBase::HandleSkillEnded(FGameplayTag EndedTag)
 {
-    // "공격중" 상태 리셋 
-    //AEPCharacterBase* OwnerCharacter = GetTypedOuter<AEPCharacterBase>();
-    //if (OwnerCharacter)
-    //{
-    //    // 이걸 여기서 하는 게 맞나? skillcomponent의 관리 역할이 아닌가?
-    //}
-    
     //if (EndedTag.MatchesTag(FEPGameplayTags::Get().Tag_Action_Hit)) return;
 
 

@@ -11,6 +11,7 @@
 #include "ChessUnitController.generated.h"
 
 class AChessGameMode;
+class AEPChessGameplayManager;
 
 UCLASS()
 class STARBOARDMAP_API AChessUnitController : public AAIController
@@ -26,6 +27,8 @@ private:
 	UPROPERTY()	UBehaviorTreeComponent* BehaviorComp;
 	UPROPERTY()	UBlackboardComponent* BB;
 
+	UPROPERTY()
+	AEPChessGameplayManager* ChessGameManager;
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;

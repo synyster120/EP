@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Chess/CKing.h"
@@ -35,12 +35,11 @@ void ACKing::OnDied()
         StatComponent->OnHealthChanged.Broadcast();
     }
 
-    AChessGameMode* GameMode = Cast<AChessGameMode>(GetWorld()->GetAuthGameMode());
-    if (GameMode)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("gamemode clear"));
-        GameMode->ClearGame();
-    }
+	// GaemplayManager - 사망 방송
+	if (OnKingDie.IsBound())
+	{
+		OnKingDie.Broadcast(this);
+	}
 }
 
 void ACKing::Warning()

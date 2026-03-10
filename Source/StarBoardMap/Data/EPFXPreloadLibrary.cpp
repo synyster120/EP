@@ -18,16 +18,25 @@ void UEPFXPreloadLibrary::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	FWorldDelegates::OnPostWorldCreation.AddUObject(this, &UEPFXPreloadLibrary::HandlePostLoadMap);
+	//FWorldDelegates::OnPostWorldCreation.AddUObject(this, &UEPFXPreloadLibrary::HandlePostLoadMap);
+	//FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UEPFXPreloadLibrary::HandlePostLoadMap);
 
 	if (UWorld* World = GetWorld())
 	{
 		HandlePostLoadMap(World);
 	}
+
+
+	const UEPFXSettings* Settings = GetDefault<UEPFXSettings>();
+	if (!Settings || Settings->DefaultFXData.IsNull())
+		return;
+
+	FXData = Settings->DefaultFXData.LoadSynchronous();
 }
 
 void UEPFXPreloadLibrary::OnLoadLevel(FGameplayTag& Tag)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] OnLoadLevel -- tag : %s"), *Tag.ToString());
 	bIsPreloading = true;
 	LoadFXByTag(Tag);
 }
@@ -45,21 +54,44 @@ void UEPFXPreloadLibrary::HandlePostLoadMap(UWorld* LoadedWorld)
 	OnLoadLevel(Tag);
 }
 
+void UEPFXPreloadLibrary::PreloadFXForLevel(FName LevelName)
+{
+	FString CleanMapName = LevelName.ToString();
+	CleanMapName.RemoveFromEnd(TEXT("Map"), ESearchCase::IgnoreCase);
+
+	// Tag 생성
+	const FString TagString = FString::Printf(TEXT("FX.%s"), *CleanMapName);
+	UE_LOG(LogTemp, Warning, TEXT("[FX] Level is = %s"), *TagString);
+	FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagString), false); // 실패시 false 반환
+
+	// 태그가 유효한지 체크
+	if (Tag.IsValid())
+	{
+		OnLoadLevel(Tag); // 로드 시작
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Tag %s not found in Project Settings!"), *TagString);
+		OnPreloadCompleted.Broadcast();
+	}
+}
+
 void UEPFXPreloadLibrary::LoadFXByTag(const FGameplayTag& Tag)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] LoadFXByTag -- tag : %s"), *Tag.ToString());
 	const UEPFXSettings* Settings = GetDefault<UEPFXSettings>();
 	if (!Settings || Settings->DefaultFXData.IsNull())
 		return;
 
 	// Data는 최소 여기서는 Sync로 확보(또는 Data도 async로 포함시키기)
-	UEPFXData* Data = Settings->DefaultFXData.LoadSynchronous();
-	if (!Data) return;
+	//UEPFXData* Data = Settings->DefaultFXData.LoadSynchronous();
+	if (!FXData) return;
 
 	CurrentTag = Tag;
 	const FGameplayTag AllTag = FGameplayTag::RequestGameplayTag(TEXT("FX.All"));
 	TArray<FSoftObjectPath> PathsToLoad;
 
-	for (const FEPFXEntry& E : Data->Entries)
+	for (const FEPFXEntry& E : FXData->Entries)
 	{
 		if (E.Tag.MatchesTag(AllTag) || !E.Tag.MatchesTag(Tag))
 			continue;
@@ -93,15 +125,17 @@ void UEPFXPreloadLibrary::LoadFXByTag(const FGameplayTag& Tag)
 
 void UEPFXPreloadLibrary::LoadFXByTagExec()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] LoadFXByTagExec -- start"));
 	FGameplayTag Tag = CurrentTag;
 
 	const UEPFXSettings* Settings = GetDefault<UEPFXSettings>();
 	if (!Settings) return;
 
-	UEPFXData* Data = Settings->DefaultFXData.Get();
-	if (!Data) return;
+	//UEPFXData* Data = Settings->DefaultFXData.LoadSynchronous();
+	//UEPFXData* Data = Settings->DefaultFXData.Get();
+	if (!FXData) return;
 
-	for (const FEPFXEntry& E : Data->Entries)
+	for (const FEPFXEntry& E : FXData->Entries)
 	{
 		if (!E.Tag.MatchesTag(Tag))
 			continue;
@@ -116,14 +150,18 @@ void UEPFXPreloadLibrary::LoadFXByTagExec()
 		UE_LOG(LogTemp, Warning, TEXT("[FXCache] Cached Tag: %s"), *E.Tag.ToString());
 		FXCache.Add(E.Tag, Bundle);
 	}
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] LoadFXByTagExec -- for ex"));
 	ClearCacheExceptTag(Tag);
 
 	bIsPreloading = false;
 	OnPreloadCompleted.Broadcast();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] LoadFXByTagExec -- end - broadcast"));
 }
 
 void UEPFXPreloadLibrary::ClearCacheExceptTag(const FGameplayTag& Tag)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ERROR FX] LoadFXByTagExec -- ClearCacheExceptTag start"));
 	const FGameplayTag AllTag = FGameplayTag::RequestGameplayTag(TEXT("FX.All"));
 
 	TArray<FGameplayTag> TagsToRemove;
@@ -172,4 +210,11 @@ USoundBase* UEPFXPreloadLibrary::GetSFX(FGameplayTag Tag) const
 		return Bundle->SFX;
 	}
 	return nullptr;
+}
+
+// 0.0 ~ 1.0 사이의 값 반환
+float UEPFXPreloadLibrary::GetFXLoadProgress() const
+{
+	// 로드 중인 핸들의 진행률 리턴
+	return ActiveHandle.IsValid() ? ActiveHandle->GetProgress() : 1.0f;
 }

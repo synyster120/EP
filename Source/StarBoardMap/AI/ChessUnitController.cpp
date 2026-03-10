@@ -2,8 +2,10 @@
 
 
 #include "AI/ChessUnitController.h"
-#include "Core/ChessGameMode.h"
 #include "Data/Chess/ChessUnitData.h"
+
+#include "Chess/Core/EPChessGameplayManager.h"
+#include "EngineUtils.h"
 
 AChessUnitController::AChessUnitController()
 {
@@ -43,8 +45,14 @@ void AChessUnitController::OnPossess(APawn* InPawn)
 			RunBehaviorTree(BehaviorAsset);
 		}
 	}
-	
-    ChessGameMode = Cast<AChessGameMode>(GetWorld()->GetAuthGameMode());
+
+	for (TActorIterator<AEPChessGameplayManager> It(GetWorld()); It; ++It)
+	{
+		ChessGameManager = *It;
+		break;
+	}
+
+    //ChessGameMode = Cast<AChessGameMode>(GetWorld()->GetAuthGameMode());
 	
 	FTimerHandle TimerHandle_Init;
 	GetWorld()->GetTimerManager().SetTimer(
@@ -73,18 +81,22 @@ FIntPoint AChessUnitController::FindMove()
 
 void AChessUnitController::Move(FIntPoint TargetPoint, bool IsBigJump)
 {
-	if(Unit->GetUnitName() != FName("Pawn") && Unit->GetUnitName() != FName("Queen")) ChessGameMode->SetGridWarning(TargetPoint, Unit->GetUnitType());
+	if (!IsValid(ChessGameManager)) return;
+
+	if(Unit->GetUnitName() != FName("Pawn") && Unit->GetUnitName() != FName("Queen")) ChessGameManager->SetGridWarning(TargetPoint, Unit->GetUnitType());
 	if(Unit->GetUnitName() != FName("Queen")) Unit->SetXY(TargetPoint);
 	BB->SetValueAsBool(FName("IsMoving"), false);
 	BB->SetValueAsBool(FName("IsBigJump"), IsBigJump);
-	BB->SetValueAsVector(FName("TargetPoint"), ChessGameMode->GetGridVector(TargetPoint));
+	BB->SetValueAsVector(FName("TargetPoint"), ChessGameManager->GetGridVector(TargetPoint));
 	BB->SetValueAsInt(FName("NowState"), 1);
 }
 
 FIntPoint AChessUnitController::MoveIn()
 {
+	if (!IsValid(ChessGameManager)) return FIntPoint::ZeroValue;
+
 	Unit->SetMovingTurn(true);
-	FIntPoint TargetPoint = ChessGameMode->FindRandomMoveInPlace();
+	FIntPoint TargetPoint = ChessGameManager->FindRandomMoveInPlace();
 	
 	Move(TargetPoint, true);
 
@@ -93,6 +105,8 @@ FIntPoint AChessUnitController::MoveIn()
 
 FIntPoint AChessUnitController::MoveOut()
 {
+	if (!IsValid(ChessGameManager)) return FIntPoint::ZeroValue;
+
 	Unit->SetMovingTurn(false);
 	FIntPoint TargetPoint = Unit->GetOriginPoint();
 
@@ -103,14 +117,18 @@ FIntPoint AChessUnitController::MoveOut()
 
 void AChessUnitController::MoveEnd()
 {
-	ChessGameMode->SetGridWarning(Unit->GetXY(), -Unit->GetUnitType());
+	if (!IsValid(ChessGameManager)) return;
+
+	ChessGameManager->SetGridWarning(Unit->GetXY(), -Unit->GetUnitType());
 }
 
 void AChessUnitController::SpawnPawn(FIntPoint SpawnPoint)
 {
+	if (!IsValid(ChessGameManager)) return;
+
 	Unit->SetXY(SpawnPoint);
-	ChessGameMode->SetGridWarning(SpawnPoint, Unit->GetUnitType());
-	FVector SpawnVector = ChessGameMode->GetGridVector(SpawnPoint);
+	ChessGameManager->SetGridWarning(SpawnPoint, Unit->GetUnitType());
+	FVector SpawnVector = ChessGameManager->GetGridVector(SpawnPoint);
 	SpawnVector.Z += 500.f;
 	Unit->SetActorLocation(SpawnVector);
 	Unit->SetActorHiddenInGame(false);
@@ -125,22 +143,30 @@ FIntPoint AChessUnitController::Attack()
 
 int32 AChessUnitController::GetGridState(FIntPoint XY)
 {
-	return ChessGameMode->GetGridState(XY);
+	if (!IsValid(ChessGameManager)) return 0;
+
+	return ChessGameManager->GetGridState(XY);
 }
 
 FVector AChessUnitController::GetPlayerVector()
 {
-	return ChessGameMode->GetPlayerVector();
+	if (!IsValid(ChessGameManager)) return FVector::ZeroVector;
+
+	return ChessGameManager->GetPlayerVector();
 }
 
 FVector AChessUnitController::GetGridVector(FIntPoint NewXY)
 {
-	return ChessGameMode->GetGridVector(NewXY);
+	if (!IsValid(ChessGameManager)) return FVector::ZeroVector;
+
+	return ChessGameManager->GetGridVector(NewXY);
 }
 
 void AChessUnitController::SetGridWarning(FIntPoint XY, int32 Value)
 {
-	ChessGameMode->SetGridWarning(XY, Value);
+	if (!IsValid(ChessGameManager)) return;
+
+	ChessGameManager->SetGridWarning(XY, Value);
 }
 
 void AChessUnitController::DestroyUnit()

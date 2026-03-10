@@ -3,13 +3,10 @@
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
 
-void UEPNotifyState_PlayerDissolve::NotifyBegin(
-    USkeletalMeshComponent* MeshComp,
-    UAnimSequenceBase* Animation,
-    float TotalDuration,
-    const FAnimNotifyEventReference& EventReference
-)
+void UEPNotifyState_PlayerDissolve::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
+    Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
+
     AccumTime = 0.0f;
     Duration = TotalDuration;
     CollectionInstance = nullptr;
@@ -34,13 +31,10 @@ void UEPNotifyState_PlayerDissolve::NotifyBegin(
     }
 }
 
-void UEPNotifyState_PlayerDissolve::NotifyTick(
-    USkeletalMeshComponent* MeshComp,
-    UAnimSequenceBase* Animation,
-    float FrameDeltaTime,
-    const FAnimNotifyEventReference& EventReference
-)
+void UEPNotifyState_PlayerDissolve::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
+    Super::NotifyTick(MeshComp, Animation, FrameDeltaTime, EventReference);
+
     if (!CollectionInstance)
     {
         return;
@@ -60,12 +54,10 @@ void UEPNotifyState_PlayerDissolve::NotifyTick(
     CollectionInstance->SetScalarParameterValue(ParamName, Current);
 }
 
-void UEPNotifyState_PlayerDissolve::NotifyEnd(
-    USkeletalMeshComponent* MeshComp,
-    UAnimSequenceBase* Animation,
-    const FAnimNotifyEventReference& EventReference
-)
+void UEPNotifyState_PlayerDissolve::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
+    Super::NotifyEnd(MeshComp, Animation, EventReference);
+
     if (CollectionInstance)
     {
         // 끝 값으로 한 번 더 세팅 (취향에 따라 0 으로 리셋해도 됨)

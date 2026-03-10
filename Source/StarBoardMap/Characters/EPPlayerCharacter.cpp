@@ -31,6 +31,9 @@
 // Tag
 #include "Core/EPGameplayTags.h"
 
+// respawn
+#include "Core/Subsystems/EPRespawnSubsystem.h"
+
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -117,14 +120,20 @@ void AEPPlayerCharacter::BeginPlay()
     // stat
     if (StatComponent)
     {
-        // BeginPlay 시점에 StatComponent의 "체력 변경" 방송을 '구독'함
-        //StatComponent->OnHealthChanged_Two.AddDynamic(this, &AEPPlayerCharacter::HandleHealthChanged);
-
         // 초기 상태 업데이트
         FEPHealthInfo CurrentHealthInfo = StatComponent->GetHealthInfo();
         float CurrentHealth = CurrentHealthInfo.CurrentHealth;
         float MaxHealth = CurrentHealthInfo.MaxHealth;
         HandleHealthChanged(CurrentHealth, MaxHealth);
+    }
+
+    // 스켈레탈 메시의 0번 슬롯 머티리얼을 다이내믹으로 변환하여 생성 및 적용
+    if (USkeletalMeshComponent* MeshComp = GetMesh())
+    {
+        // CreateAndSetMaterialInstanceDynamic는 머티리얼을 복사하고 자동으로 메시에 다시 입혀줍니다.
+        //DissolveMID = MeshComp->CreateAndSetMaterialInstanceDynamic(0);
+
+        // (참고) 만약 캐릭터의 머티리얼 슬롯이 여러 개라면 for문으로 모두 변환해야함
     }
 
     // best item search
@@ -250,6 +259,7 @@ AEPDroppedItem* AEPPlayerCharacter::FindBestInteractable()
     // 카메라 위치/방향 가져오기
     FVector CamLoc;
     FRotator CamRot;
+    if (!GetController()) return nullptr;
     GetController()->GetPlayerViewPoint(CamLoc, CamRot);
     FVector CamDir = CamRot.Vector();
 
@@ -641,4 +651,118 @@ void AEPPlayerCharacter::CheckNearbyItems()
             BestDroppedItem->ShowInteractionUI();
         }
     }
+}
+
+
+// --- RESPAWN ---
+void AEPPlayerCharacter::StartRespawnSequence()
+{
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController && PlayerController->PlayerCameraManager)
+    {
+        // 입력 차단
+        DisableInput(PlayerController);
+
+        // 물리적 움직임 및 중력 제거 (허공에 둥둥 띄우기)
+        UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+        if (MovementComp)
+        {
+            // 떨어지던 가속도 즉시 0으로 초기화
+            MovementComp->StopMovementImmediately();
+
+            // 물리 연산 정지
+            MovementComp->SetMovementMode(MOVE_None); // 이동 모드 'None'
+
+            // 캡슐이 바닥을 뚫거나 다른 것과 부딪히지 않도록 충돌체 무시 처리 (선택 사항)
+            GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+
+        // 애니메이션 시간 정지 (현재 포즈 그대로 굳히기)
+        USkeletalMeshComponent* MeshComp = GetMesh();
+        if (MeshComp)
+        {
+            MeshComp->bPauseAnims = true; // 애니메이션 업데이트 정지
+        }
+
+        // 머티리얼 디졸브 연출 시작 (블루프린트가 수행)
+        PlayDissolveEffect(); // --> OnDissolveFinished()
+    }
+}
+
+//  fade out & respawn (블루프린트에서 호출)
+void AEPPlayerCharacter::OnDissolveFinished()
+{
+    // 이제 캐릭터가 완전히 투명해졌으므로, 카메라 페이드 아웃 시작
+    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+    if (PlayerController && PlayerController->PlayerCameraManager)
+    {
+        // 카메라 Fade Out 실행 - StartCameraFade(FromAlpha, ToAlpha, Duration, Color, bFadeAudio, bHoldWhenFinished)
+        PlayerController->PlayerCameraManager->StartCameraFade(0.f, 1.f, 1.0f, FLinearColor::Black, false, true);
+
+        // 페이드 아웃이 끝나는 1초 뒤에 텔레포트 진행
+        FTimerHandle TeleportTimer;
+        GetWorld()->GetTimerManager().SetTimer(TeleportTimer, this, &AEPPlayerCharacter::RequestTeleportToSubsystem, 1.0f, false);
+    }
+}
+
+// SpawnSubsystem에 텔레포트 요청
+void AEPPlayerCharacter::RequestTeleportToSubsystem()
+{
+    // 통해 텔레포트 실행
+    if (UGameInstance* UGameInstance = GetGameInstance())
+    {
+        if (UEPRespawnSubsystem* RespawnSub = UGameInstance->GetSubsystem<UEPRespawnSubsystem>())
+        {
+            // 텔레포트 완료타이밍 바인딩
+            RespawnSub->OnPlayerRespawned.AddDynamic(this, &AEPPlayerCharacter::ExecuteFadeIn);
+
+            RespawnSub->RespawnPlayer(this);
+        }
+    }
+}
+
+// 카메라 fade in
+void AEPPlayerCharacter::ExecuteFadeIn()
+{
+    // 물리 연산 및 충돌 복구
+    UCharacterMovementComponent* MovementComp = GetCharacterMovement();
+    if (MovementComp)
+    {
+        // 다시 걸어다닐 수 있게 걷기 모드로 변경
+        MovementComp->SetMovementMode(MOVE_Walking);
+        // 바닥 찾음
+        MovementComp->Velocity = FVector::ZeroVector;
+        MovementComp->bForceNextFloorCheck = true;
+
+
+        // 충돌체 다시 활성화 (QueryAndPhysics가 캐릭터 기본값)
+        GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    }
+
+    // 애니메이션 굳은 것 풀어주기
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (MeshComp)
+    {
+        MeshComp->bPauseAnims = false; // 애니메이션 다시 재생 시작
+
+        // 애니메이션 상태머신 새로고침 지시
+        MeshComp->TickAnimation(0.f, false);
+        MeshComp->RefreshBoneTransforms();
+    }
+
+    // fade in 
+    FTimerHandle FadeInTimerHandle;
+    GetWorld()->GetTimerManager().SetTimer(FadeInTimerHandle, [this]()
+        {
+            APlayerController* PlayerController = Cast<APlayerController>(GetController());
+            if (PlayerController && PlayerController->PlayerCameraManager)
+            {
+                // Fade In 실행: 불투명 검은색(1)에서 투명(0)으로 1초 동안 페이드
+                PlayerController->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.0f, FLinearColor::Black, false, false);
+
+                // 입력 권한 돌려주기
+                EnableInput(PlayerController);
+            }
+        }, 0.15f, false); // 0.15초의 안정화 시간 확보
+
 }

@@ -181,8 +181,14 @@ void UEPSkillComponent::CreateSkills(const TArray<TSoftObjectPtr<UEPSkillDataAss
 
                 // 스킬 클래스 비동기 로드 요청
                 UEPAsyncLoadHelper::RequestAsyncLoad<UEPSkillBase>(SkillData.SkillClass,
-                    [this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
+                    [weakThis = TWeakObjectPtr<UEPSkillComponent>(this), this, Index, SkillData, LoadedSkillDataAsset](TSubclassOf<UEPSkillBase> LoadedSkillClass)
                     {
+                        // 컴포넌트가 아직 살아있는지 확인
+                        if (!weakThis.IsValid())
+                        {
+                            return;
+                        }
+
                         // 스킬 클래스 로드 정상 완료 확인
                         if (!LoadedSkillClass)
                         {
