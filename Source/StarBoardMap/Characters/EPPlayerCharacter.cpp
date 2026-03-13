@@ -127,15 +127,6 @@ void AEPPlayerCharacter::BeginPlay()
         HandleHealthChanged(CurrentHealth, MaxHealth);
     }
 
-    // 스켈레탈 메시의 0번 슬롯 머티리얼을 다이내믹으로 변환하여 생성 및 적용
-    if (USkeletalMeshComponent* MeshComp = GetMesh())
-    {
-        // CreateAndSetMaterialInstanceDynamic는 머티리얼을 복사하고 자동으로 메시에 다시 입혀줍니다.
-        //DissolveMID = MeshComp->CreateAndSetMaterialInstanceDynamic(0);
-
-        // (참고) 만약 캐릭터의 머티리얼 슬롯이 여러 개라면 for문으로 모두 변환해야함
-    }
-
     // best item search
     GetWorldTimerManager().SetTimer(CheckItemTimerHandle, this, &AEPPlayerCharacter::CheckNearbyItems, 0.1f, true);
 }

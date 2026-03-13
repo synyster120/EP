@@ -95,11 +95,13 @@ void AEPChessGameplayManager::ClearGame(AActor* DeadKing)
 
 	// 턴 타이머 제거
 	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	// 게임 종료 (시각적) 처리 - 블루프린트에서 정의
+	PlayOpenDoor();
 }
 
 void AEPChessGameplayManager::OnTurn()
 {
-	//ChessGameState->OnTurn();
 	Turn += 1;
 
 	for (ACUnit* Unit : GetUnit())

@@ -199,8 +199,4 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "VFX")
 	void PlayDissolveEffect();
 
-	// MID 객체를 담아둘 변수 (가비지 컬렉션 방지를 위해 UPROPERTY 필수)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
-	UMaterialInstanceDynamic* DissolveMID;
-
 };
