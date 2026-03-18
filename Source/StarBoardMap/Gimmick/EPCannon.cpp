@@ -35,17 +35,17 @@ void AEPCannon::BeginPlay()
 		SkillComponent->InitializeSkills(DefaultSkills);
 	}
 
-	GetWorld()->GetTimerManager().SetTimer(AttackHandle,
-		FTimerDelegate::CreateLambda([this]()
+	TWeakObjectPtr<AEPCannon> WeakThis = this;
+	GetWorld()->GetTimerManager().SetTimer(AttackHandle, [WeakThis]()
+		{
+			//  자신이 아직 살아있는지 확인
+			if (WeakThis.IsValid())
 			{
-				if (SkillComponent)
-				{
-					SkillComponent->ActivateSkill(0);
-				}
-			}),
-		AttackRate,
-		AttackLooping
-	);
+				WeakThis->SkillComponent->ActivateSkill(0);
+			}
+		}
+	,AttackRate, AttackLooping);
+
 
 	TArray<UStaticMeshComponent*> Comps;
 	GetComponents<UStaticMeshComponent>(Comps);
@@ -69,6 +69,17 @@ void AEPCannon::BeginPlay()
 		const FString NameStr = C->GetName();
 		if (NameStr.StartsWith(TEXT("CannonBodyScene")))
 			BodySceneComponent = C;
+	}
+}
+
+void AEPCannon::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// 타이머 제거
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AttackHandle);
 	}
 }
 

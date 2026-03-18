@@ -9,6 +9,8 @@
 #include "EPLoadingSubsystem.generated.h"
 
 class UEPLoadingWidget;
+class USoundMix;
+class USoundClass;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadingProgress, float, Progress);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoadingFinished);
@@ -60,6 +62,40 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void HideLoadingScreen();
+
+
+    // ============================ Audio ============================
+    // 로딩 시 적용할 사운드 믹스
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio")
+    USoundMix* LoadingSoundMix;
+
+    // 제어할 최상위 사운드 클래스 (World 계층)
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio")
+    USoundClass* WorldSoundClass;
+
+    // 로딩 시작 시 호출 (사운드 믹스 적용)
+    UFUNCTION(BlueprintCallable, Category = "Loading|Audio")
+    void MuteWorldAudio();
+
+    // 로딩 종료 시 호출 (사운드 믹스 제거)
+    UFUNCTION(BlueprintCallable, Category = "Loading|Audio")
+    void RestoreWorldAudio(float FadeInTime);
+
+protected:
+    // ============================ Spawner ============================
+    // 필수 스포너 갯수
+    int32 PendingSpawnersCount = 0;
+
+    // 스포너 스폰 확인 함수
+    void PrepareSpawnersBeforeFadeIn();
+
+    // 스포너 1개가 준비 완료될 때마다 호출되는 함수
+    UFUNCTION()
+    void HandleSingleSpawnerReady();
+
+    // ============================ UI ============================
+    // Fade in 애니메이션 실행
+    void PlayFadeIn();
 
 private:
     // ============================ Loading ============================

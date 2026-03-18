@@ -16,6 +16,7 @@
 #include "Gimmick/EPLevelEntrance.h"
 #include "Core/Subsystems/EPRespawnSubsystem.h"
 
+#include "LevelElements/EPMonsterSpawner.h"
 
 // ============================ Loading ============================
 void UEPLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -52,6 +53,9 @@ void UEPLoadingSubsystem::Deinitialize()
 void UEPLoadingSubsystem::LoadLevelWithAssets(FName LevelName, TSoftObjectPtr<UPrimaryDataAsset> AssetLabel, FName LevelEntranceTag)
 {
     ShowLoadingScreen();
+
+    // 월드 사운드 제거
+    MuteWorldAudio();
 
     // 플레이어 컨트롤러 입력 잠금
     APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
@@ -244,16 +248,8 @@ void UEPLoadingSubsystem::OnLevelDataLoaded()
         NavSys->Build();
     }
 
-    // 로딩 위젯의 fade in anim 플레이 및 제거
-    FTimerHandle WaitHandle;
-    GetWorld()->GetTimerManager().SetTimer(WaitHandle, [this]()
-        {
-            if (CurrentWidget)
-            {
-                CurrentWidget->PlayFadeInAnimation(); // fade In anim 실행
-            }
-        }, 0.2f, false); // 0.2초의 안정화 시간 확보
-
+    // 스포너에 스폰 요청
+    PrepareSpawnersBeforeFadeIn();
 }
 
 // 실제 level open 함수
@@ -339,6 +335,23 @@ void UEPLoadingSubsystem::SetupPlayerPosition()
 }
 
 // ============================ UI ============================
+// 로딩 위젯의 fade in anim 플레이 및 제거
+void UEPLoadingSubsystem::PlayFadeIn()
+{
+    FTimerHandle WaitHandle;
+    GetWorld()->GetTimerManager().SetTimer(WaitHandle, [this]()
+        {
+            if (CurrentWidget)
+            {
+                CurrentWidget->PlayFadeInAnimation(); // fade In anim 실행
+            }
+
+            // 사운드 믹스 제거
+            RestoreWorldAudio(1.0f);
+
+        }, 0.2f, false); // 0.2초의 안정화 시간 확보
+}
+
 // 위젯 생성 및 초기화
 void UEPLoadingSubsystem::ShowLoadingScreen()
 {
@@ -418,4 +431,98 @@ void UEPLoadingSubsystem::HandleFadeInFinished()
     }
 
     HideLoadingScreen();
+
+    // 맵에 있는 모든 EPMonsterSpawner를 다시 찾아서 일제히 "기상 타이머 시작!" 명령을 내립니다.
+    TArray<AActor*> FoundSpawners;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEPMonsterSpawner::StaticClass(), FoundSpawners);
+
+    for (AActor* Actor : FoundSpawners)
+    {
+        if (AEPMonsterSpawner* Spawner = Cast<AEPMonsterSpawner>(Actor))
+        {
+            // 이 명령을 받으면 스포너들은 자신의 SpawnDelayTime (0.5초 등)을 돌리고 몬스터를 짠 나타나게 합니다.
+            Spawner->StartWakeUpSequence();
+        }
+    }
+}
+
+// ============================ AUDIO ============================
+// 월드 사운드 제거
+void UEPLoadingSubsystem::MuteWorldAudio()
+{
+    if (LoadingSoundMix && GetWorld())
+    {
+        // 로딩 믹스 적용 (게임 소리 즉시 차단)
+        UGameplayStatics::PushSoundMixModifier(GetWorld(), LoadingSoundMix);
+    }
+}
+
+// 월드 사운드 적용
+void UEPLoadingSubsystem::RestoreWorldAudio(float FadeInTime)
+{
+    if (LoadingSoundMix && WorldSoundClass && GetWorld())
+    {
+        // 지정된 시간 동안 서서히 원래 볼륨으로 복구
+        UGameplayStatics::SetSoundMixClassOverride(
+            GetWorld(),
+            LoadingSoundMix,
+            WorldSoundClass,
+            0.0f,  // 원래 볼륨
+            1.0f,  // 기본 피치
+            FadeInTime,
+            true
+        );
+
+        FTimerHandle PopWaitHandle;
+        GetWorld()->GetTimerManager().SetTimer(PopWaitHandle, [this]()
+            {
+                // 로딩 믹스 제거
+                UGameplayStatics::PopSoundMixModifier(GetWorld(), LoadingSoundMix);
+            }, FadeInTime, false); // FadeInTime 이후 확실히 정리
+
+    }
+}
+
+// ============================ SPAWNER ============================
+// 스포너에 스폰 요청 및 바인딩 (맵 로딩 & 리스폰 세팅이 끝난 직후)
+void UEPLoadingSubsystem::PrepareSpawnersBeforeFadeIn()
+{
+    TArray<AActor*> FoundSpawners;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEPMonsterSpawner::StaticClass(), FoundSpawners);
+
+    PendingSpawnersCount = 0;
+
+    for (AActor* Actor : FoundSpawners)
+    {
+        if (AEPMonsterSpawner* Spawner = Cast<AEPMonsterSpawner>(Actor))
+        {
+            // 로딩에 스폰될 스포너인지 확인
+            if (Spawner->GetbSpawnOnBeginPlay())
+            {
+                PendingSpawnersCount++;
+
+                // 스포너의 준비 완료 신호 바인딩
+                Spawner->OnSpawnerReady.AddDynamic(this, &UEPLoadingSubsystem::HandleSingleSpawnerReady);
+                Spawner->RequestSpawn(); // 스폰 요청
+            }
+        }
+    }
+
+    // 로딩에 스폰할 스포너가 없을 경우
+    if (PendingSpawnersCount == 0)
+    {
+        PlayFadeIn(); // fade in 플레이
+    }
+}
+
+// 스포너가 스폰 성공했을 때마다 호출
+void UEPLoadingSubsystem::HandleSingleSpawnerReady()
+{
+    PendingSpawnersCount--;
+
+    // 맵 안의 모든 필수 스포너 준비 완료되었을 때
+    if (PendingSpawnersCount <= 0)
+    {
+        PlayFadeIn(); // fade in 플레이
+    }
 }

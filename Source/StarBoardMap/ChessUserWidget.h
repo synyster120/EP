@@ -20,7 +20,7 @@ class STARBOARDMAP_API UChessUserWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-    UPROPERTY(meta = (BindWidget))
+    /*UPROPERTY(meta = (BindWidget))
     UImage* Image1;
 
     UPROPERTY(meta = (BindWidget))
@@ -30,7 +30,7 @@ public:
     UImage* Image3;
 
     UPROPERTY()
-    UImage* Image[3];
+    UImage* Image[3];*/
 
     UPROPERTY(meta = (BindWidget))
     UProgressBar* ProgressBar;

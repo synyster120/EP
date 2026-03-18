@@ -13,9 +13,9 @@
 void UChessUserWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-	Image[0] = Image1;
+	/*Image[0] = Image1;
 	Image[1] = Image2;
-	Image[2] = Image3;
+	Image[2] = Image3;*/
 
     FString TargetActorName = TEXT("BP_CKing_C_0");
 
@@ -51,16 +51,16 @@ void UChessUserWidget::NativeConstruct()
 
     King->StatComponent->OnHealthChanged.AddDynamic(this, &UChessUserWidget::OnHealthChange);
 
-    Player->StatComponent->OnHealthChanged.AddDynamic(this, &UChessUserWidget::OnPlayerHealthChange);
+    //Player->StatComponent->OnHealthChanged.AddDynamic(this, &UChessUserWidget::OnPlayerHealthChange);
 }
 
 void UChessUserWidget::OnPlayerHealthChange()
 {
-    FEPHealthInfo INFO = Player->StatComponent->GetHealthInfo();
+    /*FEPHealthInfo INFO = Player->StatComponent->GetHealthInfo();
     for (int i = 0;i < 3;i++) {
         if (INFO.CurrentBlocks > i) Image[i]->SetVisibility(ESlateVisibility::Visible);
         else Image[i]->SetVisibility(ESlateVisibility::Hidden);
-    }
+    }*/
 }
 
 void UChessUserWidget::OnHealthChange()

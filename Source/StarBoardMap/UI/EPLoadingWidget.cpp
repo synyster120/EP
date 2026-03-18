@@ -48,7 +48,6 @@ void UEPLoadingWidget::PlayFadeOutAnimation()
         }
         // Forward: 0 -> 1 (투명 -> 검은색) 가정
         PlayAnimation(FadeOut_Anim);
-        UE_LOG(LogTemp, Warning, TEXT("[ERROR ANIM] fade out play"));
     }
     else
     {
@@ -83,7 +82,6 @@ void UEPLoadingWidget::PlayFadeInAnimation()
 
         // Forward: 1 -> 0 (검은색 -> 투명) 가정
         PlayAnimation(FadeIn_Anim);
-        UE_LOG(LogTemp, Warning, TEXT("[ERROR ANIM] fade in play"));
     }
     else
     {
@@ -92,29 +90,29 @@ void UEPLoadingWidget::PlayFadeInAnimation()
     }
 }
 
+void UEPLoadingWidget::NativeOnInitialized()
+{
+    Super::NativeOnInitialized();
+
+    // 애니메이션 종료 델리게이트 바인딩
+    if (FadeOut_Anim)
+    {
+        FWidgetAnimationDynamicEvent OutDelegate;
+        OutDelegate.BindDynamic(this, &UEPLoadingWidget::HandleFadeOutAnimFinished);
+        BindToAnimationFinished(FadeOut_Anim, OutDelegate);
+    }
+
+    if (FadeIn_Anim)
+    {
+        FWidgetAnimationDynamicEvent InDelegate;
+        InDelegate.BindDynamic(this, &UEPLoadingWidget::HandleFadeInAnimFinished);
+        BindToAnimationFinished(FadeIn_Anim, InDelegate);
+    }
+}
+
 void UEPLoadingWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    static bool bIsBound = false;
-    // 애니메이션 종료 델리게이트 바인딩
-    if (!bIsBound)
-    {
-        if (FadeOut_Anim)
-        {
-            FWidgetAnimationDynamicEvent OutDelegate;
-            OutDelegate.BindDynamic(this, &UEPLoadingWidget::HandleFadeOutAnimFinished);
-            BindToAnimationFinished(FadeOut_Anim, OutDelegate);
-        }
-
-        if (FadeIn_Anim)
-        {
-            FWidgetAnimationDynamicEvent InDelegate;
-            InDelegate.BindDynamic(this, &UEPLoadingWidget::HandleFadeInAnimFinished);
-            BindToAnimationFinished(FadeIn_Anim, InDelegate);
-        }
-        bIsBound = true;
-    }
 
     if (Anim)
     {

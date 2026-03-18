@@ -339,6 +339,12 @@ bool UEPSkillComponent::CanActivateSkill(int32 SkillIndex)
     // 해당 스킬이 쿨타임 중인가?
     if (SkillSlots[SkillIndex].CooldownTimerHandle.IsValid())
     {
+        if (!IsValid(SkillSlots[SkillIndex].SkillObject)) // 살아있는지 확인
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Skill is null"));
+            return false;
+        }
+
         UE_LOG(LogTemp, Warning, TEXT("Skill [%s] is on cooldown."), *SkillSlots[SkillIndex].SkillObject->GetSkillID().ToString());
         return false;
     }
