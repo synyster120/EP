@@ -36,7 +36,7 @@
 
 AEPPlayerCharacter::AEPPlayerCharacter()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     // 구체적인 자식 컴포넌트를 생성
     UEPHealthBlockStatComponent* PlayerStatComponent = CreateDefaultSubobject<UEPHealthBlockStatComponent>(TEXT("StatComponent"));
@@ -134,10 +134,75 @@ void AEPPlayerCharacter::BeginPlay()
         //DissolveMID = MeshComp->CreateAndSetMaterialInstanceDynamic(0);
 
         // (참고) 만약 캐릭터의 머티리얼 슬롯이 여러 개라면 for문으로 모두 변환해야함
+        const int32 MaterialCount = MeshComp->GetNumMaterials();
+        FadeMIDs.SetNum(MaterialCount);
+
+        for (int32 i = 0; i < MaterialCount; ++i)
+        {
+            UMaterialInstanceDynamic* MID = MeshComp->CreateAndSetMaterialInstanceDynamic(i);
+            if (MID)
+            {
+                MID->SetScalarParameterValue(TEXT("FadeAlpha"), 1.f);
+                FadeMIDs[i] = MID;
+            }
+        }
     }
 
     // best item search
     GetWorldTimerManager().SetTimer(CheckItemTimerHandle, this, &AEPPlayerCharacter::CheckNearbyItems, 0.1f, true);
+}
+
+void AEPPlayerCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    if (!CameraComponent) return;
+
+    USkeletalMeshComponent* MeshComp = GetMesh();
+    if (!MeshComp) return;
+
+    const FVector CamLoc = CameraComponent->GetComponentLocation();
+
+    // 사용할 본 목록
+    static const FName Bone_HeelL(TEXT("HeelB_L"));
+    static const FName Bone_HeelR(TEXT("HeelB_R"));
+    static const FName Bone_Head(TEXT("Head"));
+
+    float MinDistance = TNumericLimits<float>::Max();
+
+    // Heel L
+    FVector BoneLoc = MeshComp->GetBoneLocation(Bone_HeelL);
+    MinDistance = FMath::Min(MinDistance, FVector::Distance(CamLoc, BoneLoc));
+
+    // Heel R
+    BoneLoc = MeshComp->GetBoneLocation(Bone_HeelR);
+    MinDistance = FMath::Min(MinDistance, FVector::Distance(CamLoc, BoneLoc));
+
+    // Head
+    BoneLoc = MeshComp->GetBoneLocation(Bone_Head);
+    MinDistance = FMath::Min(MinDistance, FVector::Distance(CamLoc, BoneLoc));
+
+    float TargetFadeAlpha = 1.f;
+
+    if (MinDistance < FadeStartDistance)
+    {
+        TargetFadeAlpha = FMath::GetMappedRangeValueClamped(
+            FVector2D(FadeEndDistance, FadeStartDistance),
+            FVector2D(MinFadeAlpha, 1.f),
+            MinDistance
+        );
+    }
+
+    CurrentFadeAlpha = TargetFadeAlpha;
+    UE_LOG(LogTemp, Warning, TEXT("HIHI %f"), CurrentFadeAlpha);
+
+    for (UMaterialInstanceDynamic* MID : FadeMIDs)
+    {
+        if (MID)
+        {
+            MID->SetScalarParameterValue(TEXT("FadeAlpha"), CurrentFadeAlpha);
+        }
+    }
 }
 
 void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -210,7 +275,7 @@ void AEPPlayerCharacter::Move(const FInputActionValue& Value)
 
 void AEPPlayerCharacter::Look(const FInputActionValue& Value)
 {
-    FVector2D LookAxisVector = Value.Get<FVector2D>();
+    const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
     if (Controller != nullptr)
     {
