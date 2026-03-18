@@ -93,6 +93,19 @@ void AEPChessGameplayManager::ClearGame(AActor* DeadKing)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Game Clear! King %s is dead."), *DeadKing->GetName());
 
+	for (ACUnit* Unit : GetUnit()) 
+	{
+		Unit->ClearGame();
+	}
+
+	for (int32 i = 1; i <= 9;i++)
+	{
+		for (int32 j = 1;j <= 9;j++)
+		{
+			SetGridWarning(FIntPoint(i, j), -GetGridWarning(FIntPoint(i, j)));
+		}
+	}
+
 	// 턴 타이머 제거
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 

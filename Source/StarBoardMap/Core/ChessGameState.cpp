@@ -26,6 +26,7 @@ void AChessGameState::BeginPlay()
 
     UWorld* World = GetWorld();
     FActorSpawnParameters SpawnParams;
+    SpawnParams.OverrideLevel = this->GetLevel();
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     FRotator SpawnRotation = FRotator::ZeroRotator;
 
