@@ -76,5 +76,5 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 	
-	
+	void ClearGame();
 };

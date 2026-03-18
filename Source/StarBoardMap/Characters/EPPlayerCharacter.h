@@ -83,6 +83,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DropAndPickUpAction;
 
+	//카메라 머테리얼
+	UPROPERTY(EditAnywhere, Category = "Camera Fade")
+	float FadeStartDistance = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "Camera Fade")
+	float FadeEndDistance = 50.f;
+
+	UPROPERTY(EditAnywhere, Category = "Camera Fade")
+	float MinFadeAlpha = 0;
+
+
+	UPROPERTY()
+	TArray<UMaterialInstanceDynamic*> FadeMIDs;
+
+	float CurrentFadeAlpha = 1.f;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<UEPHUDWidget> EPHUDWidgetClass;
@@ -95,6 +111,8 @@ protected:
 
 protected:
     virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
     //virtual void InitializeCharacterData() override;
 	// 
 	 // APawn으로부터 상속받은, 입력 컴포넌트 설정 함수를 재정의
