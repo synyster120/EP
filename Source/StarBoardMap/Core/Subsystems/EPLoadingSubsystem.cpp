@@ -27,6 +27,24 @@ void UEPLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UEPLoadingSubsystem::Deinitialize()
 {
+    // 위젯 제거
+     if (CurrentWidget)
+     {
+         CurrentWidget->RemoveFromParent();
+         CurrentWidget = nullptr;
+     }
+
+    // 뷰포트에 남아있을지 모르는 UI 포커스를 게임으로 강제 복구
+    if (UWorld* World = GetWorld())
+    {
+        if (APlayerController* PlayerController = World->GetFirstPlayerController())
+        {
+            FInputModeGameOnly InputMode;
+            PlayerController->SetInputMode(InputMode);
+            PlayerController->bShowMouseCursor = false;
+        }
+    }
+
     Super::Deinitialize();
 }
 
@@ -395,8 +413,8 @@ void UEPLoadingSubsystem::HandleFadeInFinished()
         PlayerController->SetIgnoreMoveInput(false);
         PlayerController->SetIgnoreLookInput(false);
         // 마우스 커서
-        //FInputModeGameOnly InputMode;
-        //PlayerController->SetInputMode(InputMode);
+        FInputModeGameOnly InputMode;
+        PlayerController->SetInputMode(InputMode);
     }
 
     HideLoadingScreen();

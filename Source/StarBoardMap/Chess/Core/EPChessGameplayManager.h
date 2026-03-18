@@ -21,8 +21,8 @@ public:
 	AEPChessGameplayManager();
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "GameState")
-	AChessGameState* ChessGameState;
+	/*UPROPERTY(VisibleAnywhere, Category = "GameState")
+	AChessGameState* ChessGameState;*/
 
 	FTimerHandle TurnTimer;
 
@@ -119,4 +119,11 @@ protected:
 
 public:
 	TArray<ACUnit*> GetUnit() const { return Units; }
+
+	
+// ---------------- Game Ending ----------------
+public:
+	// C++에서 호출하면 블루프린트에서 실행될 이벤트 (Door Open 연출 시작용)
+	UFUNCTION(BlueprintImplementableEvent, Category = "GmaeEnding")
+	void PlayOpenDoor();
 };
