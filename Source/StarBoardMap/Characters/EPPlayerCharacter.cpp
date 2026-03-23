@@ -194,7 +194,6 @@ void AEPPlayerCharacter::Tick(float DeltaTime)
     }
 
     CurrentFadeAlpha = TargetFadeAlpha;
-    UE_LOG(LogTemp, Warning, TEXT("HIHI %f"), CurrentFadeAlpha);
 
     for (UMaterialInstanceDynamic* MID : FadeMIDs)
     {
