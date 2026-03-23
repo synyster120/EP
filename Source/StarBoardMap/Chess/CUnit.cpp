@@ -90,8 +90,7 @@ void ACUnit::CollisionHitEnable()
 
 void ACUnit::OnCapsuleOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0) && OtherComp->GetName().StartsWith(TEXT("Capsule")))
-	{
+	if (OtherActor == UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)){
 		ACharacter* OtherChar = Cast<ACharacter>(OtherActor);
 		FVector Dir = (OtherChar->GetActorLocation() - GetActorLocation());
 		Dir.Z = 0;

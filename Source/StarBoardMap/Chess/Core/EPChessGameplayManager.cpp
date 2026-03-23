@@ -98,6 +98,8 @@ void AEPChessGameplayManager::ClearGame(AActor* DeadKing)
 		Unit->ClearGame();
 	}
 
+	bIsClear = true;
+
 	for (int32 i = 1; i <= 9;i++)
 	{
 		for (int32 j = 1;j <= 9;j++)
@@ -227,8 +229,11 @@ FVector AEPChessGameplayManager::GetPlayerVector()
 
 void AEPChessGameplayManager::SetGridWarning(FIntPoint NewXY, int32 Val)
 {
-	GridWarningState[NewXY.X][NewXY.Y] += Val;
-	GridWarningTiles[NewXY.X * 10 + NewXY.Y]->SetActorHiddenInGame(GridWarningState[NewXY.X][NewXY.Y] == 0 ? true : false);
+	if (!bIsClear || GridWarningState[NewXY.X][NewXY.Y] + Val == 0)
+	{
+		GridWarningState[NewXY.X][NewXY.Y] += Val;
+		GridWarningTiles[NewXY.X * 10 + NewXY.Y]->SetActorHiddenInGame(GridWarningState[NewXY.X][NewXY.Y] == 0 ? true : false);
+	}
 }
 
 void AEPChessGameplayManager::GamestateSetup()
