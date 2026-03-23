@@ -6,6 +6,7 @@
 #include "NavigationSystem.h"
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AEPMonsterSpawner::AEPMonsterSpawner()
 {
@@ -111,24 +112,45 @@ void AEPMonsterSpawner::ExecuteSpawn()
     {
         AttemptCount++; // 시도 횟수 증가
 
+        // 박스 영역에서 랜덤 위치
         FVector RawRandomLocation = UKismetMathLibrary::RandomPointInBoundingBox(SpawnArea->Bounds.Origin, SpawnArea->Bounds.BoxExtent);
-        FNavLocation ValidNavLocation;
-        FVector QueryExtent(50.f, 50.f, 500.f);
 
-        if (NavSystem->ProjectPointToNavigation(RawRandomLocation, ValidNavLocation, QueryExtent))
+        // line trace 의시작점(박스의 천장) & 끝점(박스의 바닥) 계산
+        FVector TraceStart = FVector(RawRandomLocation.X, RawRandomLocation.Y, SpawnArea->Bounds.Origin.Z + SpawnArea->Bounds.BoxExtent.Z);
+        FVector TraceEnd = FVector(RawRandomLocation.X, RawRandomLocation.Y, SpawnArea->Bounds.Origin.Z - SpawnArea->Bounds.BoxExtent.Z);
+
+        FHitResult HitResult;
+        FCollisionQueryParams TraceParams;
+        TraceParams.AddIgnoredActor(this); // 스포너 충돌 무시
+        
+        // line trace
+        bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, TraceParams);
+
+        if (bHit) // 바닥 존재 여부
         {
-            FRotator RandomRotation = FRotator(0.f, FMath::RandRange(0.f, 360.f), 0.f);
-            FActorSpawnParameters SpawnParams;
-            SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-            SpawnParams.OverrideLevel = this->GetLevel(); // 소속 레벨 지정
+            FNavLocation ValidNavLocation;
+            FVector QueryExtent(50.f, 50.f, 50.f); // 탐색용 투명 박스의 크기(반경)
 
-            AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(EnemyClassToSpawn, ValidNavLocation.Location, RandomRotation, SpawnParams);
-
-            if (AEPEnemyCharacter* Enemy = Cast<AEPEnemyCharacter>(SpawnedActor))
+            // Nav Mesh 존재 여부
+            if (NavSystem->ProjectPointToNavigation(HitResult.Location, ValidNavLocation, QueryExtent)) // 파라미터 : 기준점, 결과물, 검색 반경
             {
-                SpawnedMonsters.Add(Enemy);
+                FRotator RandomRotation = FRotator(0.f, FMath::RandRange(0.f, 360.f), 0.f);
+                FActorSpawnParameters SpawnParams;
+
+                SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding; // 겹치면 밀어내되, 실패하면 스폰 취소
+
+                // 묻힘 방지 (표면에 10.f 띄워 스폰)
+                FVector FinalSpawnLocation = ValidNavLocation.Location + FVector(0.f, 0.f, 10.f);
+
+                AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(EnemyClassToSpawn, FinalSpawnLocation, RandomRotation, SpawnParams);
+
+                if (AEPEnemyCharacter* Enemy = Cast<AEPEnemyCharacter>(SpawnedActor))
+                {
+                    // 스폰 성공
+                    SpawnedMonsters.Add(Enemy);
+                    CurrentSpawnedCount++;
+                }
             }
-            CurrentSpawnedCount++;
         }
         else
         {
