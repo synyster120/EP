@@ -79,7 +79,7 @@ void UEPSkill_Projectile::Activate(AActor* Caster, const FEPSkillTargetData& New
                     {
                         GetWorld()->GetTimerManager().SetTimer(
                             SpawnTimerHandle,
-                            FTimerDelegate::CreateLambda([this, PoolManager2, ActorClassToSpawn, SpawnTransform, InitializerData, PhaseData, Caster]()
+                            FTimerDelegate::CreateWeakLambda(this, [this, PoolManager2, ActorClassToSpawn, SpawnTransform, InitializerData, PhaseData, Caster]()
                                 {
                                     if (!IsValid(this)) return;
                                     if (!IsValid(PoolManager2)) return; // 중요!

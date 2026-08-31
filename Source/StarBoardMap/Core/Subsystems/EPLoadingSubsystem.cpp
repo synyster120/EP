@@ -18,6 +18,12 @@
 
 #include "LevelElements/EPMonsterSpawner.h"
 
+#include "Settings/EPAudioDeveloperSettings.h"
+#include "Components/AudioComponent.h"
+#include "Settings/EPSettingsSubsystem.h"
+#include "Sound/SoundMix.h"
+
+
 // ============================ Loading ============================
 void UEPLoadingSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -450,11 +456,36 @@ void UEPLoadingSubsystem::HandleFadeInFinished()
 // 월드 사운드 제거
 void UEPLoadingSubsystem::MuteWorldAudio()
 {
-    if (LoadingSoundMix && GetWorld())
+    const UEPAudioDeveloperSettings* AudioSettings = GetDefault<UEPAudioDeveloperSettings>();
+    if (AudioSettings && AudioSettings->LoadingSoundMix.LoadSynchronous())
     {
-        // 로딩 믹스 적용 (게임 소리 즉시 차단)
-        UGameplayStatics::PushSoundMixModifier(GetWorld(), LoadingSoundMix);
+        LoadingSoundMix = AudioSettings->LoadingSoundMix.Get(); // ProjectSettings에서 지정한 Loading Sound mix 사용
+
+        UWorld* PersistentWorld = GetGameInstance() ? GetGameInstance()->GetWorld() : GetWorld();
+        if (LoadingSoundMix && PersistentWorld)
+        {
+            UGameplayStatics::PushSoundMixModifier(PersistentWorld, LoadingSoundMix); // loading sound mix push
+            if (USoundBase* BGMAsset = AudioSettings->Loading_BGMSound.LoadSynchronous())
+            {
+                UIAudioComponent = UGameplayStatics::CreateSound2D(PersistentWorld, BGMAsset); // audio component 소속 지정, 사운드 생성
+                if (UIAudioComponent)
+                {
+                    UIAudioComponent->bIsUISound = true;            // ui 사운드 명시
+                    UIAudioComponent->bAutoDestroy = false;         // 자동 파괴 방지
+
+                    // save slot 의 bgm 사운드 수치 가져와서 적용
+                    if (UEPSettingsSubsystem* SettingsSys = GetGameInstance()->GetSubsystem<UEPSettingsSubsystem>())
+                    {
+                        float SavedBGMVolume = SettingsSys->GetAudioSettings().BGMVolume;
+                        UIAudioComponent->SetVolumeMultiplier(SavedBGMVolume); // 사운드 수치 적용
+                    }
+
+                    UIAudioComponent->Play();
+                }
+            }
+        }
     }
+
 }
 
 // 월드 사운드 적용
@@ -462,20 +493,20 @@ void UEPLoadingSubsystem::RestoreWorldAudio(float FadeInTime)
 {
     if (LoadingSoundMix && WorldSoundClass && GetWorld())
     {
-        // 지정된 시간 동안 서서히 원래 볼륨으로 복구
-        UGameplayStatics::SetSoundMixClassOverride(
-            GetWorld(),
-            LoadingSoundMix,
-            WorldSoundClass,
-            0.0f,  // 원래 볼륨
-            1.0f,  // 기본 피치
-            FadeInTime,
-            true
-        );
+        if (UIAudioComponent)
+        {
+            UIAudioComponent->FadeOut(FadeInTime, 0.0f); // fadeout 될 시간, 목표 볼륨
+        }
 
         FTimerHandle PopWaitHandle;
         GetWorld()->GetTimerManager().SetTimer(PopWaitHandle, [this]()
             {
+                // 컴포넌트 유효 and 현재 재생 중인지 확인 후 BGM 정지
+                if (UIAudioComponent && UIAudioComponent->IsPlaying())
+                {
+                    UIAudioComponent->Stop();
+                }
+
                 // 로딩 믹스 제거
                 UGameplayStatics::PopSoundMixModifier(GetWorld(), LoadingSoundMix);
             }, FadeInTime, false); // FadeInTime 이후 확실히 정리

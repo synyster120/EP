@@ -20,4 +20,9 @@ void FEPGameplayTags::Initialize()
     GameplayTags.Tag_InputUserSettings = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("InputUserSettings"));
     GameplayTags.Tag_InputUserSettings_PickUp = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("InputUserSettings.PickUp"));
     GameplayTags.Tag_InputUserSettings_Drop = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("InputUserSettings.Drop"));
+
+    // UI 관련 Tags
+    GameplayTags.Tag_UI_Menu_Pause = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("UI.Menu.Pause"));
+    GameplayTags.Tag_UI_Menu_Settings = UGameplayTagsManager::Get().RequestGameplayTag(TEXT("UI.Menu.Settings"));
+
 }

@@ -11,6 +11,7 @@
 class UEPLoadingWidget;
 class USoundMix;
 class USoundClass;
+class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadingProgress, float, Progress);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLoadingFinished);
@@ -72,6 +73,10 @@ public:
     // 제어할 최상위 사운드 클래스 (World 계층)
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio")
     USoundClass* WorldSoundClass;
+
+    // BGM 제어용 audio component
+    UPROPERTY()
+    UAudioComponent* UIAudioComponent;
 
     // 로딩 시작 시 호출 (사운드 믹스 적용)
     UFUNCTION(BlueprintCallable, Category = "Loading|Audio")

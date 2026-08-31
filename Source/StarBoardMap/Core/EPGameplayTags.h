@@ -26,6 +26,10 @@ public:
     FGameplayTag Tag_InputUserSettings_PickUp;
     FGameplayTag Tag_InputUserSettings_Drop;
 
+    // -- UI 관련 Tags --
+    FGameplayTag Tag_UI_Menu_Pause;
+    FGameplayTag Tag_UI_Menu_Settings;
+
 private:
     static FEPGameplayTags GameplayTags;
 };

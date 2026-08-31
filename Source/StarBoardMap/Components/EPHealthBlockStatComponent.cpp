@@ -27,9 +27,8 @@ void UEPHealthBlockStatComponent::Initialize(const FEPBaseStat& BaseStatData)
     Super::Initialize(BaseStatData);
     MaxHealthBlocks = BaseStatData.MaxHealth;
     CurrentHealthBlocks = MaxHealthBlocks;
-
-    //UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %d, AttackSpeed: %d, MovementSpeed: %d"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
-    UE_LOG(LogTemp, Warning, TEXT("MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
+    
+    UE_LOG(LogTemp, Log, TEXT("[%s] stat --- MaxHealthBlocks: %d, CurrentHealthBlocks: %d, AttackRange: %f, AttackSpeed: %f, MovementSpeed: %f"), *GetOwner()->GetName(), MaxHealthBlocks, CurrentHealthBlocks, AttackRange, AttackSpeed, MovementSpeed);
 
 }
 

@@ -1,9 +1,56 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "UI/EPHUDWidget.h"
 #include "Components/Image.h"
 #include "UI/EPHealthUnitWidget.h"
+#include "Components/EPStatComponent.h"
+#include "Data/EPCharacterTypes.h"
+
+
+void UEPHUDWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    if (APlayerController* PlayerController = GetOwningPlayer()) // UI(자신)을 띄운 플레이어 컨트롤러
+    {
+        if (APawn* CurrentPawn = PlayerController->GetPawn())
+        {
+            // 빙의가 이미 끝났다면 바로 바인딩
+            TryBindToStatComponent(CurrentPawn);
+        }
+        else
+        {
+            // 빙의 전 이라면 예약
+            PlayerController->OnPossessedPawnChanged.AddUniqueDynamic(this, &UEPHUDWidget::HandlePawnPossessed);
+        }
+    }
+}
+
+void UEPHUDWidget::HandlePawnPossessed(APawn* OldPawn, APawn* NewPawn)
+{
+    if (NewPawn)
+    {
+        // StatComponent에 바인딩
+        TryBindToStatComponent(NewPawn);
+    }
+}
+
+void UEPHUDWidget::TryBindToStatComponent(APawn* InPawn)
+{
+    if (!InPawn) return;
+
+    // pawn의 StatComponent를 찾아 바인딩
+    if (UEPStatComponent* StatComp = InPawn->FindComponentByClass<UEPStatComponent>())
+    {
+        StatComp->OnHealthChanged_Two.AddUniqueDynamic(this, &UEPHUDWidget::UpdateHealthFloat);
+
+        // 체력 초기화
+        FEPHealthInfo CurrentStat = StatComp->GetHealthInfo();
+        if (CurrentStat.HealthType == EEPHealthType::HealthBlock)
+        {
+            UpdateHealthFloat_Implementation(CurrentStat.CurrentBlocks, CurrentStat.MaxBlocks);
+        }
+    }
+}
 
 void UEPHUDWidget::UpdateHealthFloat_Implementation(float NewHealth, float MaxHealth)
 {

@@ -19,7 +19,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
-#include "UI/EPHUDWidget.h"
+#include "UI/Foundation/EPUILocalSubsystem.h"
 
 #include "Items/EPItemBase.h"
 #include "Items/EPDroppedItem.h"
@@ -104,12 +104,12 @@ void AEPPlayerCharacter::BeginPlay()
 
 
     // user widget
-    if (EPHUDWidgetClass)
+    if (EPMainLayoutWidgetClass)
     {
-        EPHUDWidgetInstance = CreateWidget<UEPHUDWidget>(GetWorld(), EPHUDWidgetClass);
-        if (EPHUDWidgetInstance)
+        EPPMainLayoutWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), EPMainLayoutWidgetClass);
+        if (EPPMainLayoutWidgetInstance)
         {
-            EPHUDWidgetInstance->AddToViewport();
+            EPPMainLayoutWidgetInstance->AddToViewport();
         }
     }
     else
@@ -124,7 +124,6 @@ void AEPPlayerCharacter::BeginPlay()
         FEPHealthInfo CurrentHealthInfo = StatComponent->GetHealthInfo();
         float CurrentHealth = CurrentHealthInfo.CurrentHealth;
         float MaxHealth = CurrentHealthInfo.MaxHealth;
-        HandleHealthChanged(CurrentHealth, MaxHealth);
     }
 
     // 스켈레탈 메시의 0번 슬롯 머티리얼을 다이내믹으로 변환하여 생성 및 적용
@@ -235,6 +234,9 @@ void AEPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
         // Drop
         EnhancedInputComponent->BindAction(DropAndPickUpAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::DropAndPickUp);
+
+        // Pause
+        EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &AEPPlayerCharacter::Pause);
     }
 }
 
@@ -432,6 +434,21 @@ void AEPPlayerCharacter::DropAndPickUp(const FInputActionValue& Value)
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("pickup - get tager item data is not epitembase --> pickup fail"));
+        }
+    }
+}
+
+void AEPPlayerCharacter::Pause(const FInputActionValue& Value)
+{
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+        {
+            if (UEPUILocalSubsystem* UISystem = LocalPlayer->GetSubsystem<UEPUILocalSubsystem>())
+            {
+                // Tag로 일시정지(Pause)창 push 요청
+                UISystem->OpenMenuByTag(FEPGameplayTags::Get().Tag_UI_Menu_Pause);
+            }
         }
     }
 }
@@ -639,11 +656,8 @@ void AEPPlayerCharacter::CurrentMontagePlay(UAnimMontage* CurrentMontage, EEPCom
 
 void AEPPlayerCharacter::HandleHealthChanged(float NewHealth, float MaxHealth)
 {
-    if (EPHUDWidgetInstance)
-    {
-        // 여기서 최종적으로 위젯의 함수를 호출
-        EPHUDWidgetInstance->UpdateHealthFloat(NewHealth, MaxHealth);
-    }
+    // [**] 26/08/27 기준 플레이어 사용x, Enemy만 BB에 올리는 용으로 사용중
+    // ** 설정창 구현 과정에서 플레이어가 직접 UI에 간섭x HUDwidget이 StatComponent와 연결 후 체력 스탯 관리
 }
 
 // 애니메이션BP 상태 변경하는 함수

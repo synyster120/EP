@@ -19,7 +19,7 @@ class UInputAction;
 struct FInputActionValue;
 class UCapsuleComponent;
 
-class UEPHUDWidget;
+class UUserWidget;
 
 class AEPItemBase;
 class AEPDroppedItem;
@@ -80,8 +80,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* BaseAttackAction;
 
+	/** Interaction Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DropAndPickUpAction;
+
+	/** Pause Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* PauseAction;
+
 
 	//카메라 머테리얼
 	UPROPERTY(EditAnywhere, Category = "Camera Fade")
@@ -99,12 +105,12 @@ protected:
 
 	float CurrentFadeAlpha = 1.f;
 
-
+	// HUD Widget
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-	TSubclassOf<UEPHUDWidget> EPHUDWidgetClass;
+	TSubclassOf<UUserWidget> EPMainLayoutWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<UEPHUDWidget> EPHUDWidgetInstance;
+	TObjectPtr<UUserWidget> EPPMainLayoutWidgetInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Loot")
 	TSubclassOf<AEPDroppedItem> DroppedItemClass;
@@ -130,6 +136,8 @@ protected:
 	void BaseAttack(const FInputActionValue& Value);
 
 	void DropAndPickUp(const FInputActionValue& Value);
+
+	void Pause(const FInputActionValue& Value);
 
 	// 소켓 Mesh 지우기
 	void RemoveFromCharacter();
